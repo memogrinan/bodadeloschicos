@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Boda Mariana y Memo</title>
+    <title>Boda Mariana & Memo</title>
     
     <!-- ========================================== -->
     <!-- FAVICON (Icono de la pestaña cargado desde tu carpeta de diseño) -->
@@ -123,6 +123,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
+            cursor: pointer; /* Cambia el cursor a mano para indicar que es clicable */
         }
         .gallery-grid img:hover {
             transform: scale(1.05);
@@ -149,6 +150,44 @@
 
         footer { padding: 60px 20px; font-size: 0.8rem; opacity: 0.8; text-align: center; background: #fff; }
 
+        /* VISOR DE FOTOS (LIGHTBOX MODAL) */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000; /* Prioridad por encima del menú de navegación */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .lightbox-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 25px rgba(255,255,255,0.15);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .lightbox-modal.active .lightbox-content {
+            transform: scale(1);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px; right: 30px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+
         /* ADAPTACIÓN MÓVIL */
         @media (max-width: 600px) {
             section { padding: 60px 20px; }
@@ -161,6 +200,7 @@
             .btn-rsvp { padding: 14px 30px; font-size: 0.85rem; width: auto; max-width: 100%; box-sizing: border-box; }
             .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
             .gallery-grid img { height: 100px; }
+            .lightbox-close { top: 15px; right: 20px; font-size: 35px; }
         }
     </style>
 </head>
@@ -310,6 +350,7 @@
         <div class="upload-section">
             <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Alex Brush', cursive;">¡Comparte tus fotos!</h3>
             <p>Sube las fotos que tomes durante la boda a nuestro álbum digital.</p>
+            <!-- REEMPLAZAR CON TU LINK DE TALLY CUANDO LO TENGAS LISTO: -->
             <a href="https://photos.app.goo.gl/BECLmAcos9eEh5aJ9" target="_blank" class="btn btn-rsvp">Subir fotos</a>
             <p style="font-size: 0.85rem; color: #777; margin-top: 20px; font-style: italic;">
                 Nota: Guarda este link. Después de la boda, podrás entrar aquí mismo para ver todas las fotos que todos compartimos.
@@ -357,6 +398,25 @@
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
+        // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente)
+        const lightbox = document.createElement("div");
+        lightbox.className = "lightbox-modal";
+        lightbox.innerHTML = `
+            <span class="lightbox-close">&times;</span>
+            <img class="lightbox-content" id="lightboxImg">
+        `;
+        document.body.appendChild(lightbox);
+
+        const lightboxImg = document.getElementById("lightboxImg");
+
+        // Cerrar visor al hacer clic en el botón de cerrar o fuera de la imagen
+        lightbox.addEventListener("click", (e) => {
+            if (e.target !== lightboxImg) {
+                lightbox.classList.remove("active");
+                setTimeout(() => { lightbox.style.display = "none"; }, 300);
+            }
+        });
+
         // GALERÍA AUTOMÁTICA DESDE GITHUB
         async function loadGithubGallery() {
             const username = "memogrinan"; 
@@ -395,8 +455,16 @@
 
                     // Imagen
                     const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url; // URL del archivo crudo [1]
+                    imgEl.src = img.download_url; // URL del archivo crudo
                     imgEl.alt = "Foto compartida";
+                    
+                    // Evento para abrir el visor al hacer clic en la foto
+                    imgEl.addEventListener("click", () => {
+                        lightboxImg.src = img.download_url;
+                        lightbox.style.display = "flex";
+                        setTimeout(() => { lightbox.classList.add("active"); }, 10);
+                    });
+
                     itemEl.appendChild(imgEl);
 
                     // Extraer nombre del archivo (Formato esperado: YYYYMMDD-HHmmss-De-Nombre_Apellido-foto.jpg)
