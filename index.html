@@ -60,7 +60,7 @@
             background-position: center; 
         }
 
-        /* Rutas actualizadas a la carpeta ImagenesWeb */
+        /* Rutas de diseño apuntando a la carpeta ImagenesWeb */
         .header-bg {
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/portada.jpg');
             background-size: cover; background-position: center;
@@ -69,7 +69,6 @@
             background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/trapiche.jpg'); 
         }
         .hospedaje-bg { 
-            /* Se actualizó la referencia de hotel.jpg a hospedaje.jpg */
             background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('ImagenesWeb/hospedaje.jpg'); 
             background-blend-mode: overlay; 
         }
@@ -105,12 +104,17 @@
         .event-loc { font-size: 0.8rem; color: var(--olivo-base); font-weight: 600; display: block; margin: 3px 0; text-transform: uppercase; letter-spacing: 0.5px; }
         .event-desc { font-size: 0.9rem; color: #666; margin-top: 5px; line-height: 1.5; }
 
-        /* GALERÍA DINÁMICA DE INVITADOS */
+        /* GALERÍA DINÁMICA DE INVITADOS CON SUBTÍTULOS */
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 15px;
             margin-top: 30px;
+        }
+        .gallery-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .gallery-grid img {
             width: 100%;
@@ -122,6 +126,17 @@
         }
         .gallery-grid img:hover {
             transform: scale(1.05);
+        }
+        .gallery-caption {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 6px;
+            font-style: italic;
+            text-align: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         /* BOTONES */
@@ -346,7 +361,7 @@
         async function loadGithubGallery() {
             const username = "memogrinan"; 
             const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de carpeta de invitados
+            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
@@ -372,11 +387,38 @@
                     return;
                 }
 
+                // Insertar cada imagen con su subtítulo dinámico
                 images.forEach(img => {
+                    // Contenedor de la tarjeta de foto
+                    const itemEl = document.createElement("div");
+                    itemEl.className = "gallery-item";
+
+                    // Imagen
                     const imgEl = document.createElement("img");
                     imgEl.src = img.download_url; // URL del archivo crudo [1]
                     imgEl.alt = "Foto compartida";
-                    container.appendChild(imgEl);
+                    itemEl.appendChild(imgEl);
+
+                    // Extraer nombre del archivo (Formato esperado: YYYYMMDD-HHmmss-De-Nombre_Apellido-foto.jpg)
+                    const filename = img.name;
+                    if (filename.includes("-De-")) {
+                        const parts = filename.split("-De-");
+                        if (parts.length > 1) {
+                            // Extrae la sección del nombre y limpia los guiones bajos de vuelta a espacios
+                            const rawName = parts[1].split("-")[0];
+                            const cleanName = rawName.replace(/_/g, " "); 
+                            
+                            // Si el nombre no está vacío o marcado como anónimo
+                            if (cleanName && cleanName.toLowerCase() !== "anonimo") {
+                                const captionEl = document.createElement("p");
+                                captionEl.className = "gallery-caption";
+                                captionEl.innerText = `De: ${cleanName}`;
+                                itemEl.appendChild(captionEl);
+                            }
+                        }
+                    }
+
+                    container.appendChild(itemEl);
                 });
             } catch (error) {
                 console.error("Error al cargar la galería de GitHub:", error);
