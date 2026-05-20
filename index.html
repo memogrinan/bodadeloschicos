@@ -6,8 +6,8 @@
     <title>Boda Mariana y Memo</title>
     
     <!-- ========================================== -->
-    <!-- FAVICON (Icono de la pestaña cargado desde tu GitHub) -->
-    <link rel="icon" href="favicon.png" type="image/png">
+    <!-- FAVICON (Icono de la pestaña cargado desde tu carpeta de diseño) -->
+    <link rel="icon" href="ImagenesWeb/favicon.png" type="image/png">
     <!-- ========================================== -->
 
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
         }
 
         html { scroll-behavior: smooth; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
         
         /* MENU INTELIGENTE */
         nav {
@@ -60,16 +60,16 @@
             background-position: center; 
         }
 
-        /* Rutas relativas locales desde tu repositorio de GitHub */
+        /* Rutas actualizadas a la carpeta ImagenesWeb */
         .header-bg {
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('portada.jpg');
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/portada.jpg');
             background-size: cover; background-position: center;
         }
         .celebracion-bg { 
-            background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('trapiche.jpg'); 
+            background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/trapiche.jpg'); 
         }
         .hospedaje-bg { 
-            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('hotel.jpg'); 
+            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('ImagenesWeb/hotel.jpg'); 
             background-blend-mode: overlay; 
         }
 
@@ -191,9 +191,10 @@
         <div class="carousel-container">
             <button class="carousel-btn prev" onclick="moveSlide(-1)">&#10094;</button>
             <div class="carousel-track" id="carouselTrack">
-                <img src="historia_omitlan.jpg" class="carousel-img">
-                <img src="historia_maddie_solita.jpg" class="carousel-img">
-                <img src="historia_propuesta.jpg" class="carousel-img">
+                <!-- Fotos locales cargadas desde la carpeta ImagenesWeb -->
+                <img src="ImagenesWeb/historia_omitlan.jpg" class="carousel-img">
+                <img src="ImagenesWeb/historia_maddie_solita.jpg" class="carousel-img">
+                <img src="ImagenesWeb/historia_propuesta.jpg" class="carousel-img">
             </div>
             <button class="carousel-btn next" onclick="moveSlide(1)">&#10095;</button>
         </div>
@@ -342,10 +343,9 @@
 
         // GALERÍA AUTOMÁTICA DESDE GITHUB
         async function loadGithubGallery() {
-            // REEMPLAZA ESTOS TRES VALORES CON TUS DATOS REALES DE GITHUB:
-            const username = "TU_USUARIO_DE_GITHUB"; 
-            const repo = "TU_REPOSITORIO";           
-            const folder = "ImagenesWeb"; // Nombre de carpeta de invitados           
+            const username = "memogrinan"; 
+            const repo = "bodadeloschicos";           
+            const folder = "FotosBodaInvitados"; // Nombre de carpeta actualizado
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
@@ -373,7 +373,7 @@
 
                 images.forEach(img => {
                     const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url;
+                    imgEl.src = img.download_url; // URL del archivo crudo [1]
                     imgEl.alt = "Foto compartida";
                     container.appendChild(imgEl);
                 });
