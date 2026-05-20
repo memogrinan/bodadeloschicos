@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Boda Mariana y Memo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --olivo-base: #52582f;      
+            --olivo-trans: rgba(82, 88, 47, 0.75); 
+            --olivo-acento: #a3ad73;
+            --crema-fondo: #fcfaf7;
+            --nav-texto: #ffffff;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
+        
+        /* MENU INTELIGENTE */
+        nav {
+            position: fixed; top: 0; width: 100%; 
+            background: var(--olivo-trans);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 1000; padding: 12px 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .nav-container { display: flex; justify-content: center; align-items: center; flex-wrap: nowrap; width: 98%; max-width: 1000px; margin: 0 auto; }
+        nav a { text-decoration: none; color: var(--nav-texto); font-size: clamp(9px, 2.5vw, 12px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 1vw; transition: 0.3s ease; white-space: nowrap; }
+
+        /* PARALLAX AVANZADO PARA MÓVILES (Con máscara de recorte) */
+        header, .parallax-section { 
+            position: relative; 
+            clip-path: inset(0); /* Corta todo lo que esté fuera del contenedor */
+            -webkit-clip-path: inset(0); /* Soporte para iOS / Safari */
+        }
+
+        header {
+            height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center;
+        }
+
+        .parallax-section {
+            min-height: 50vh; display: flex; justify-content: center; align-items: center; padding: 80px 20px;
+        }
+
+        /* Capa de fondo fija en el viewport */
+        .bg-fixed { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            z-index: -1; 
+            pointer-events: none; /* Permite hacer scroll tocando la imagen */
+            background-size: cover; 
+            background-position: center; 
+        }
+
+        /* Imágenes individuales */
+        .header-bg {
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://lh3.googleusercontent.com/d/1-pgQhLSEhfLEcR5IdiQCHaberkwXHRi0');
+            background-size: cover; background-position: center;
+        }
+        .celebracion-bg { 
+            background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://lh3.googleusercontent.com/d/1ucc5HuYzwK2das6zpHHZOHhQ9aITJgRU'); 
+        }
+        .hospedaje-bg { 
+            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('https://images.unsplash.com/photo-1512813195386-6cf811ad3542?auto=format&fit=crop&w=1350&q=80'); 
+            background-blend-mode: overlay; 
+        }
+
+        h1 { font-family: 'Alex Brush', cursive; font-size: clamp(3.5rem, 12vw, 6rem); margin: 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+        .fecha-top { font-size: 1.2rem; letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; font-weight: 400; }
+        
+        /* ESTILOS DEL CONTADOR CORREGIDOS */
+        .countdown-container { 
+            display: flex !important; 
+            gap: 15px; 
+            margin-top: 25px; 
+            justify-content: center; 
+            align-items: center;
+        }
+        .cd-item { 
+            display: flex !important; 
+            flex-direction: column !important; 
+            align-items: center; 
+            min-width: 65px; 
+        }
+        .cd-val { 
+            font-size: clamp(1.2rem, 5vw, 2.2rem); 
+            font-weight: 600; 
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5); 
+            line-height: 1;
+        }
+        .cd-label { 
+            font-size: 0.65rem; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            margin-top: 8px; 
+            opacity: 0.9; 
+            font-weight: 400;
+        }
+
+        section { padding: 80px 20px; max-width: 900px; margin: 0 auto; text-align: center; }
+        h2 { font-family: 'Alex Brush', cursive; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 30px; }
+
+        /* CARRUSEL DE FOTOS */
+        .carousel-container { position: relative; max-width: 600px; margin: 0 auto; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .carousel-img { min-width: 100%; height: 400px; object-fit: cover; }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.7); border: none; font-size: 1.5rem; padding: 10px; cursor: pointer; border-radius: 50%; width: 45px; height: 45px; z-index: 5; color: var(--olivo-base); }
+        .prev { left: 10px; } .next { right: 10px; }
+
+        .glass-card { background: rgba(255, 255, 255, 0.94); padding: 50px 30px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        /* ITINERARIO */
+        .timeline-wrapper { text-align: left; max-width: 450px; margin: 0 auto; position: relative; padding-left: 45px; border-left: 1.5px solid #ddd; }
+        .timeline-day-title { font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: #999; margin: 50px 0 25px -45px; text-align: center; display: block; font-weight: 600; }
+        .timeline-item { position: relative; margin-bottom: 40px; }
+        .timeline-item::before { content: ""; position: absolute; left: -51.5px; top: 6px; width: 11px; height: 11px; background: white; border: 1.5px solid var(--olivo-base); border-radius: 50%; z-index: 2; }
+        .time-label { font-size: 0.8rem; font-weight: 600; color: #888; display: block; }
+        .event-title { font-size: 1.2rem; font-weight: 600; color: #333; margin: 0; }
+        .event-loc { font-size: 0.8rem; color: var(--olivo-base); font-weight: 600; display: block; margin: 3px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .event-desc { font-size: 0.9rem; color: #666; margin-top: 5px; line-height: 1.5; }
+
+        /* BOTONES */
+        .btn { padding: 12px 25px; text-decoration: none; border-radius: 30px; font-size: 0.8rem; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; margin: 10px 5px; min-width: 140px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-rsvp { background-color: var(--olivo-base); color: white; padding: 16px 45px; font-size: 1rem; border: none; margin-top: 20px; }
+        .btn-hotel { border: 1px solid var(--olivo-base); color: var(--olivo-base); }
+        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        .upload-section { margin-top: 50px; padding: 40px; border: 2px dashed var(--olivo-base); border-radius: 20px; background-color: rgba(82, 88, 47, 0.05); }
+
+        footer { padding: 60px 20px; font-size: 0.8rem; opacity: 0.8; text-align: center; background: #fff; }
+
+        /* ADAPTACIÓN MÓVIL */
+        @media (max-width: 600px) {
+            section { padding: 60px 20px; }
+            .timeline-wrapper { margin-left: 20px; }
+            .parallax-section { min-height: 40vh; }
+            
+            /* Ajustes para evitar que los botones y cajas se desborden */
+            .upload-section { padding: 30px 15px; }
+            .btn { min-width: 120px; font-size: 0.75rem; padding: 10px 18px; }
+            .btn-rsvp { padding: 14px 30px; font-size: 0.85rem; width: auto; max-width: 100%; box-sizing: border-box; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#inicio">Inicio</a>
+            <a href="#historia">Historia</a>
+            <a href="#fotos">Fotos</a>
+            <a href="#celebracion">Lugar</a>
+            <a href="#itinerario">Itinerario</a>
+            <a href="#hospedaje">Hospedaje</a>
+            <a href="#confirmacion">RSVP</a>
+        </div>
+    </nav>
+
+    <header id="inicio">
+        <div class="bg-fixed header-bg"></div>
+        <h1>Mariana & Memo</h1>
+        <div class="fecha-top">13 de Febrero • 2027</div>
+        <p>Cholula, Puebla</p>
+        
+        <!-- CONTADOR EN TIEMPO REAL -->
+        <div class="countdown-container" id="countdown">
+            <div class="cd-item"><span class="cd-val" id="days">00</span><span class="cd-label">Días</span></div>
+            <div class="cd-item"><span class="cd-val" id="hours">00</span><span class="cd-label">Horas</span></div>
+            <div class="cd-item"><span class="cd-val" id="minutes">00</span><span class="cd-label">Minutos</span></div>
+            <div class="cd-item"><span class="cd-val" id="seconds">00</span><span class="cd-label">Segundos</span></div>
+        </div>
+    </header>
+
+    <section id="historia">
+        <h2>Nuestra Historia</h2>
+        <div style="font-size: 1.1rem; line-height: 1.8; color: #555; font-style: italic;">
+            <p>"Con el cariño de siempre"... así comenzó todo. Quién diría que entre números, auditorías y el aroma del corporativo de <strong>Bimbo</strong>, encontraríamos al amor de nuestras vidas.</p>
+            <p>Lo que empezó como jornadas compartidas, pronto se transformó en kilómetros recorridos juntos por el mundo. En medio de tantos viajes y sueños, <strong>Maddie</strong> llegó para completar nuestra familia.</p>
+            <p>Hoy, <strong>Cholula</strong> es el lugar que llamamos hogar y el escenario donde queremos unir nuestras vidas para siempre.</p>
+        </div>
+    </section>
+
+    <section id="fotos" style="background-color: #fff;">
+        <h2>Nuestra Historia en Fotos</h2>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="moveSlide(-1)">&#10094;</button>
+            <div class="carousel-track" id="carouselTrack">
+                <img src="https://lh3.googleusercontent.com/d/1-pgQhLSEhfLEcR5IdiQCHaberkwXHRi0" class="carousel-img">
+                <img src="https://lh3.googleusercontent.com/d/1ucc5HuYzwK2das6zpHHZOHhQ9aITJgRU" class="carousel-img">
+            </div>
+            <button class="carousel-btn next" onclick="moveSlide(1)">&#10095;</button>
+        </div>
+    </section>
+
+    <div id="celebracion" class="parallax-section">
+        <div class="bg-fixed celebracion-bg"></div>
+        <div class="glass-card">
+            <h2>Celebración y Fiesta</h2>
+            <h3 style="color:var(--olivo-base); font-weight: 400; font-size: 1.5rem; margin: 0;">Hacienda San José Actipan</h3>
+            <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 25px;">Cholula, Puebla</p>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+                <a href="https://www.google.com/maps/dir//Hacienda+San+Jos%C3%A9+Actipan+San+Andr%C3%A9s+Cholula+Puebla/" target="_blank" class="btn" style="background-color: #4285F4; color: white;">Google Maps</a>
+                <a href="https://waze.com/ul?q=Hacienda+San+Jose+Actipan" target="_blank" class="btn" style="background-color: #33CCFF; color: white;">Waze</a>
+            </div>
+        </div>
+    </div>
+
+    <section id="itinerario">
+        <h2>Itinerario</h2>
+        <div class="timeline-wrapper">
+            <span class="timeline-day-title">Viernes 12 de Febrero</span>
+            <div class="timeline-item">
+                <span class="time-label">4:00 P.M.</span>
+                <p class="event-title">Recepción Boda Civil</p>
+                <span class="event-loc">📍 Hacienda San José Actipan • Catacumba</span>
+                <p class="event-desc">Daremos inicio a los festejos con una recepción íntima de bienvenida para nuestros allegados.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="time-label">5:00 P.M.</span>
+                <p class="event-title">Boda Civil</p>
+                <p class="event-desc">El momento oficial donde daremos el "sí, acepto" ante la ley, rodeados de nuestros seres más queridos.</p>
+            </div>
+            <span class="timeline-day-title">Sábado 13 de Febrero</span>
+            <div class="timeline-item">
+                <span class="time-label">3:30 P.M.</span>
+                <p class="event-title">Recepción</p>
+                <span class="event-loc">📍 Hacienda San José Actipan • Trapiche</span>
+                <p class="event-desc">Les damos la bienvenida a la Hacienda para comenzar a disfrutar de este día inolvidable.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="time-label">4:00 P.M.</span>
+                <p class="event-title">Ceremonia Religiosa</p>
+                <p class="event-desc">Nos uniremos en matrimonio frente a ustedes, sellando nuestro compromiso con amor y fe.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="time-label">5:00 P.M.</span>
+                <p class="event-title">Fiesta y Banquete</p>
+                <p class="event-desc">Disfrutaremos de una deliciosa cena, brindis y mucha música para celebrar juntos hasta el final.</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="hospedaje" class="parallax-section">
+        <div class="bg-fixed hospedaje-bg"></div>
+        <div class="glass-card">
+            <h2>Hospedaje</h2>
+            <div style="margin-bottom: 30px;">
+                <h4 style="margin: 0; color: var(--olivo-base); font-size: 1.1rem; text-transform: uppercase;">Villas Arqueológicas</h4>
+                <a href="tel:+522222733100" class="btn btn-hotel">Llamar</a>
+            </div>
+            <div>
+                <h4 style="margin: 0; color: var(--olivo-base); font-size: 1.1rem; text-transform: uppercase;">Hotel Quinta Luna</h4>
+                <a href="tel:+522222478913" class="btn btn-hotel">Llamar</a>
+            </div>
+        </div>
+    </div>
+
+    <section id="dresscode">
+        <h2>Código de Vestimenta</h2>
+        <p style="font-size: 1.5rem; font-weight: 600; color: var(--olivo-base); margin-bottom: 20px;">Formal</p>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; margin-top: 20px;">
+            <div style="flex: 1; min-width: 250px; text-align: center;">
+                <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px;">Mujeres</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem; line-height: 1.8;">
+                    <li>No blanco</li>
+                    <li>No fondo blanco</li>
+                    <li>Evitar colores claros</li>
+                    <li style="font-size: 0.8rem; color: #666; line-height: 1.4;">(beige, ivory, champagne, plateado)</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 250px; text-align: center;">
+                <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px;">Hombres</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem; line-height: 1.8;">
+                    <li>No color verde</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding: 25px; background-color: #f2f4ed; border-radius: 15px;">
+            <p style="font-size: 0.9rem; color: var(--olivo-base); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px;">Atmósfera de Adultos</p>
+            <p style="font-style: italic; color: #555; font-size: 0.9rem;">Nuestra boda será un evento únicamente para adultos. Gracias por su comprensión.</p>
+        </div>
+    </section>
+
+    <section>
+        <div class="upload-section">
+            <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Alex Brush', cursive;">¡Comparte tus fotos!</h3>
+            <p>Sube las fotos que tomes durante la boda a nuestro álbum digital.</p>
+            <a href="https://photos.app.goo.gl/BECLmAcos9eEh5aJ9" target="_blank" class="btn btn-rsvp">Subir fotos</a>
+            <p style="font-size: 0.85rem; color: #777; margin-top: 20px; font-style: italic;">
+                Nota: Guarda este link. Después de la boda, podrás entrar aquí mismo para ver todas las fotos que todos compartimos.
+            </p>
+        </div>
+    </section>
+
+    <div id="confirmacion" style="background-color: #eef2e6; padding: 80px 20px; text-align: center;">
+        <h2>RSVP</h2>
+        <p>Por favor confirma tu asistencia antes del 13 de enero.</p>
+        <a href="https://withjoy.com/mariana-y-memo/rsvp" target="_blank" class="btn btn-rsvp">Confirmar Asistencia</a>
+    </div>
+
+    <footer>
+        MARIANA & MEMO • 13.02.2027 <br>
+        HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
+    </footer>
+
+    <script>
+        // Contador en tiempo real
+        const targetDate = new Date("Feb 13, 2027 16:00:00").getTime();
+        function updateTimer() {
+            const now = new Date().getTime();
+            const diff = targetDate - now;
+            if (diff > 0) {
+                document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+                document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000);
+            }
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // Control del carrusel
+        let currentSlide = 0;
+        const track = document.getElementById('carouselTrack');
+        function moveSlide(d) {
+            currentSlide = (currentSlide + d + track.children.length) % track.children.length;
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+    </script>
+</body>
+</html>
