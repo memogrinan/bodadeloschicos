@@ -21,7 +21,7 @@
         }
 
         html { scroll-behavior: smooth; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
         
         /* MENU INTELIGENTE */
         nav {
@@ -69,7 +69,8 @@
             background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/trapiche.jpg'); 
         }
         .hospedaje-bg { 
-            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('ImagenesWeb/hotel.jpg'); 
+            /* Se actualizó la referencia de hotel.jpg a hospedaje.jpg */
+            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('ImagenesWeb/hospedaje.jpg'); 
             background-blend-mode: overlay; 
         }
 
@@ -345,7 +346,7 @@
         async function loadGithubGallery() {
             const username = "memogrinan"; 
             const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de carpeta actualizado
+            const folder = "FotosBodaInvitados"; // Nombre de carpeta de invitados
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
