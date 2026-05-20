@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Boda Mariana y Memo</title>
+    
+    <!-- ========================================== -->
+    <!-- FAVICON (Icono de la pestaña cargado desde tu GitHub) -->
+    <link rel="icon" href="favicon.png" type="image/png">
+    <!-- ========================================== -->
+
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -54,50 +60,27 @@
             background-position: center; 
         }
 
-        /* Imágenes individuales */
+        /* Rutas relativas locales desde tu repositorio de GitHub */
         .header-bg {
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://lh3.googleusercontent.com/d/1-pgQhLSEhfLEcR5IdiQCHaberkwXHRi0');
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('portada.jpg');
             background-size: cover; background-position: center;
         }
         .celebracion-bg { 
-            background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://lh3.googleusercontent.com/d/1ucc5HuYzwK2das6zpHHZOHhQ9aITJgRU'); 
+            background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('trapiche.jpg'); 
         }
         .hospedaje-bg { 
-            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('https://images.unsplash.com/photo-1512813195386-6cf811ad3542?auto=format&fit=crop&w=1350&q=80'); 
+            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('hotel.jpg'); 
             background-blend-mode: overlay; 
         }
 
         h1 { font-family: 'Alex Brush', cursive; font-size: clamp(3.5rem, 12vw, 6rem); margin: 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
         .fecha-top { font-size: 1.2rem; letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; font-weight: 400; }
         
-        /* ESTILOS DEL CONTADOR CORREGIDOS */
-        .countdown-container { 
-            display: flex !important; 
-            gap: 15px; 
-            margin-top: 25px; 
-            justify-content: center; 
-            align-items: center;
-        }
-        .cd-item { 
-            display: flex !important; 
-            flex-direction: column !important; 
-            align-items: center; 
-            min-width: 65px; 
-        }
-        .cd-val { 
-            font-size: clamp(1.2rem, 5vw, 2.2rem); 
-            font-weight: 600; 
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5); 
-            line-height: 1;
-        }
-        .cd-label { 
-            font-size: 0.65rem; 
-            letter-spacing: 2px; 
-            text-transform: uppercase; 
-            margin-top: 8px; 
-            opacity: 0.9; 
-            font-weight: 400;
-        }
+        /* CONTADOR */
+        .countdown-container { display: flex; gap: 15px; margin-top: 25px; justify-content: center; }
+        .cd-item { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+        .cd-val { font-size: clamp(1.2rem, 5vw, 2rem); font-weight: 600; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+        .cd-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; opacity: 0.9; }
 
         section { padding: 80px 20px; max-width: 900px; margin: 0 auto; text-align: center; }
         h2 { font-family: 'Alex Brush', cursive; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 30px; }
@@ -121,6 +104,25 @@
         .event-loc { font-size: 0.8rem; color: var(--olivo-base); font-weight: 600; display: block; margin: 3px 0; text-transform: uppercase; letter-spacing: 0.5px; }
         .event-desc { font-size: 0.9rem; color: #666; margin-top: 5px; line-height: 1.5; }
 
+        /* GALERÍA DINÁMICA DE INVITADOS */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .gallery-grid img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .gallery-grid img:hover {
+            transform: scale(1.05);
+        }
+
         /* BOTONES */
         .btn { padding: 12px 25px; text-decoration: none; border-radius: 30px; font-size: 0.8rem; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; margin: 10px 5px; min-width: 140px; text-transform: uppercase; letter-spacing: 1px; }
         .btn-rsvp { background-color: var(--olivo-base); color: white; padding: 16px 45px; font-size: 1rem; border: none; margin-top: 20px; }
@@ -141,6 +143,8 @@
             .upload-section { padding: 30px 15px; }
             .btn { min-width: 120px; font-size: 0.75rem; padding: 10px 18px; }
             .btn-rsvp { padding: 14px 30px; font-size: 0.85rem; width: auto; max-width: 100%; box-sizing: border-box; }
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+            .gallery-grid img { height: 100px; }
         }
     </style>
 </head>
@@ -187,8 +191,9 @@
         <div class="carousel-container">
             <button class="carousel-btn prev" onclick="moveSlide(-1)">&#10094;</button>
             <div class="carousel-track" id="carouselTrack">
-                <img src="https://lh3.googleusercontent.com/d/1-pgQhLSEhfLEcR5IdiQCHaberkwXHRi0" class="carousel-img">
-                <img src="https://lh3.googleusercontent.com/d/1ucc5HuYzwK2das6zpHHZOHhQ9aITJgRU" class="carousel-img">
+                <img src="historia_omitlan.jpg" class="carousel-img">
+                <img src="historia_maddie_solita.jpg" class="carousel-img">
+                <img src="historia_propuesta.jpg" class="carousel-img">
             </div>
             <button class="carousel-btn next" onclick="moveSlide(1)">&#10095;</button>
         </div>
@@ -292,6 +297,11 @@
             <p style="font-size: 0.85rem; color: #777; margin-top: 20px; font-style: italic;">
                 Nota: Guarda este link. Después de la boda, podrás entrar aquí mismo para ver todas las fotos que todos compartimos.
             </p>
+            
+            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE GITHUB -->
+            <div class="gallery-grid" id="galleryGrid">
+                <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando fotos de invitados...</p>
+            </div>
         </div>
     </section>
 
@@ -329,6 +339,51 @@
             currentSlide = (currentSlide + d + track.children.length) % track.children.length;
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
+
+        // GALERÍA AUTOMÁTICA DESDE GITHUB
+        async function loadGithubGallery() {
+            // REEMPLAZA ESTOS TRES VALORES CON TUS DATOS REALES DE GITHUB:
+            const username = "TU_USUARIO_DE_GITHUB"; 
+            const repo = "TU_REPOSITORIO";           
+            const folder = "ImagenesWeb"; // Nombre de carpeta de invitados           
+            
+            const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
+            const container = document.getElementById("galleryGrid");
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos compartidas por los invitados se mostrarán aquí de forma automática.</p>";
+                    return;
+                }
+                
+                const files = await response.json();
+                container.innerHTML = ""; 
+                
+                const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+                const images = files.filter(file => 
+                    file.type === "file" && 
+                    imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+                );
+                
+                if (images.length === 0) {
+                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos compartidas por los invitados se mostrarán aquí de forma automática.</p>";
+                    return;
+                }
+
+                images.forEach(img => {
+                    const imgEl = document.createElement("img");
+                    imgEl.src = img.download_url;
+                    imgEl.alt = "Foto compartida";
+                    container.appendChild(imgEl);
+                });
+            } catch (error) {
+                console.error("Error al cargar la galería de GitHub:", error);
+                container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos compartidas por los invitados se mostrarán aquí de forma automática.</p>";
+            }
+        }
+        
+        document.addEventListener("DOMContentLoaded", loadGithubGallery);
     </script>
 </body>
 </html>
