@@ -90,7 +90,7 @@
         .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
         .carousel-img { min-width: 100%; height: 400px; object-fit: cover; }
         .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.7); border: none; font-size: 1.5rem; padding: 10px; cursor: pointer; border-radius: 50%; width: 45px; height: 45px; z-index: 5; color: var(--olivo-base); }
-        .prev { left: 10px; } .next { right: 10px; }
+        .prev { faith: 10px; } .next { right: 10px; }
 
         .glass-card { background: rgba(255, 255, 255, 0.94); padding: 50px 30px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
@@ -188,57 +188,44 @@
             user-select: none;
         }
 
-        /* LÍNEA DE TIEMPO HORIZONTAL MINIMALISTA (OPTIMIZADO PARA PNGs) */
-        .hz-timeline-container {
-            margin: 60px auto 10px auto;
-            padding: 10px 0;
-            max-width: 900px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .hz-timeline-container::-webkit-scrollbar {
-            display: none; /* Oculta la barra de desplazamiento en Safari/Chrome */
-        }
-        .hz-timeline {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            min-width: 650px; /* Asegura el formato horizontal en móviles */
+        /* TIMELINE VERTICAL EN ZIGZAG RESPONSIVO */
+        .vt-timeline-container {
+            margin: 60px auto 30px auto;
+            max-width: 500px; /* Ancho seguro que evita desbordamientos */
             position: relative;
-            padding: 20px 10px;
+            height: 750px; /* Altura fija para control absoluto del trazado responsivo */
         }
-        /* Línea horizontal divisoria de fondo */
-        .hz-timeline::before {
-            content: '';
+        
+        /* Enredadera ondulatoria vertical de fondo */
+        .vt-timeline-vine {
             position: absolute;
-            top: 86px; /* Ajustado perfectamente al centro de los círculos de 72px */
-            left: 40px;
-            right: 40px;
-            height: 1px;
-            background-color: #ddd;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: 1;
+            pointer-events: none;
         }
-        .hz-item {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            flex: 1;
+        
+        /* Cada hito de la línea de tiempo vertical */
+        .vt-item {
+            position: absolute;
+            transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 120px; /* Ancho óptimo para centrar el texto sin encimarse */
+            z-index: 2;
+            transition: all 0.3s ease;
         }
-        .hz-year {
+        .vt-year {
             font-size: 1rem;
             font-weight: 600;
             color: var(--olivo-base);
-            margin-bottom: 15px;
+            margin-bottom: 6px;
             letter-spacing: 1px;
         }
         .hz-icon-wrapper {
-            background-color: #ffffff; /* Fondo blanco sólido para interrumpir la línea gris de fondo */
-            border: none; /* Removido borde CSS para priorizar el borde integrado en tus PNG */
+            background-color: #ffffff; /* Fondo blanco sólido para tapar la línea de fondo */
+            border: none;
             border-radius: 50%;
             width: 72px; 
             height: 72px;
@@ -247,17 +234,24 @@
             align-items: center;
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            overflow: hidden; /* Asegura que la imagen no exceda los límites circulares */
+            overflow: hidden;
         }
-        .hz-item:hover .hz-icon-wrapper {
-            transform: scale(1.1); /* Efecto de acercamiento limpio */
+        .vt-item:hover .hz-icon-wrapper {
+            transform: scale(1.1);
             box-shadow: 0 6px 15px rgba(0,0,0,0.08);
         }
         .hz-icon-wrapper img {
+            display: block;
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Ajusta la imagen sin deformarla */
+            object-fit: contain;
             transition: all 0.3s ease;
+            
+            /* Oculta los bordes y textos alternativos si el archivo PNG no existe aún */
+            font-size: 0;
+            color: transparent;
+            text-indent: -10000px;
+            border: 0;
         }
 
         /* ADAPTACIÓN MÓVIL */
@@ -313,55 +307,76 @@
             <p>Hoy, <strong>Cholula</strong> es el lugar que llamamos hogar y el escenario donde queremos unir nuestras vidas para siempre.</p>
         </div>
 
-        <!-- LÍNEA DE TIEMPO HORIZONTAL CON CONTENEDORES PARA PNGs -->
-        <div class="hz-timeline-container">
-            <div class="hz-timeline">
-                <!-- 2018: Oso Bimbo -->
-                <div class="hz-item">
-                    <span class="hz-year">2018</span>
-                    <div class="hz-icon-wrapper">
-                        <img src="ImagenesWeb/icono_osito_bimbo.png" alt="Oso Bimbo">
-                    </div>
-                </div>
+        <!-- LÍNEA DE TIEMPO VERTICAL ALTERNANTE EN ZIGZAG -->
+        <div class="vt-timeline-container">
+            
+            <!-- ENREDADERA VECTORIAL VERTICAL RESPONSIVA (Calculada exactamente para unir los centros a 25% y 75%) -->
+            <svg class="vt-timeline-vine" viewBox="0 0 100 750" preserveAspectRatio="none">
+                <defs>
+                    <!-- Degradado vertical del 70% de opacidad, desvaneciéndose al final de la línea -->
+                    <linearGradient id="vt-vine-fade" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
+                        <stop offset="90%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
+                        <stop offset="100%" stop-color="var(--olivo-base)" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
                 
-                <!-- 2021: Corazón Flechado -->
-                <div class="hz-item">
-                    <span class="hz-year">2021</span>
-                    <div class="hz-icon-wrapper">
-                        <img src="ImagenesWeb/icono_corazon_flechado.png" alt="Corazón Flechado">
-                    </div>
+                <!-- Curvas fluidas (S-curves) que unen con precisión matemática los hitos alternantes -->
+                <path d="M 25 61
+                         C 25 120, 75 130, 75 191
+                         C 75 250, 25 260, 25 321
+                         C 25 380, 75 390, 75 451
+                         C 75 510, 25 520, 25 581
+                         C 25 640, 75 650, 75 711
+                         C 75 730, 50 740, 50 750" 
+                      fill="none" stroke="url(#vt-vine-fade)" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+            </svg>
+
+            <!-- 2018: Oso Bimbo (Izquierda) -->
+            <div class="vt-item" style="top: 0px; left: 25%;">
+                <span class="vt-year">2018</span>
+                <div class="hz-icon-wrapper">
+                    <img src="ImagenesWeb/icono_osito_bimbo.png" alt="Oso Bimbo">
                 </div>
-                
-                <!-- 2023: Casa Sencilla -->
-                <div class="hz-item">
-                    <span class="hz-year">2023</span>
-                    <div class="hz-icon-wrapper">
-                        <img src="ImagenesWeb/icono_casa.png" alt="Casa">
-                    </div>
+            </div>
+            
+            <!-- 2021: Corazón Flechado (Derecha) -->
+            <div class="vt-item" style="top: 130px; left: 75%;">
+                <span class="vt-year">2021</span>
+                <div class="hz-icon-wrapper">
+                    <img src="ImagenesWeb/icono_corazon_flechado.png" alt="Corazón Flechado">
                 </div>
-                
-                <!-- 2024: Maddie -->
-                <div class="hz-item">
-                    <span class="hz-year">2024</span>
-                    <div class="hz-icon-wrapper">
-                        <img src="ImagenesWeb/icono_maddie.png" alt="Maddie">
-                    </div>
+            </div>
+            
+            <!-- 2023: Casa Sencilla (Izquierda) -->
+            <div class="vt-item" style="top: 260px; left: 25%;">
+                <span class="vt-year">2023</span>
+                <div class="hz-icon-wrapper">
+                    <img src="ImagenesWeb/icono_casa.png" alt="Casa">
                 </div>
-                
-                <!-- 2025: Anillo de Compromiso -->
-                <div class="hz-item">
-                    <span class="hz-year">2025</span>
-                    <div class="hz-icon-wrapper">
-                        <img src="ImagenesWeb/icono_anillo_compromiso.png" alt="Anillo de Compromiso">
-                    </div>
+            </div>
+            
+            <!-- 2024: Maddie (Derecha) -->
+            <div class="vt-item" style="top: 390px; left: 75%;">
+                <span class="vt-year">2024</span>
+                <div class="hz-icon-wrapper">
+                    <img src="ImagenesWeb/icono_maddie.png" alt="Maddie">
                 </div>
-                
-                <!-- 2027: Iglesia -->
-                <div class="hz-item">
-                    <span class="hz-year">2027</span>
-                    <div class="hz-icon-wrapper">
-                        <img src="ImagenesWeb/icono_iglesia.png" alt="Iglesia">
-                    </div>
+            </div>
+            
+            <!-- 2025: Anillo de Compromiso (Izquierda) -->
+            <div class="vt-item" style="top: 520px; left: 25%;">
+                <span class="vt-year">2025</span>
+                <div class="hz-icon-wrapper">
+                    <img src="ImagenesWeb/icono_anillo_compromiso.png" alt="Anillo de Compromiso">
+                </div>
+            </div>
+            
+            <!-- 2027: Iglesia (Derecha) -->
+            <div class="vt-item" style="top: 650px; left: 75%;">
+                <span class="vt-year">2027</span>
+                <div class="hz-icon-wrapper">
+                    <img src="ImagenesWeb/icono_iglesia.png" alt="Iglesia">
                 </div>
             </div>
         </div>
