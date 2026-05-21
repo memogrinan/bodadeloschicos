@@ -89,8 +89,10 @@
         .carousel-container { position: relative; max-width: 600px; margin: 0 auto; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
         .carousel-img { min-width: 100%; height: 400px; object-fit: cover; }
+        
+        /* BOTONES DEL CARRUSEL */
         .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.7); border: none; font-size: 1.5rem; padding: 10px; cursor: pointer; border-radius: 50%; width: 45px; height: 45px; z-index: 5; color: var(--olivo-base); }
-        .prev { faith: 10px; } .next { right: 10px; }
+        .prev { left: 10px; } .next { right: 10px; }
 
         .glass-card { background: rgba(255, 255, 255, 0.94); padding: 50px 30px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
@@ -154,7 +156,7 @@
         .lightbox-modal {
             display: none;
             position: fixed;
-            z-index: 2000; /* Prioridad por encima del menú de navegación */
+            z-index: 2000; /* Prioridad por debajo de los botones de navegación */
             top: 0; left: 0;
             width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
@@ -186,6 +188,39 @@
             font-weight: bold;
             cursor: pointer;
             user-select: none;
+            z-index: 2200; /* Siempre encima de los botones laterales */
+        }
+        
+        /* BOTONES DE NAVEGACIÓN EN EL LIGHTBOX */
+        .lightbox-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #ffffff;
+            font-size: 2rem;
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease, transform 0.2s ease;
+            z-index: 2100; /* Sobre la foto en pantalla completa */
+            user-select: none;
+        }
+        .lightbox-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .lightbox-btn-prev {
+            left: 20px;
+        }
+        .lightbox-btn-next {
+            right: 20px;
         }
 
         /* TIMELINE VERTICAL EN ZIGZAG RESPONSIVO */
@@ -235,6 +270,8 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.02);
             overflow: hidden;
+            padding: 6px; /* Ajusta los iconos para que no toquen la orilla */
+            box-sizing: border-box; /* Evita que el círculo se agrande con el padding */
         }
         .vt-item:hover .hz-icon-wrapper {
             transform: scale(1.1);
@@ -267,6 +304,21 @@
             .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
             .gallery-grid img { height: 100px; }
             .lightbox-close { top: 15px; right: 20px; font-size: 35px; }
+            .prev { left: 10px; } .next { right: 10px; }
+            
+            /* Ajuste de flechas de lightbox en celular */
+            .lightbox-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+                padding: 10px;
+            }
+            .lightbox-btn-prev {
+                left: 10px;
+            }
+            .lightbox-btn-next {
+                right: 10px;
+            }
         }
     </style>
 </head>
@@ -516,6 +568,10 @@
     </footer>
 
     <script>
+        // VARIABLES GLOBALES PARA LA GALERÍA DE INVITADOS
+        let guestImages = []; // Almacena las URLs de las fotos cargadas
+        let currentGuestImageIndex = 0; // Índice de la foto activa
+
         // Contador en tiempo real
         const targetDate = new Date("Feb 13, 2027 16:00:00").getTime();
         function updateTimer() {
@@ -539,30 +595,66 @@
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente)
+        // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente con botones de navegación)
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox-modal";
         lightbox.innerHTML = `
             <span class="lightbox-close">&times;</span>
+            <button class="lightbox-btn lightbox-btn-prev" id="lightboxPrev">&#10094;</button>
             <img class="lightbox-content" id="lightboxImg">
+            <button class="lightbox-btn lightbox-btn-next" id="lightboxNext">&#10095;</button>
         `;
         document.body.appendChild(lightbox);
 
         const lightboxImg = document.getElementById("lightboxImg");
+        const btnPrev = document.getElementById("lightboxPrev");
+        const btnNext = document.getElementById("lightboxNext");
 
-        // Cerrar visor al hacer clic en el botón de cerrar o fuera de la imagen
+        // Cambiar de foto dentro del visor de forma circular
+        function changeGuestImage(direction) {
+            if (guestImages.length === 0) return;
+            currentGuestImageIndex = (currentGuestImageIndex + direction + guestImages.length) % guestImages.length;
+            lightboxImg.src = guestImages[currentGuestImageIndex];
+        }
+
+        // Navegación mediante clics en las flechas del lightbox
+        btnPrev.addEventListener("click", (e) => {
+            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha
+            changeGuestImage(-1);
+        });
+
+        btnNext.addEventListener("click", (e) => {
+            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha
+            changeGuestImage(1);
+        });
+
+        // Cerrar visor al hacer clic fuera de la foto o botones
         lightbox.addEventListener("click", (e) => {
-            if (e.target !== lightboxImg) {
+            if (e.target !== lightboxImg && e.target !== btnPrev && e.target !== btnNext) {
                 lightbox.classList.remove("active");
                 setTimeout(() => { lightbox.style.display = "none"; }, 300);
             }
         });
 
-        // GALERÍA AUTOMÁTICA DESDE GITHUB
+        // Soporte de navegación mediante teclas de dirección físicas (Izquierda / Derecha / Escape)
+        document.addEventListener("keydown", (e) => {
+            if (lightbox.classList.contains("active")) {
+                if (e.key === "ArrowLeft") {
+                    changeGuestImage(-1);
+                } else if (e.key === "ArrowRight") {
+                    changeGuestImage(1);
+                } else if (e.key === "Escape") {
+                    lightbox.classList.remove("active");
+                    setTimeout(() => { lightbox.style.display = "none"; }, 300);
+                }
+            }
+        });
+
+        // GALERÍA AUTOMÁTICA DESDE GITHUB [1]
         async function loadGithubGallery() {
             const username = "memogrinan"; 
             const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados
+            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados [1]
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
@@ -588,19 +680,23 @@
                     return;
                 }
 
-                // Insertar cada imagen con su subtítulo dinámico
-                images.forEach(img => {
+                // Guardamos las URLs de descarga en el arreglo global para usarlas en la navegación secuencial
+                guestImages = images.map(img => img.download_url);
+
+                // Insertar cada imagen con su subtítulo dinámico y registrar su índice
+                images.forEach((img, index) => {
                     // Contenedor de la tarjeta de foto
                     const itemEl = document.createElement("div");
                     itemEl.className = "gallery-item";
 
                     // Imagen
                     const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url; // URL del archivo crudo
+                    imgEl.src = img.download_url; // URL del archivo crudo [1]
                     imgEl.alt = "Foto compartida";
                     
-                    // Evento para abrir el visor al hacer clic en la foto
+                    // Evento para abrir el visor al hacer clic en la foto, recordando su posición
                     imgEl.addEventListener("click", () => {
+                        currentGuestImageIndex = index;
                         lightboxImg.src = img.download_url;
                         lightbox.style.display = "flex";
                         setTimeout(() => { lightbox.classList.add("active"); }, 10);
