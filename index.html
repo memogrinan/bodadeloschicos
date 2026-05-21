@@ -188,6 +188,78 @@
             user-select: none;
         }
 
+        /* LÍNEA DE TIEMPO HORIZONTAL MINIMALISTA (OPTIMIZADO PARA PNGs) */
+        .hz-timeline-container {
+            margin: 60px auto 10px auto;
+            padding: 10px 0;
+            max-width: 900px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hz-timeline-container::-webkit-scrollbar {
+            display: none; /* Oculta la barra de desplazamiento en Safari/Chrome */
+        }
+        .hz-timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            min-width: 650px; /* Asegura el formato horizontal en móviles */
+            position: relative;
+            padding: 20px 10px;
+        }
+        /* Línea horizontal divisoria de fondo */
+        .hz-timeline::before {
+            content: '';
+            position: absolute;
+            top: 86px; /* Ajustado perfectamente al centro de los círculos de 72px */
+            left: 40px;
+            right: 40px;
+            height: 1px;
+            background-color: #ddd;
+            z-index: 1;
+        }
+        .hz-item {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .hz-year {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--olivo-base);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        .hz-icon-wrapper {
+            background-color: #ffffff; /* Fondo blanco sólido para interrumpir la línea gris de fondo */
+            border: none; /* Removido borde CSS para priorizar el borde integrado en tus PNG */
+            border-radius: 50%;
+            width: 72px; 
+            height: 72px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            overflow: hidden; /* Asegura que la imagen no exceda los límites circulares */
+        }
+        .hz-item:hover .hz-icon-wrapper {
+            transform: scale(1.1); /* Efecto de acercamiento limpio */
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+        .hz-icon-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ajusta la imagen sin deformarla */
+            transition: all 0.3s ease;
+        }
+
         /* ADAPTACIÓN MÓVIL */
         @media (max-width: 600px) {
             section { padding: 60px 20px; }
@@ -235,10 +307,63 @@
 
     <section id="historia">
         <h2>Nuestra Historia</h2>
-        <div style="font-size: 1.1rem; line-height: 1.8; color: #555; font-style: italic;">
+        <div style="font-size: 1.1rem; line-height: 1.8; color: #555; font-style: italic; margin-bottom: 20px;">
             <p>"Con el cariño de siempre"... así comenzó todo. Quién diría que entre números, auditorías y el aroma del corporativo de <strong>Bimbo</strong>, encontraríamos al amor de nuestras vidas.</p>
             <p>Lo que empezó como jornadas compartidas, pronto se transformó en kilómetros recorridos juntos por el mundo. En medio de tantos viajes y sueños, <strong>Maddie</strong> llegó para completar nuestra familia.</p>
             <p>Hoy, <strong>Cholula</strong> es el lugar que llamamos hogar y el escenario donde queremos unir nuestras vidas para siempre.</p>
+        </div>
+
+        <!-- LÍNEA DE TIEMPO HORIZONTAL CON CONTENEDORES PARA PNGs -->
+        <div class="hz-timeline-container">
+            <div class="hz-timeline">
+                <!-- 2018: Oso Bimbo -->
+                <div class="hz-item">
+                    <span class="hz-year">2018</span>
+                    <div class="hz-icon-wrapper">
+                        <img src="ImagenesWeb/icono_osito_bimbo.png" alt="Oso Bimbo">
+                    </div>
+                </div>
+                
+                <!-- 2021: Corazón Flechado -->
+                <div class="hz-item">
+                    <span class="hz-year">2021</span>
+                    <div class="hz-icon-wrapper">
+                        <img src="ImagenesWeb/icono_corazon_flechado.png" alt="Corazón Flechado">
+                    </div>
+                </div>
+                
+                <!-- 2023: Casa Sencilla -->
+                <div class="hz-item">
+                    <span class="hz-year">2023</span>
+                    <div class="hz-icon-wrapper">
+                        <img src="ImagenesWeb/icono_casa.png" alt="Casa">
+                    </div>
+                </div>
+                
+                <!-- 2024: Maddie -->
+                <div class="hz-item">
+                    <span class="hz-year">2024</span>
+                    <div class="hz-icon-wrapper">
+                        <img src="ImagenesWeb/icono_maddie.png" alt="Maddie">
+                    </div>
+                </div>
+                
+                <!-- 2025: Anillo de Compromiso -->
+                <div class="hz-item">
+                    <span class="hz-year">2025</span>
+                    <div class="hz-icon-wrapper">
+                        <img src="ImagenesWeb/icono_anillo_compromiso.png" alt="Anillo de Compromiso">
+                    </div>
+                </div>
+                
+                <!-- 2027: Iglesia -->
+                <div class="hz-item">
+                    <span class="hz-year">2027</span>
+                    <div class="hz-icon-wrapper">
+                        <img src="ImagenesWeb/icono_iglesia.png" alt="Iglesia">
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -346,12 +471,12 @@
         </div>
     </section>
 
-    <!-- IDENTIFICADOR fotos-invitados AÑADIDO PARA LA NAVEGACIÓN -->
+    <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN -->
     <section id="fotos-invitados">
         <div class="upload-section">
             <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Alex Brush', cursive;">¡Comparte tus fotos!</h3>
             <p>Sube las fotos que tomes durante la boda a nuestro álbum digital.</p>
-            <!-- REEMPLAZADO CON TU ENLACE DE TALLY: -->
+            <!-- ENLACE DE TALLY DEFINITIVO -->
             <a href="https://tally.so/r/WOKvDN" target="_blank" class="btn btn-rsvp">Subir fotos</a>
             <p style="font-size: 0.85rem; color: #777; margin-top: 20px; font-style: italic;">
                 Nota: Guarda este link. Después de la boda, podrás entrar aquí mismo para ver todas las fotos que todos compartimos.
