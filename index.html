@@ -10,6 +10,27 @@
     <link rel="icon" href="ImagenesWeb/favicon.png" type="image/png">
     <!-- ========================================== -->
 
+    <!-- ========================================== -->
+    <!-- META ETIQUETAS DE PREVISUALIZACIÓN (Social Share & SEO) -->
+    <meta name="description" content="¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial el 13 de febrero de 2027 en Cholula, Puebla. Encuentra aquí el itinerario, hospedaje y todos los detalles.">
+    
+    <!-- Open Graph / Facebook / WhatsApp (Usa el dominio de producción del sitio) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bodadeloschicos.pages.dev/"> <!-- Reemplazar con tu dominio personalizado si adquieres uno -->
+    <meta property="og:title" content="Boda Mariana & Memo — 13.02.2027">
+    <meta property="og:description" content="¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce aquí el itinerario, hospedaje y todos los detalles.">
+    <meta property="og:image" content="https://bodadeloschicos.pages.dev/ImagenesWeb/portada.jpg"> <!-- Reemplazar con tu dominio personalizado si adquieres uno -->
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter / iMessage -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://bodadeloschicos.pages.dev/">
+    <meta name="twitter:title" content="Boda Mariana & Memo — 13.02.2027">
+    <meta name="twitter:description" content="¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce aquí el itinerario, hospedaje y todos los detalles.">
+    <meta name="twitter:image" content="https://bodadeloschicos.pages.dev/ImagenesWeb/portada.jpg">
+    <!-- ========================================== -->
+
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -557,7 +578,7 @@
         </div>
     </section>
 
-    <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN -->
+    <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN [1] -->
     <section id="fotos-invitados" class="fade-in-section">
         <div class="upload-section">
             <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Alex Brush', cursive;">¡Comparte tus fotos!</h3>
@@ -568,7 +589,7 @@
                 Nota: Guarda este link. Después de la boda, podrás entrar aquí mismo para ver todas las fotos que todos compartimos.
             </p>
             
-            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE GITHUB -->
+            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE GITHUB [1] -->
             <div class="gallery-grid" id="galleryGrid">
                 <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando fotos de invitados...</p>
             </div>
@@ -587,9 +608,9 @@
     </footer>
 
     <script>
-        // VARIABLES GLOBALES PARA LA GALERÍA DE INVITADOS
-        let guestImages = []; // Almacena las URLs de las fotos cargadas
-        let currentGuestImageIndex = 0; // Índice de la foto activa
+        // VARIABLES GLOBALES PARA LA GALERÍA DE INVITADOS [1]
+        let guestImages = []; // Almacena las URLs de las fotos cargadas [1]
+        let currentGuestImageIndex = 0; // Índice de la foto activa [1]
 
         // Contador en tiempo real
         const targetDate = new Date("Feb 13, 2027 16:00:00").getTime();
@@ -614,7 +635,7 @@
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente con botones de navegación)
+        // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente con botones de navegación) [1]
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox-modal";
         lightbox.innerHTML = `
@@ -629,26 +650,26 @@
         const btnPrev = document.getElementById("lightboxPrev");
         const btnNext = document.getElementById("lightboxNext");
 
-        // Cambiar de foto dentro del visor de forma circular
+        // Cambiar de foto dentro del visor de forma circular [1]
         function changeGuestImage(direction) {
             if (guestImages.length === 0) return;
             currentGuestImageIndex = (currentGuestImageIndex + direction + guestImages.length) % guestImages.length;
             lightboxImg.src = guestImages[currentGuestImageIndex];
         }
 
-        // Navegación mediante clics en las flechas del lightbox
+        // Navegación mediante clics en las flechas del lightbox [1]
         btnPrev.addEventListener("click", (e) => {
-            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha
+            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha [1]
             changeGuestImage(-1);
         });
 
-        // Evento para cambiar de foto con el botón "Siguiente"
+        // Evento para cambiar de foto con el botón "Siguiente" [1]
         btnNext.addEventListener("click", (e) => {
-            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha
+            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha [1]
             changeGuestImage(1);
         });
 
-        // Cerrar visor al hacer clic fuera de la foto o botones
+        // Cerrar visor al hacer clic fuera de la foto o botones [1]
         lightbox.addEventListener("click", (e) => {
             if (e.target !== lightboxImg && e.target !== btnPrev && e.target !== btnNext) {
                 lightbox.classList.remove("active");
@@ -656,7 +677,7 @@
             }
         });
 
-        // Soporte de navegación mediante teclas de dirección físicas (Izquierda / Derecha / Escape)
+        // Soporte de navegación mediante teclas de dirección físicas (Izquierda / Derecha / Escape) [1]
         document.addEventListener("keydown", (e) => {
             if (lightbox.classList.contains("active")) {
                 if (e.key === "ArrowLeft") {
@@ -692,11 +713,11 @@
             });
         });
 
-        // GALERÍA AUTOMÁTICA DESDE GITHUB
+        // GALERÍA AUTOMÁTICA DESDE GITHUB [1]
         async function loadGithubGallery() {
             const username = "memogrinan"; 
             const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados
+            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados [1]
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
@@ -722,10 +743,10 @@
                     return;
                 }
 
-                // Guardamos las URLs de descarga en el arreglo global para usarlas en la navegación secuencial
+                // Guardamos las URLs de descarga en el arreglo global para usarlas en la navegación secuencial [1]
                 guestImages = images.map(img => img.download_url);
 
-                // Insertar cada imagen con su subtítulo dinámico y registrar su índice
+                // Insertar cada imagen con su subtítulo dinámico y registrar su índice [1]
                 images.forEach((img, index) => {
                     // Contenedor de la tarjeta de foto
                     const itemEl = document.createElement("div");
@@ -733,10 +754,10 @@
 
                     // Imagen
                     const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url; // URL del archivo crudo
+                    imgEl.src = img.download_url; // URL del archivo crudo [1]
                     imgEl.alt = "Foto compartida";
                     
-                    // Evento para abrir el visor al hacer clic en la foto, recordando su posición
+                    // Evento para abrir el visor al hacer clic en la foto, recordando su posición [1]
                     imgEl.addEventListener("click", () => {
                         currentGuestImageIndex = index;
                         lightboxImg.src = img.download_url;
