@@ -391,7 +391,7 @@
         <div class="fecha-top">13 de Febrero • 2027</div>
         <p>Cholula, Puebla</p>
         
-        <!-- CONTADOR EN TIEMPO REAL -->
+        <!-- CONTADOR EN TIEMLE REAL -->
         <div class="countdown-container" id="countdown">
             <div class="cd-item"><span class="cd-val" id="days">00</span><span class="cd-label">Días</span></div>
             <div class="cd-item"><span class="cd-val" id="hours">00</span><span class="cd-label">Horas</span></div>
@@ -497,9 +497,11 @@
         </div>
     </section>
 
-    <div id="celebracion" class="parallax-section fade-in-section">
+    <!-- REMOVIDO fade-in-section DE LOS WRAPPERS CON PARALLAX PARA EVITAR CONFLICTO -->
+    <div id="celebracion" class="parallax-section">
         <div class="bg-fixed celebracion-bg"></div>
-        <div class="glass-card">
+        <!-- fade-in-section APLICADO DIRECTAMENTE A LA TARJETA DE CONTENIDO -->
+        <div class="glass-card fade-in-section">
             <h2>Celebración y Fiesta</h2>
             <h3 style="color:var(--olivo-base); font-weight: 400; font-size: 1.5rem; margin: 0;">Hacienda San José Actipan</h3>
             <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 25px;">Cholula, Puebla</p>
@@ -545,9 +547,11 @@
         </div>
     </section>
 
-    <div id="hospedaje" class="parallax-section fade-in-section">
+    <!-- REMOVIDO fade-in-section DE LOS WRAPPERS CON PARALLAX PARA EVITAR CONFLICTO -->
+    <div id="hospedaje" class="parallax-section">
         <div class="bg-fixed hospedaje-bg"></div>
-        <div class="glass-card">
+        <!-- fade-in-section APLICADO DIRECTAMENTE A LA TARJETA DE CONTENIDO -->
+        <div class="glass-card fade-in-section">
             <h2>Hospedaje</h2>
             <div style="margin-bottom: 30px;">
                 <h4 style="margin: 0; color: var(--olivo-base); font-size: 1.1rem; text-transform: uppercase;">Villas Arqueológicas</h4>
@@ -706,104 +710,4 @@
             const observerOptions = {
                 root: null, // Viewport del navegador
                 threshold: 0.1, // Activa cuando el 10% de la sección es visible
-                rootMargin: "0px 0px -50px 0px" // Margen inferior para activar ligeramente antes de que entre
-            };
-            const observer = new IntersectionObserver((entries, obs) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("is-visible");
-                        obs.unobserve(entry.target); // Deja de observar una vez que ya se animó
-                    }
-                });
-            }, observerOptions);
-
-            fadeSections.forEach(section => {
-                observer.observe(section);
-            });
-        });
-
-        // GALERÍA AUTOMÁTICA DESDE GITHUB
-        async function loadGithubGallery() {
-            const username = "memogrinan"; 
-            const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados
-            
-            const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
-            const container = document.getElementById("galleryGrid");
-            
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos compartidas por los invitados se mostrarán aquí de forma automática.</p>";
-                    return;
-                }
-                
-                const files = await response.json();
-                container.innerHTML = ""; 
-                
-                const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-                const images = files.filter(file => 
-                    file.type === "file" && 
-                    imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
-                );
-                
-                if (images.length === 0) {
-                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos compartidas por los invitados se mostrarán aquí de forma automática.</p>";
-                    return;
-                }
-
-                // Guardamos las URLs de descarga en el arreglo global para usarlas en la navegación secuencial
-                guestImages = images.map(img => img.download_url);
-
-                // Insertar cada imagen con su subtítulo dinámico y registrar su índice
-                images.forEach((img, index) => {
-                    // Contenedor de la tarjeta de foto
-                    const itemEl = document.createElement("div");
-                    itemEl.className = "gallery-item";
-
-                    // Imagen
-                    const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url; // URL del archivo crudo
-                    imgEl.alt = "Foto compartida";
-                    
-                    // Evento para abrir el visor al hacer clic en la foto, recordando su posición
-                    imgEl.addEventListener("click", () => {
-                        currentGuestImageIndex = index;
-                        lightboxImg.src = img.download_url;
-                        lightbox.style.display = "flex";
-                        setTimeout(() => { lightbox.classList.add("active"); }, 10);
-                    });
-
-                    itemEl.appendChild(imgEl);
-
-                    // Extraer nombre del archivo (Formato esperado: YYYYMMDD-HHmmss-De-Nombre_Apellido-foto.jpg)
-                    const filename = img.name;
-                    if (filename.includes("-De-")) {
-                        const parts = filename.split("-De-");
-                        if (parts.length > 1) {
-                            // Extrae la sección del nombre y limpia los guiones bajos de vuelta a espacios
-                            const rawName = parts[1].split("-")[0];
-                            const cleanName = rawName.replace(/_/g, " "); 
-                            
-                            // Si el nombre no está vacío o marcado como anónimo
-                            if (cleanName && cleanName.toLowerCase() !== "anonimo") {
-                                const captionEl = document.createElement("p");
-                                captionEl.className = "gallery-caption";
-                                captionEl.innerText = `De: ${cleanName}`;
-                                itemEl.appendChild(captionEl);
-                            }
-                        }
-                    }
-
-                    container.appendChild(itemEl);
-                });
-            } catch (error) {
-                console.error("Error al cargar la galería de GitHub:", error);
-                container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos compartidas por los invitados se mostrarán aquí de forma automática.</p>";
-            }
-        }
-        
-        document.addEventListener("DOMContentLoaded", loadGithubGallery);
-    </script>
-</body>
-</html>
+                rootMargin: "0px 0px -50px 0px" // Margen i
