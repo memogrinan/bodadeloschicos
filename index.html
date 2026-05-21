@@ -55,7 +55,7 @@
         .nav-container { display: flex; justify-content: center; align-items: center; flex-wrap: nowrap; width: 98%; max-width: 1000px; margin: 0 auto; }
         nav a { text-decoration: none; color: var(--nav-texto); font-size: clamp(9px, 2.5vw, 12px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 1vw; transition: 0.3s ease; white-space: nowrap; }
 
-        /* ANIMACIÓN FADE-IN DE CARGA INSTANTÁNEA PARA LA PORTADA (HEADER) */
+        /* PORTADA CON ANIMACIÓN DE ENTRADA SUAVE (TEXTO) */
         header {
             height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center;
             opacity: 0;
@@ -64,6 +64,19 @@
         }
         @keyframes fadeInHeader {
             to { opacity: 1; }
+        }
+
+        /* EFECTO CINEMATOGRÁFICO DE ZOOM LENTO (KEN BURNS) PARA EL FONDO */
+        .header-bg {
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/portada.jpg');
+            background-size: cover; background-position: center;
+            animation: kenBurnsEffect 24s ease-in-out infinite;
+            will-change: transform; /* Optimiza para que el procesamiento ocurra en la tarjeta gráfica */
+        }
+        @keyframes kenBurnsEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); } /* Zoom muy sutil e imperceptible pero con movimiento vivo */
+            100% { transform: scale(1); }
         }
 
         /* EFECTO FADE-IN CON DESPLAZAMIENTO SUAVE PARA EL SCROLL */
@@ -101,10 +114,6 @@
         }
 
         /* Rutas de diseño apuntando a la carpeta ImagenesWeb */
-        .header-bg {
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/portada.jpg');
-            background-size: cover; background-position: center;
-        }
         .celebracion-bg { 
             background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/trapiche.jpg'); 
         }
@@ -578,18 +587,18 @@
         </div>
     </section>
 
-    <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN [1] -->
+    <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN -->
     <section id="fotos-invitados" class="fade-in-section">
         <div class="upload-section">
             <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Alex Brush', cursive;">¡Comparte tus fotos!</h3>
             <p>Sube las fotos que tomes durante la boda a nuestro álbum digital.</p>
-            <!-- ENLACE DE TALLY DEFINITIVO [2] -->
+            <!-- ENLACE DE TALLY DEFINITIVO -->
             <a href="https://tally.so/r/WOKvDN" target="_blank" class="btn btn-rsvp">Subir fotos</a>
             <p style="font-size: 0.85rem; color: #777; margin-top: 20px; font-style: italic;">
                 Nota: Guarda este link. Después de la boda, podrás entrar aquí mismo para ver todas las fotos que todos compartimos.
             </p>
             
-            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE GITHUB [1] -->
+            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE GITHUB -->
             <div class="gallery-grid" id="galleryGrid">
                 <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando fotos de invitados...</p>
             </div>
@@ -608,9 +617,9 @@
     </footer>
 
     <script>
-        // VARIABLES GLOBALES PARA LA GALERÍA DE INVITADOS [1]
-        let guestImages = []; // Almacena las URLs de las fotos cargadas [1]
-        let currentGuestImageIndex = 0; // Índice de la foto activa [1]
+        // VARIABLES GLOBALES PARA LA GALERÍA DE INVITADOS
+        let guestImages = []; // Almacena las URLs de las fotos cargadas
+        let currentGuestImageIndex = 0; // Índice de la foto activa
 
         // Contador en tiempo real
         const targetDate = new Date("Feb 13, 2027 16:00:00").getTime();
@@ -635,7 +644,7 @@
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente con botones de navegación) [1]
+        // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente con botones de navegación)
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox-modal";
         lightbox.innerHTML = `
@@ -650,26 +659,26 @@
         const btnPrev = document.getElementById("lightboxPrev");
         const btnNext = document.getElementById("lightboxNext");
 
-        // Cambiar de foto dentro del visor de forma circular [1]
+        // Cambiar de foto dentro del visor de forma circular
         function changeGuestImage(direction) {
             if (guestImages.length === 0) return;
             currentGuestImageIndex = (currentGuestImageIndex + direction + guestImages.length) % guestImages.length;
             lightboxImg.src = guestImages[currentGuestImageIndex];
         }
 
-        // Navegación mediante clics en las flechas del lightbox [1]
+        // Navegación mediante clics en las flechas del lightbox
         btnPrev.addEventListener("click", (e) => {
-            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha [1]
+            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha
             changeGuestImage(-1);
         });
 
-        // Evento para cambiar de foto con el botón "Siguiente" [1]
+        // Evento para cambiar de foto con el botón "Siguiente"
         btnNext.addEventListener("click", (e) => {
-            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha [1]
+            e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha
             changeGuestImage(1);
         });
 
-        // Cerrar visor al hacer clic fuera de la foto o botones [1]
+        // Cerrar visor al hacer clic fuera de la foto o botones
         lightbox.addEventListener("click", (e) => {
             if (e.target !== lightboxImg && e.target !== btnPrev && e.target !== btnNext) {
                 lightbox.classList.remove("active");
@@ -677,7 +686,7 @@
             }
         });
 
-        // Soporte de navegación mediante teclas de dirección físicas (Izquierda / Derecha / Escape) [1]
+        // Soporte de navegación mediante teclas de dirección físicas (Izquierda / Derecha / Escape)
         document.addEventListener("keydown", (e) => {
             if (lightbox.classList.contains("active")) {
                 if (e.key === "ArrowLeft") {
@@ -713,11 +722,11 @@
             });
         });
 
-        // GALERÍA AUTOMÁTICA DESDE GITHUB [1]
+        // GALERÍA AUTOMÁTICA DESDE GITHUB
         async function loadGithubGallery() {
             const username = "memogrinan"; 
             const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados [1]
+            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
@@ -743,10 +752,10 @@
                     return;
                 }
 
-                // Guardamos las URLs de descarga en el arreglo global para usarlas en la navegación secuencial [1]
+                // Guardamos las URLs de descarga en el arreglo global para usarlas en la navegación secuencial
                 guestImages = images.map(img => img.download_url);
 
-                // Insertar cada imagen con su subtítulo dinámico y registrar su índice [1]
+                // Insertar cada imagen con su subtítulo dinámico y registrar su índice
                 images.forEach((img, index) => {
                     // Contenedor de la tarjeta de foto
                     const itemEl = document.createElement("div");
@@ -754,10 +763,10 @@
 
                     // Imagen
                     const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url; // URL del archivo crudo [1]
+                    imgEl.src = img.download_url; // URL del archivo crudo
                     imgEl.alt = "Foto compartida";
                     
-                    // Evento para abrir el visor al hacer clic en la foto, recordando su posición [1]
+                    // Evento para abrir el visor al hacer clic en la foto, recordando su posición
                     imgEl.addEventListener("click", () => {
                         currentGuestImageIndex = index;
                         lightboxImg.src = img.download_url;
