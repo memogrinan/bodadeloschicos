@@ -121,6 +121,12 @@
             background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('ImagenesWeb/hospedaje.jpg'); 
             background-blend-mode: overlay; 
         }
+        
+        /* COLOR VERDE CLARO/CREMA (SALVIA) SIMPLIFICADO PARA PREGUNTAS FRECUENTES (FAQ) */
+        .faq-bg {
+            background-color: #d8dcd0; /* El tono salvia suave y elegante */
+            background-image: linear-gradient(rgba(225, 228, 215, 0.93), rgba(213, 218, 201, 0.88));
+        }
 
         h1 { font-family: 'Alex Brush', cursive; font-size: clamp(3.5rem, 12vw, 6rem); margin: 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
         .fecha-top { font-size: 1.2rem; letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; font-weight: 400; }
@@ -381,7 +387,7 @@
             text-align: left;
         }
         .faq-item {
-            border-bottom: 1.5px solid #eee;
+            border-bottom: 1.5px solid rgba(82, 88, 47, 0.15); /* Trazo fino y translúcido de la paleta olivo */
             transition: border-color 0.3s ease;
         }
         .faq-question {
@@ -399,10 +405,11 @@
             align-items: center;
             gap: 15px;
             outline: none;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.85); /* Sombra suave para legibilidad sobre textura */
             transition: background-color 0.3s ease;
         }
         .faq-question:hover {
-            background-color: rgba(82, 88, 47, 0.02);
+            background-color: rgba(82, 88, 47, 0.03);
         }
         
         /* Símbolo + animado a la izquierda */
@@ -431,8 +438,9 @@
             padding: 0 10px 22px 35px; /* Alineación perfecta con el bloque de texto superior */
             margin: 0;
             font-size: 0.95rem;
-            color: #555;
+            color: #444; /* Gris oscuro para máxima legibilidad sin caja sólida */
             line-height: 1.7;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
         }
 
         /* ADAPTACIÓN MÓVIL */
@@ -700,57 +708,61 @@
         </div>
     </section>
 
-    <!-- SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) -->
-    <section id="faq" class="fade-in-section">
-        <h2>FAQ - Preguntas Frecuentes</h2>
-        <div class="faq-container">
-            
-            <!-- PREGUNTA 1 -->
-            <div class="faq-item">
-                <button class="faq-question">
-                    <span class="faq-toggle">+</span>
-                    <span>¿Habrá estacionamiento disponible?</span>
-                </button>
-                <div class="faq-answer">
-                    <p>Sí, el lugar cuenta con estacionamiento privado para todos nuestros invitados con valet parking sin costo. También sugerimos utilizar aplicaciones de transporte (Uber, Didi) para poder disfrutar de la barra libre sin preocupaciones.</p>
+    <!-- SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) CON EFECTO PARALLAX, TEXTURA CLARA Y FONDO TRANSPARENTADO -->
+    <div id="faq" class="parallax-section" style="padding: 100px 20px;">
+        <div class="bg-fixed faq-bg"></div>
+        <!-- El contenedor de contenido hereda la animación suave de scroll pero no tiene recuadro blanco -->
+        <div class="fade-in-section" style="max-width: 650px; width: 92%; margin: 0 auto; z-index: 2; position: relative;">
+            <h2 style="color: var(--olivo-base); text-shadow: 0 1px 1px rgba(255,255,255,0.8); font-size: clamp(1.4rem, 5.5vw, 2.5rem); white-space: nowrap; text-align: center;">FAQ - Preguntas Frecuentes</h2>
+            <div class="faq-container">
+                
+                <!-- PREGUNTA 1 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>¿Habrá estacionamiento disponible?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí, el lugar cuenta con estacionamiento privado para todos nuestros invitados con valet parking sin costo. También sugerimos utilizar aplicaciones de transporte (Uber, Didi) para poder disfrutar de la barra libre sin preocupaciones.</p>
+                    </div>
                 </div>
-            </div>
 
-            <!-- PREGUNTA 2 -->
-            <div class="faq-item">
-                <button class="faq-question">
-                    <span class="faq-toggle">+</span>
-                    <span>¿Qué hago si tengo restricciones alimentarias?</span>
-                </button>
-                <div class="faq-answer">
-                    <p>Si tienes alguna alergia o restricción alimentaria (vegetariano, vegano, sin gluten, etc.), por favor infórmanos al confirmar tu asistencia en el apartado de RSVP en la pregunta correspondiente para considerarlo con el banquete.</p>
+                <!-- PREGUNTA 2 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>¿Qué hago si tengo restricciones alimentarias?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Si tienes alguna alergia o restricción alimentaria (vegetariano, vegano, sin gluten, etc.), por favor infórmanos al confirmar tu asistencia en el apartado de RSVP en la pregunta correspondiente para considerarlo con el banquete.</p>
+                    </div>
                 </div>
-            </div>
 
-            <!-- PREGUNTA 3 -->
-            <div class="faq-item">
-                <button class="faq-question">
-                    <span class="faq-toggle">+</span>
-                    <span>¿Qué clima se puede esperar?</span>
-                </button>
-                <div class="faq-answer">
-                    <p>Cholula en febrero nos regala tardes soleadas y muy agradables (20°C - 24°C). Sin embargo, al caer la noche la temperatura desciende, por lo que les recomendamos traer un abrigo o chal para disfrutar cómodamente de la recepción. Actualizaremos el clima conforme se acerque la fecha.</p>
+                <!-- PREGUNTA 3 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>¿Qué clima se puede esperar?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Cholula en febrero nos regala tardes soleadas y muy agradables (20°C - 24°C). Sin embargo, al caer la noche la temperatura desciende, por lo que les recomendamos traer un abrigo o chal para disfrutar cómodamente de la recepción. Actualizaremos el clima conforme se acerque la fecha.</p>
+                    </div>
                 </div>
-            </div>
 
-            <!-- PREGUNTA 4 -->
-            <div class="faq-item">
-                <button class="faq-question">
-                    <span class="faq-toggle">+</span>
-                    <span>¿Es un evento al aire libre o techado?</span>
-                </button>
-                <div class="faq-answer">
-                    <p>La ceremonia será al aire libre, mientras que el banquete se llevará a cabo en un salón techado.</p>
+                <!-- PREGUNTA 4 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>¿Es un evento al aire libre o techado?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>La ceremonia será al aire libre, mientras que el banquete se llevará a cabo en un salón techado.</p>
+                    </div>
                 </div>
-            </div>
 
+            </div>
         </div>
-    </section>
+    </div>
 
     <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN -->
     <section id="fotos-invitados" class="fade-in-section">
