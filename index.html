@@ -392,11 +392,11 @@
                 </div>
             </div>
             
-            <!-- 2021: Corazón Flechado (Derecha) -->
+            <!-- 2021: Corazón Flechado (Derecha) (Se escala un 25% para emparejar su peso visual) -->
             <div class="vt-item" style="top: 130px; left: 75%;">
                 <span class="vt-year">2021</span>
                 <div class="hz-icon-wrapper">
-                    <img src="ImagenesWeb/icono_corazon_flechado.png" alt="Corazón Flechado">
+                    <img src="ImagenesWeb/icono_corazon_flechado.png" alt="Corazón Flechado" style="transform: scale(1.25);">
                 </div>
             </div>
             
@@ -623,6 +623,7 @@
             changeGuestImage(-1);
         });
 
+        // Evento para cambiar de foto con el botón "Siguiente"
         btnNext.addEventListener("click", (e) => {
             e.stopPropagation(); // Evita que se cierre el visor al hacer clic en la flecha
             changeGuestImage(1);
@@ -650,11 +651,11 @@
             }
         });
 
-        // GALERÍA AUTOMÁTICA DESDE GITHUB [1]
+        // GALERÍA AUTOMÁTICA DESDE GITHUB
         async function loadGithubGallery() {
             const username = "memogrinan"; 
             const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados [1]
+            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
@@ -691,7 +692,7 @@
 
                     // Imagen
                     const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url; // URL del archivo crudo [1]
+                    imgEl.src = img.download_url; // URL del archivo crudo
                     imgEl.alt = "Foto compartida";
                     
                     // Evento para abrir el visor al hacer clic en la foto, recordando su posición
