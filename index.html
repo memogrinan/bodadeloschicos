@@ -155,6 +155,40 @@
         .event-loc { font-size: 0.8rem; color: var(--olivo-base); font-weight: 600; display: block; margin: 3px 0; text-transform: uppercase; letter-spacing: 0.5px; }
         .event-desc { font-size: 0.9rem; color: #666; margin-top: 5px; line-height: 1.5; }
 
+        /* BOTONES DE AGREGAR AL CALENDARIO EN EL ITINERARIO */
+        .calendar-btn-container {
+            display: flex;
+            gap: 10px;
+            margin: -15px 0 25px 0; /* Ubicación perfecta bajo el título Sábado 13 */
+            flex-wrap: wrap;
+        }
+        .btn-cal {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--olivo-base);
+            border: 1px solid rgba(82, 88, 47, 0.25);
+            border-radius: 20px;
+            padding: 6px 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            background-color: transparent;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            user-select: none;
+        }
+        .btn-cal:hover {
+            background-color: rgba(82, 88, 47, 0.05);
+            border-color: var(--olivo-base);
+        }
+        .cal-icon {
+            width: 14px;
+            height: 14px;
+            fill: var(--olivo-base);
+        }
+
         /* GALERÍA DINÁMICA DE INVITADOS CON SUBTÍTULOS */
         .gallery-grid {
             display: grid;
@@ -340,6 +374,67 @@
             border: 0;
         }
 
+        /* ESTILOS DE LA SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) */
+        .faq-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .faq-item {
+            border-bottom: 1.5px solid #eee;
+            transition: border-color 0.3s ease;
+        }
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 22px 10px;
+            text-align: left;
+            font-size: 1.05rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: var(--olivo-base);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            outline: none;
+            transition: background-color 0.3s ease;
+        }
+        .faq-question:hover {
+            background-color: rgba(82, 88, 47, 0.02);
+        }
+        
+        /* Símbolo + animado a la izquierda */
+        .faq-toggle {
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--olivo-base);
+            transition: transform 0.3s ease;
+            display: inline-block;
+            line-height: 1;
+            width: 20px;
+            text-align: center;
+            user-select: none;
+        }
+        
+        /* Cuando la pregunta está abierta, el + rota 45 grados y se vuelve una X */
+        .faq-item.is-open .faq-toggle {
+            transform: rotate(45deg);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out; /* Animación de deslizamiento vertical */
+        }
+        .faq-answer p {
+            padding: 0 10px 22px 35px; /* Alineación perfecta con el bloque de texto superior */
+            margin: 0;
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.7;
+        }
+
         /* ADAPTACIÓN MÓVIL */
         @media (max-width: 600px) {
             section { padding: 60px 20px; }
@@ -391,7 +486,7 @@
         <div class="fecha-top">13 de Febrero • 2027</div>
         <p>Cholula, Puebla</p>
         
-        <!-- CONTADOR EN TIEMLE REAL -->
+        <!-- CONTADOR EN TIEMPO REAL -->
         <div class="countdown-container" id="countdown">
             <div class="cd-item"><span class="cd-val" id="days">00</span><span class="cd-label">Días</span></div>
             <div class="cd-item"><span class="cd-val" id="hours">00</span><span class="cd-label">Horas</span></div>
@@ -527,7 +622,21 @@
                 <p class="event-title">Boda Civil</p>
                 <p class="event-desc">El momento oficial donde daremos el "sí, acepto" ante la ley, rodeados de nuestros seres más queridos.</p>
             </div>
+            
             <span class="timeline-day-title">Sábado 13 de Febrero</span>
+            
+            <!-- BOTONES DE AGREGAR AL CALENDARIO (Ubicados elegantemente bajo el título Sábado 13) -->
+            <div class="calendar-btn-container">
+                <!-- Enlace dinámico a Google Calendar -->
+                <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Boda+Mariana+%26+Memo&dates=20270213T213000Z/20270214T053000Z&details=%C2%A1Nos+casamos%21+Te+invitamos+a+celebrar+junto+a+nosotros+este+d%C3%ADa+tan+especial+en+Cholula%2C+Puebla.+Conoce+todos+los+detalles+en+nuestra+p%C3%A1gina+web%3A+https%3A%2F%2Fbodadeloschicos.pages.dev%2F&location=Hacienda+San+Jos%C3%A9+Actipan%2C+Cholula%2C+Puebla" target="_blank" class="btn-cal">
+                    <svg viewBox="0 0 24 24" class="cal-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg> Agregar a Google Calendar
+                </a>
+                <!-- Llamada de descarga dinámica de archivo .ics para iPhone (Apple Calendar) -->
+                <a href="javascript:void(0);" onclick="downloadICS();" class="btn-cal">
+                    <svg viewBox="0 0 24 24" class="cal-icon"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg> Agregar a Apple Calendar
+                </a>
+            </div>
+
             <div class="timeline-item">
                 <span class="time-label">3:30 P.M.</span>
                 <p class="event-title">Recepción</p>
@@ -591,6 +700,58 @@
         </div>
     </section>
 
+    <!-- SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) -->
+    <section id="faq" class="fade-in-section">
+        <h2>FAQ - Preguntas Frecuentes</h2>
+        <div class="faq-container">
+            
+            <!-- PREGUNTA 1 -->
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span class="faq-toggle">+</span>
+                    <span>¿Habrá estacionamiento disponible?</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Sí, el lugar cuenta con estacionamiento privado para todos nuestros invitados con valet parking sin costo. También sugerimos utilizar aplicaciones de transporte (Uber, Didi) para poder disfrutar de la barra libre sin preocupaciones.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 2 -->
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span class="faq-toggle">+</span>
+                    <span>¿Qué hago si tengo restricciones alimentarias?</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Si tienes alguna alergia o restricción alimentaria (vegetariano, vegano, sin gluten, etc.), por favor infórmanos al confirmar tu asistencia en el apartado de RSVP en la pregunta correspondiente para considerarlo con el banquete.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 3 -->
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span class="faq-toggle">+</span>
+                    <span>¿Qué clima se puede esperar?</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Cholula en febrero nos regala tardes soleadas y muy agradables (20°C - 24°C). Sin embargo, al caer la noche la temperatura desciende, por lo que les recomendamos traer un abrigo o chal para disfrutar cómodamente de la recepción. Actualizaremos el clima conforme se acerque la fecha.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 4 -->
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span class="faq-toggle">+</span>
+                    <span>¿Es un evento al aire libre o techado?</span>
+                </button>
+                <div class="faq-answer">
+                    <p>La ceremonia será al aire libre, mientras que el banquete se llevará a cabo en un salón techado.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
     <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN -->
     <section id="fotos-invitados" class="fade-in-section">
         <div class="upload-section">
@@ -646,6 +807,33 @@
         function moveSlide(d) {
             currentSlide = (currentSlide + d + track.children.length) % track.children.length;
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // GENERACIÓN Y DESCARGA DINÁMICA DE ARCHIVO .ICS PARA APPLE CALENDAR (IPHONE)
+        function downloadICS() {
+            const icsData = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Boda Mariana y Memo//NONSGML v1.0//EN',
+                'BEGIN:VEVENT',
+                'UID:boda-mariana-memo-2027@bodadeloschicos',
+                'DTSTAMP:20260521T000000Z',
+                'DTSTART:20270213T213000Z', // 15:30 CST (Sábado 13 de Feb) = 21:30 UTC
+                'DTEND:20270214T053000Z',   // 23:30 CST (Sábado 13 de Feb) = 05:30 UTC (Domingo 14 de Feb)
+                'SUMMARY:Boda Mariana & Memo',
+                'DESCRIPTION:¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula\\, Puebla. Encuentra aquí el itinerario\\, hospedaje y todos los detalles de nuestro gran día en: https://bodadeloschicos.pages.dev/',
+                'LOCATION:Hacienda San José Actipan\\, Cholula\\, Puebla',
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+
+            const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', 'Boda_Mariana_y_Memo.ics');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente con botones de navegación)
@@ -723,6 +911,32 @@
 
             fadeSections.forEach(section => {
                 observer.observe(section);
+            });
+        });
+
+        // CONTROL DE PREGUNTAS FRECUENTES (FAQ) - COMPORTAMIENTO DE ACORDEÓN INTERACTIVO
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = button.parentElement;
+                const answer = item.querySelector('.faq-answer');
+                const isOpen = item.classList.contains('is-open');
+
+                // Opcional: Cerrar cualquier otro acordeón abierto previamente para ahorrar espacio vertical
+                document.querySelectorAll('.faq-item').forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('is-open');
+                        otherItem.querySelector('.faq-answer').style.maxHeight = null;
+                    }
+                });
+
+                // Toggle del hito activo y cálculo preciso de la altura dinámica
+                if (isOpen) {
+                    item.classList.remove('is-open');
+                    answer.style.maxHeight = null;
+                } else {
+                    item.classList.add('is-open');
+                    answer.style.maxHeight = answer.scrollHeight + 'px'; // Toma la altura exacta del contenido
+                }
             });
         });
 
