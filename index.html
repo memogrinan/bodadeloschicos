@@ -68,10 +68,18 @@
 
         /* EFECTO CINEMATOGRÁFICO DE ZOOM LENTO (KEN BURNS) PARA EL FONDO */
         .header-bg {
+            width: 100%;
+            height: 100%;
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/portada.jpg');
             background-size: cover; background-position: center;
             animation: kenBurnsEffect 24s ease-in-out infinite;
-            will-change: transform; /* Optimiza para que el procesamiento ocurra en la tarjeta gráfica */
+            
+            /* Optimización de aceleración por hardware para móviles */
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
         @keyframes kenBurnsEffect {
             0% { transform: scale(1); }
@@ -111,6 +119,7 @@
             pointer-events: none; /* Permite hacer scroll tocando la imagen */
             background-size: cover; 
             background-position: center; 
+            overflow: hidden; /* Evita que el zoom del Ken Burns desborde la pantalla */
         }
 
         /* Rutas de diseño apuntando a la carpeta ImagenesWeb */
@@ -489,7 +498,10 @@
     </nav>
 
     <header id="inicio">
-        <div class="bg-fixed header-bg"></div>
+        <!-- Estructura optimizada: contenedor fijo + capa interna animada -->
+        <div class="bg-fixed">
+            <div class="header-bg"></div>
+        </div>
         <h1>Mariana & Memo</h1>
         <div class="fecha-top">13 de Febrero • 2027</div>
         <p>Cholula, Puebla</p>
@@ -821,33 +833,6 @@
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // GENERACIÓN Y DESCARGA DINÁMICA DE ARCHIVO .ICS PARA APPLE CALENDAR (IPHONE)
-        function downloadICS() {
-            const icsData = [
-                'BEGIN:VCALENDAR',
-                'VERSION:2.0',
-                'PRODID:-//Boda Mariana y Memo//NONSGML v1.0//EN',
-                'BEGIN:VEVENT',
-                'UID:boda-mariana-memo-2027@bodadeloschicos',
-                'DTSTAMP:20260521T000000Z',
-                'DTSTART:20270213T213000Z', // 15:30 CST (Sábado 13 de Feb) = 21:30 UTC
-                'DTEND:20270214T053000Z',   // 23:30 CST (Sábado 13 de Feb) = 05:30 UTC (Domingo 14 de Feb)
-                'SUMMARY:Boda Mariana & Memo',
-                'DESCRIPTION:¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula\\, Puebla. Encuentra aquí el itinerario\\, hospedaje y todos los detalles de nuestro gran día en: https://bodadeloschicos.pages.dev/',
-                'LOCATION:Hacienda San José Actipan\\, Cholula\\, Puebla',
-                'END:VEVENT',
-                'END:VCALENDAR'
-            ].join('\r\n');
-
-            const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.setAttribute('download', 'Boda_Mariana_y_Memo.ics');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
         // ELEMENTOS DEL VISOR DE IMÁGENES (Creados dinámicamente con botones de navegación)
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox-modal";
@@ -951,6 +936,39 @@
                 }
             });
         });
+
+        // FUNCIÓN DE DESCARGA DINÁMICA DE ARCHIVO .ICS (Apple Calendar)
+        function downloadICS() {
+            const title = "Boda Mariana & Memo";
+            const description = "¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.pages.dev/";
+            const location = "Hacienda San José Actipan, Cholula, Puebla";
+            
+            // Fechas en formato UTC (YmdTHmsZ)
+            const startDate = "20270213T213000Z"; // 13 de Febrero 2027, 21:30 UTC
+            const endDate = "20270214T053000Z";   // 14 de Febrero 2027, 05:30 UTC
+
+            const icsContent = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//Boda Mariana y Memo//NONSGML Event//ES",
+                "BEGIN:VEVENT",
+                `DTSTART:${startDate}`,
+                `DTEND:${endDate}`,
+                `SUMMARY:${title}`,
+                `DESCRIPTION:${description}`,
+                `LOCATION:${location}`,
+                "END:VEVENT",
+                "END:VCALENDAR"
+            ].join("\r\n");
+
+            const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "Boda_Mariana_y_Memo.ics";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
         // GALERÍA AUTOMÁTICA DESDE GITHUB
         async function loadGithubGallery() {
