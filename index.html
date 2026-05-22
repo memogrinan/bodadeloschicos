@@ -49,7 +49,7 @@
             position: fixed; top: 0; width: 100%; 
             background: var(--olivo-trans);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            z-index: 1000; padding: 14px 0;
+            z-index: 1100; padding: 14px 0; /* Capa más alta que el menú lateral para mantener el botón visible */
             box-shadow: 0 2px 15px rgba(0,0,0,0.05);
         }
         .nav-container { 
@@ -92,7 +92,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            z-index: 1100;
+            z-index: 1200; /* Asegura su posición clickeable */
         }
         .menu-toggle svg {
             width: 24px;
@@ -104,15 +104,15 @@
         .mobile-drawer {
             position: fixed;
             top: 0; right: 0;
-            width: 260px; height: 100vh;
+            width: 200px; height: 100vh; /* Ancho optimizado para no ocupar toda la pantalla */
             background: var(--olivo-trans);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             box-shadow: -5px 0 25px rgba(0,0,0,0.2);
-            z-index: 1050;
+            z-index: 1050; /* Se desliza por debajo de la cabecera */
             display: flex;
             flex-direction: column;
-            padding: 80px 30px;
-            gap: 20px;
+            padding: 80px 24px 40px 24px;
+            gap: 15px;
             transform: translateX(100%);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -122,11 +122,11 @@
         .mobile-drawer a {
             text-decoration: none;
             color: white;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            padding: 10px 0;
+            letter-spacing: 1px;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             transition: 0.3s;
         }
@@ -599,7 +599,7 @@
             <!-- Botón Hamburguesa de Navegación Móvil -->
             <button class="menu-toggle" id="menuToggle" aria-label="Abrir Menú">
                 <svg viewBox="0 0 24 24">
-                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="white"/>
                 </svg>
             </button>
         </div>
@@ -917,8 +917,8 @@
         
         <div style="font-size: 1.05rem; line-height: 1.8; color: #444; max-width: 650px; margin: 0 auto;">
             <p style="font-weight: 600; color: var(--olivo-base); font-size: 1.15rem;">¿No puedes esperar a la boda? Pasa el tiempo con nuestros juegos y llévate un premio el día de la boda.</p>
-            <p style="font-style: italic; font-size: 0.92rem; margin-top: 10px; color: #666;">
-                Supera el puntaje meta de los 4 desafíos que diseñamos de nuestra historia. Si logras conquistar todos los retos, podrás reclamar un premio físico especial el día del evento.
+            <p style="font-style: italic; font-size: 0.92rem; margin-top: 10px; color: #666; line-height: 1.6;">
+                Supera el puntaje de los 4 juegos que diseñamos para ti. Si logras conquistar todos los retos, podrás reclamar un premio exclusivo el día del evento.
             </p>
         </div>
 
@@ -926,15 +926,15 @@
         <div style="max-width: 680px; margin: 35px auto 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; text-align: left;">
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
                 <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🦖 Chicosaurio</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Salta agendas de oficina (📅) y alarmas (⏰) como Chicosaurio y atrapa todos los controles de videojuegos (🎮) posibles.</p>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Ayuda a Chicosaurio a saltar juntas y alarmas, y atrapa todos los controles de videojuegos (🎮) posibles.</p>
             </div>
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
                 <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">👸 Atrapa el Amor</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Recolecta corazones y anillos moviendo a Mariana de prisa en la base, pero cuidado de no tocar las nubes de tormenta (🌧).</p>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Recolecta corazones y anillos moviendo a la Chica antes de que caigan, asegurándote de esquivar las nubes de tormenta (🌧).</p>
             </div>
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
                 <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🐶 Atrapa a Maddie</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Nuestra perrita asoma la cabeza por los agujeros del jardín. Pon a prueba tu destreza y atrápala en 30 segundos.</p>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Maddie asoma la cabeza por los agujeros del jardín. Pon a prueba tu destreza y atrápala en 30 segundos.</p>
             </div>
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
                 <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🚗 Camino a Puebla</h4>
@@ -954,7 +954,10 @@
     </div>
 
     <footer>
-        MARIANA & MEMO • 13.02.2027 <br>
+        <!-- Logotipo final elegante -->
+        <div style="margin-bottom: 25px; display: flex; justify-content: center; align-items: center;">
+            <img src="ImagenesWeb/logo.png" alt="Mariana & Memo Logo" style="max-width: 220px; width: 100%; height: auto; opacity: 0.95;">
+        </div>
         HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
     </footer>
 
