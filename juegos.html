@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arcade de los Chicos - Boda Mariana & Memo</title>
+    
+    <!-- Tailwind CSS para diseño rápido y moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        olivo: {
+                            base: '#52582f',
+                            trans: 'rgba(82, 88, 47, 0.75)',
+                            acento: '#a3ad73',
+                            claro: '#f2f4ed'
+                        },
+                        crema: {
+                            fondo: '#fcfaf7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fcfaf7;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        /* Ajuste para evitar retrasos de pulsación en pantallas táctiles */
+        button, canvas {
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen pb-12">
+
+    <!-- CABECERA -->
+    <header class="bg-[#52582f] text-white py-6 px-4 text-center shadow-md relative">
+        <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white font-semibold py-1 px-3 rounded-full text-xs transition">
+            ← Volver
+        </a>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide">ARCADE DE LOS CHICOS</h1>
+        <p class="text-xs text-olivo-claro/80 mt-1">Supera las metas para ganar un premio el día de la boda</p>
+    </header>
+
+    <!-- PANEL DEL USUARIO -->
+    <div class="max-w-4xl mx-auto mt-6 px-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🎮</span>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p>
+                    <div class="flex items-center gap-2">
+                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-lg">Cargando...</span>
+                        <button onclick="changeGamerTagPrompt()" class="text-xs text-blue-500 hover:underline">Editar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- INDICADOR DE PREMIO GENERAL -->
+            <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-semibold text-center transition-all duration-300">
+                Cargando estado del premio...
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE JUEGOS (MENÚ PRINCIPAL) -->
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" id="gamesMenu">
+            
+            <!-- JUEGO 1: EL CHICO -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">👨‍💻</span>
+                        <span id="badge-chico" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chrome Memo</h3>
+                    <p class="text-gray-500 text-sm mt-2">Memo trabaja en Google. Ayúdalo a saltar juntas del calendario (📅) y alarmas (⏰) mientras recolecta tazas de café (☕).</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-chico">0</span> pts / <span class="text-olivo-base">100 pts</span></p>
+                    </div>
+                    <button onclick="openGame('chico')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 2: LA CHICA -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">👸</span>
+                        <span id="badge-chica" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de la Chica: Atrapa el Amor</h3>
+                    <p class="text-gray-500 text-sm mt-2">Mueve la canasta de Mariana para atrapar los corazones (💖) y anillos de compromiso (💍) que caen del cielo antes de que toquen el suelo.</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-chica">0</span> pts / <span class="text-olivo-base">15 pts</span></p>
+                    </div>
+                    <button onclick="openGame('chica')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 3: MADDIE -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🐶</span>
+                        <span id="badge-maddie" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de Maddie: ¡Atrapa a la perrita!</h3>
+                    <p class="text-gray-500 text-sm mt-2">Maddie es muy inquieta. Tienes 30 segundos para pulsar sobre ella en los agujeros de tierra. ¡No la dejes escapar!</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-maddie">0</span> clics / <span class="text-olivo-base">20 clics</span></p>
+                    </div>
+                    <button onclick="openGame('maddie')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 4: CAMINO A PUEBLA -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🚗</span>
+                        <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: Ruta Express</h3>
+                    <p class="text-gray-500 text-sm mt-2">Esquiva los camiones (🚌), baches (🕳) y obras (🚧) en la carretera. Colecta los mapas (🗺) y corazones (💚) para avanzar.</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-puebla">0</span> pts / <span class="text-olivo-base">80 pts</span></p>
+                    </div>
+                    <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE REGISTRO GAMERTAG -->
+    <div id="gamertagModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <span class="text-4xl">👾</span>
+            <h2 class="text-xl font-extrabold text-olivo-base mt-4">¡Ingresa tu GamerTag!</h2>
+            <p class="text-gray-500 text-xs mt-2">Para poder registrar tus récords locales en el navegador, por favor ingresa un nombre o apodo único.</p>
+            <input type="text" id="gamertagInput" maxlength="15" placeholder="Tu Apodo / Nombre" class="w-full mt-4 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition">
+            <button onclick="saveGamerTag()" class="w-full mt-4 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition">Comenzar a Jugar</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CONTENEDOR DE JUEGOS EN PANTALLA COMPLETA -->
+    <div id="gameContainer" class="fixed inset-0 bg-black/95 z-40 hidden flex flex-col justify-between p-4">
+        <div class="flex justify-between items-center text-white pb-2 border-b border-white/10">
+            <div class="flex items-center gap-2">
+                <span id="activeGameIcon" class="text-xl">🎮</span>
+                <span id="activeGameTitle" class="font-bold text-sm">Cargando Juego...</span>
+            </div>
+            <button onclick="closeActiveGame()" class="text-white hover:text-red-400 font-bold px-2 py-1 text-sm bg-white/10 rounded-lg">✕ Salir</button>
+        </div>
+
+        <!-- ÁREA INTERNA DEL JUEGO -->
+        <div class="flex-grow flex flex-col justify-center items-center relative overflow-hidden my-4">
+            
+            <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
+            <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 rounded-2xl max-w-full max-h-[70vh] shadow-lg hidden"></canvas>
+
+            <!-- Agujeros de Maddie (DOM-based) -->
+            <div id="maddieGrid" class="grid grid-cols-3 gap-3 max-w-[340px] w-full hidden">
+                <!-- Se generará dinámicamente -->
+            </div>
+
+            <!-- Pantalla superpuesta del juego (Start / GameOver / Instrucciones) -->
+            <div id="gameOverlay" class="absolute inset-0 bg-black/80 flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl">
+                <p id="overlayInstructions" class="text-sm max-w-[280px] mb-4 text-gray-300">Presiona "Empezar" para jugar.</p>
+                <button id="startGameBtn" class="bg-olivo-acento text-black font-extrabold px-8 py-3 rounded-full text-sm tracking-wider uppercase transition active:scale-95">¡Empezar!</button>
+            </div>
+        </div>
+
+        <!-- Barra inferior de controles/puntuación en el juego activo -->
+        <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center text-white text-xs">
+            <div>
+                <p class="text-gray-400 uppercase font-semibold">Marcador Actual</p>
+                <p class="text-lg font-extrabold text-olivo-claro" id="currentGameScore">0</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400 uppercase font-semibold" id="bottomLabel">Estado</p>
+                <p class="text-sm font-bold" id="currentGameState">Listo para iniciar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GLOBAL Y LÓGICA DE JUEGOS -->
+    <script>
+        // CONFIGURACIÓN DE METAS (Score targets)
+        const METAS = {
+            chico: 100,
+            chica: 15,
+            maddie: 20,
+            puebla: 80
+        };
+
+        let playerGamertag = "";
+        let activeGame = null;
+        let gameInterval = null;
+        let score = 0;
+        let gameRunning = false;
+
+        // ELEMENTOS DEL DOM
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const gameOverlay = document.getElementById("gameOverlay");
+        const overlayInstructions = document.getElementById("overlayInstructions");
+        const startGameBtn = document.getElementById("startGameBtn");
+        const currentGameScore = document.getElementById("currentGameScore");
+        const currentGameState = document.getElementById("currentGameState");
+        const maddieGrid = document.getElementById("maddieGrid");
+
+        // INICIALIZACIÓN
+        document.addEventListener("DOMContentLoaded", () => {
+            checkGamertag();
+            updateScoresDashboard();
+        });
+
+        function checkGamertag() {
+            const saved = localStorage.getItem("bodachicos_gamertag");
+            if (!saved) {
+                document.getElementById("gamertagModal").classList.remove("hidden");
+            } else {
+                playerGamertag = saved;
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+            }
+        }
+
+        function saveGamerTag() {
+            const val = document.getElementById("gamertagInput").value.trim();
+            if (val) {
+                localStorage.setItem("bodachicos_gamertag", val);
+                playerGamertag = val;
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+                document.getElementById("gamertagModal").classList.add("hidden");
+                updateScoresDashboard();
+            }
+        }
+
+        function changeGamerTagPrompt() {
+            const val = prompt("Ingresa tu nuevo GamerTag:", playerGamertag);
+            if (val && val.trim()) {
+                localStorage.setItem("bodachicos_gamertag", val.trim());
+                playerGamertag = val.trim();
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+            }
+        }
+
+        function getScore(game) {
+            return parseInt(localStorage.getItem("bodachicos_score_" + game) || "0");
+        }
+
+        function saveScore(game, newScore) {
+            const current = getScore(game);
+            if (newScore > current) {
+                localStorage.setItem("bodachicos_score_" + game, newScore);
+            }
+        }
+
+        function updateScoresDashboard() {
+            let totalMetasSuperadas = 0;
+
+            Object.keys(METAS).forEach(game => {
+                const gameScore = getScore(game);
+                const target = METAS[game];
+                document.getElementById("score-" + game).innerText = gameScore;
+
+                const badge = document.getElementById("badge-" + game);
+                if (gameScore >= target) {
+                    badge.innerText = "¡Completado! ✓";
+                    badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-green-100 text-green-700";
+                    totalMetasSuperadas++;
+                } else {
+                    badge.innerText = "Pendiente";
+                    badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-yellow-100 text-yellow-700";
+                }
+            });
+
+            // Actualizar banner de premio general
+            const prizeStatus = document.getElementById("prizeStatus");
+            if (totalMetasSuperadas === 4) {
+                prizeStatus.innerHTML = "🏆 ¡Premio Desbloqueado! Toma una captura y canjéala el día de la boda.";
+                prizeStatus.className = "bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md";
+            } else {
+                prizeStatus.innerHTML = `Progreso: ${totalMetasSuperadas}/4 metas superadas.`;
+                prizeStatus.className = "bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-semibold text-center";
+            }
+        }
+
+        // ==========================================
+        // CONTROL GENERAL DE APERTURA Y CIERRE DE JUEGOS
+        function openGame(game) {
+            activeGame = game;
+            document.getElementById("gameContainer").classList.remove("hidden");
+            document.body.style.overflow = "hidden"; // Deshabilita el scroll de fondo
+
+            // Configurar cabeceras de UI
+            const gameTitles = {
+                chico: "Chrome Memo (El Chico)",
+                chica: "Atrapa el Amor (La Chica)",
+                maddie: "Atrapa a la perrita (Maddie)",
+                puebla: "Camino a Puebla"
+            };
+            const gameIcons = { chico: "👨‍💻", chica: "👸", maddie: "🐶", puebla: "🚗" };
+
+            document.getElementById("activeGameTitle").innerText = gameTitles[game];
+            document.getElementById("activeGameIcon").innerText = gameIcons[game];
+            
+            resetGameUI();
+        }
+
+        function resetGameUI() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            score = 0;
+            currentGameScore.innerText = "0";
+            currentGameState.innerText = "Esperando inicio";
+
+            canvas.classList.add("hidden");
+            maddieGrid.classList.add("hidden");
+            gameOverlay.classList.remove("hidden");
+
+            // Configurar instrucciones iniciales y botón de inicio
+            const targetScore = METAS[activeGame];
+            let inst = "";
+            if (activeGame === 'chico') {
+                inst = `Salta tocando la pantalla para evitar las alarmas (⏰) y juntas (📅). Colecta tazas de café (☕) para ganar bonus.\nMeta: ${targetScore} pts.`;
+            } else if (activeGame === 'chica') {
+                inst = `Mueve la canasta tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍).\nMeta: ${targetScore} pts.`;
+            } else if (activeGame === 'maddie') {
+                inst = `Toca a Maddie (🐶) cada vez que aparezca en los agujeros de tierra. Tienes 30 segundos.\nMeta: ${targetScore} clics.`;
+            } else if (activeGame === 'puebla') {
+                inst = `Conduce tocando el lado izquierdo o derecho de la pantalla para cambiar de carril. Evita obstáculos y atrapa mapas y corazones.\nMeta: ${targetScore} pts.`;
+            }
+            
+            overlayInstructions.innerText = inst;
+            startGameBtn.onclick = startActiveGame;
+        }
+
+        function closeActiveGame() {
+            clearInterval(gameInterval);
+            gameRunning = false;
+            document.getElementById("gameContainer").classList.add("hidden");
+            document.body.style.overflow = ""; // Reactiva scroll general
+            updateScoresDashboard();
+        }
+
+        function startActiveGame() {
+            gameOverlay.classList.add("hidden");
+            gameRunning = true;
+            score = 0;
+            currentGameScore.innerText = "0";
+            currentGameState.innerText = "Jugando";
+
+            if (activeGame === 'chico') {
+                canvas.classList.remove("hidden");
+                initChicoGame();
+            } else if (activeGame === 'chica') {
+                canvas.classList.remove("hidden");
+                initChicaGame();
+            } else if (activeGame === 'maddie') {
+                maddieGrid.classList.remove("hidden");
+                initMaddieGame();
+            } else if (activeGame === 'puebla') {
+                canvas.classList.remove("hidden");
+                initPueblaGame();
+            }
+        }
+
+        function gameOver(finalScore) {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            saveScore(activeGame, finalScore);
+            
+            const meta = METAS[activeGame];
+            let resultMessage = `Fin del Juego. Obtuviste ${finalScore} puntos.`;
+            if (finalScore >= meta) {
+                resultMessage += `\n\n🎉 ¡Felicidades! Superaste la meta de ${meta}.`;
+            } else {
+                resultMessage += `\n\nInténtalo de nuevo para llegar a la meta de ${meta}.`;
+            }
+
+            overlayInstructions.innerText = resultMessage;
+            startGameBtn.innerText = "Reintentar";
+            startGameBtn.onclick = resetGameUI;
+            gameOverlay.classList.remove("hidden");
+            
+            updateScoresDashboard();
+        }
+
+        // ==========================================
+        // JUEGO 1: CHROME MEMO (Dino Style)
+        let memo, obstacles, items, chicoFrame;
+        function initChicoGame() {
+            memo = {
+                x: 40,
+                y: 350,
+                width: 32,
+                height: 32,
+                vy: 0,
+                gravity: 1.4,
+                jumpHeight: -16,
+                isGrounded: true
+            };
+            obstacles = [];
+            items = [];
+            chicoFrame = 0;
+
+            // Limpieza de gestos de salto previos
+            canvas.onclick = (e) => {
+                if (memo.isGrounded) {
+                    memo.vy = memo.jumpHeight;
+                    memo.isGrounded = false;
+                }
+            };
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                if (memo.isGrounded) {
+                    memo.vy = memo.jumpHeight;
+                    memo.isGrounded = false;
+                }
+            };
+
+            gameInterval = setInterval(updateChico, 1000 / 30); // 30 FPS
+        }
+
+        function updateChico() {
+            chicoFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Fondo simple de oficina con línea de horizonte
+            ctx.fillStyle = "#eef2e6";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "#52582f";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, 380);
+            ctx.lineTo(canvas.width, 380);
+            ctx.stroke();
+
+            // Gravedad y física de Memo
+            memo.vy += memo.gravity;
+            memo.y += memo.vy;
+            if (memo.y >= 348) {
+                memo.y = 348;
+                memo.vy = 0;
+                memo.isGrounded = true;
+            }
+
+            // Dibujar Memo (El Chico 👨‍💻)
+            ctx.font = "32px sans-serif";
+            ctx.fillText("👨‍💻", memo.x, memo.y);
+
+            // Generar Obstáculos (Alarmas ⏰ o Calendarios 📅)
+            if (chicoFrame % 65 === 0) {
+                let obsEmoji = Math.random() > 0.5 ? "📅" : "⏰";
+                obstacles.push({
+                    x: canvas.width,
+                    y: 355,
+                    emoji: obsEmoji,
+                    speed: 6 + Math.floor(score / 50) // Incrementa dificultad gradualmente
+                });
+            }
+
+            // Generar Items (Café ☕)
+            if (chicoFrame % 90 === 0) {
+                items.push({
+                    x: canvas.width,
+                    y: 240 + Math.random() * 50,
+                    emoji: "☕",
+                    speed: 6
+                });
+            }
+
+            // Actualizar Obstáculos
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.x -= obs.speed;
+                ctx.fillText(obs.emoji, obs.x, obs.y);
+
+                // Colisión con Obstáculo
+                if (obs.x < memo.x + 24 && obs.x + 24 > memo.x && obs.y - 24 < memo.y + 24 && obs.y > memo.y) {
+                    gameOver(score);
+                    return;
+                }
+                if (obs.x < -30) obstacles.splice(i, 1);
+            }
+
+            // Actualizar Items
+            for (let i = items.length - 1; i >= 0; i--) {
+                let it = items[i];
+                it.x -= it.speed;
+                ctx.fillText(it.emoji, it.x, it.y);
+
+                // Recolectar Café
+                if (it.x < memo.x + 24 && it.x + 24 > memo.x && it.y - 24 < memo.y + 24 && it.y > memo.y - 12) {
+                    score += 15; // Café aporta bonus grande
+                    currentGameScore.innerText = score;
+                    items.splice(i, 1);
+                    continue;
+                }
+                if (it.x < -30) items.splice(i, 1);
+            }
+
+            // Suma de puntos por distancia/tiempo
+            if (chicoFrame % 5 === 0) {
+                score += 1;
+                currentGameScore.innerText = score;
+            }
+        }
+
+        // ==========================================
+        // JUEGO 2: LA CHICA (Catch falling objects)
+        let basketX, fallObjects, lives, chicaFrame;
+        function initChicaGame() {
+            basketX = canvas.width / 2 - 25;
+            fallObjects = [];
+            lives = 3;
+            chicaFrame = 0;
+            currentGameState.innerText = "Corazones: ❤️ ❤️ ❤️";
+
+            // Control de movimiento táctil o de mouse
+            const moveBasket = (clientX) => {
+                const rect = canvas.getBoundingClientRect();
+                const relativeX = (clientX - rect.left) * (canvas.width / rect.width);
+                basketX = Math.max(0, Math.min(canvas.width - 50, relativeX - 25));
+            };
+
+            canvas.onmousemove = (e) => moveBasket(e.clientX);
+            canvas.ontouchmove = (e) => {
+                e.preventDefault();
+                moveBasket(e.touches[0].clientX);
+            };
+
+            gameInterval = setInterval(updateChica, 1000 / 30);
+        }
+
+        function updateChica() {
+            chicaFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Fondo rosa/crema elegante
+            ctx.fillStyle = "#fff5f5";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Generar corazones (💖) y anillos (💍)
+            if (chicaFrame % 25 === 0) {
+                fallObjects.push({
+                    x: Math.random() * (canvas.width - 30),
+                    y: 0,
+                    emoji: Math.random() > 0.4 ? "💖" : "💍",
+                    speed: 4 + Math.random() * 4
+                });
+            }
+
+            // Dibujar Mariana / Canasta (👸) en la base
+            ctx.font = "40px sans-serif";
+            ctx.fillText("👸", basketX, 450);
+
+            // Actualizar objetos cayendo
+            for (let i = fallObjects.length - 1; i >= 0; i--) {
+                let obj = fallObjects[i];
+                obj.y += obj.speed;
+                ctx.fillText(obj.emoji, obj.x, obj.y);
+
+                // Verificar colisión con la base/canasta
+                if (obj.y >= 415 && obj.y <= 455 && obj.x >= basketX - 15 && obj.x <= basketX + 40) {
+                    score += 1;
+                    currentGameScore.innerText = score;
+                    fallObjects.splice(i, 1);
+                    continue;
+                }
+
+                // Si cae al suelo (se pierde el amor)
+                if (obj.y > canvas.height) {
+                    lives--;
+                    let heartString = "";
+                    for (let h = 0; h < lives; h++) heartString += "❤️ ";
+                    currentGameState.innerText = "Vidas: " + (heartString || "💔");
+                    
+                    fallObjects.splice(i, 1);
+
+                    if (lives <= 0) {
+                        gameOver(score);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // JUEGO 3: MADDIE (Click-a-mole)
+        let maddieTimer, activeHole, timeRemaining;
+        function initMaddieGame() {
+            maddieGrid.innerHTML = "";
+            timeRemaining = 30;
+            currentGameState.innerText = "Tiempo: 30s";
+
+            // Crear 9 agujeros en un bloque DOM seguro para toques rápidos
+            for (let i = 0; i < 9; i++) {
+                const hole = document.createElement("button");
+                // Estilo circular con apariencia de tierra
+                hole.className = "aspect-square rounded-full bg-amber-950/20 border-4 border-amber-900/40 flex justify-center items-center text-4xl p-2 relative shadow-inner overflow-hidden active:bg-amber-950/30";
+                hole.id = "hole-" + i;
+                hole.onclick = () => hitMaddie(i);
+                maddieGrid.appendChild(hole);
+            }
+
+            gameInterval = setInterval(() => {
+                timeRemaining--;
+                currentGameState.innerText = `Tiempo: ${timeRemaining}s`;
+                if (timeRemaining <= 0) {
+                    gameOver(score);
+                }
+            }, 1000);
+
+            maddiePop();
+        }
+
+        function maddiePop() {
+            if (!gameRunning) return;
+            
+            // Limpiar el agujero anterior
+            if (activeHole !== undefined) {
+                const prev = document.getElementById("hole-" + activeHole);
+                if (prev) prev.innerHTML = "";
+            }
+
+            // Seleccionar un agujero nuevo aleatorio
+            activeHole = Math.floor(Math.random() * 9);
+            const next = document.getElementById("hole-" + activeHole);
+            
+            // Colocar emoji de la perrita Maddie
+            next.innerHTML = "<span class='animate-bounce select-none pointer-events-none'>🐶</span>";
+
+            // Velocidad de cambio ajustable según puntuación
+            let popDelay = Math.max(450, 850 - (score * 15));
+            maddieTimer = setTimeout(maddiePop, popDelay);
+        }
+
+        function hitMaddie(index) {
+            if (index === activeHole && gameRunning) {
+                score++;
+                currentGameScore.innerText = score;
+                
+                // Efecto de acierto visual
+                const hitHole = document.getElementById("hole-" + index);
+                hitHole.innerHTML = "<span class='text-xl select-none pointer-events-none'>⭐</span>";
+                activeHole = -1; // Desactivar hasta la próxima aparición
+
+                clearTimeout(maddieTimer);
+                // Esperar un instante corto para el siguiente salto
+                setTimeout(maddiePop, 100);
+            }
+        }
+
+        // ==========================================
+        // JUEGO 4: CAMINO A PUEBLA (Lane Switcher)
+        let playerLane, roadObjects, roadFrame, roadSpeed;
+        const LANES = [50, 180, 310]; // Coordenadas X fijas de carriles en el lienzo de 360px
+
+        function initPueblaGame() {
+            playerLane = 1; // Carril central
+            roadObjects = [];
+            roadFrame = 0;
+            roadSpeed = 8;
+            currentGameState.innerText = "Camino libre";
+
+            // Toques en pantalla para cambiar de carril de manera responsiva
+            const rectWidth = canvas.clientWidth;
+            
+            canvas.onclick = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                if (clickX < rect.width / 2) {
+                    if (playerLane > 0) playerLane--; // Izquierda
+                } else {
+                    if (playerLane < 2) playerLane++; // Derecha
+                }
+            };
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touchX = e.touches[0].clientX - rect.left;
+                if (touchX < rect.width / 2) {
+                    if (playerLane > 0) playerLane--;
+                } else {
+                    if (playerLane < 2) playerLane++;
+                }
+            };
+
+            gameInterval = setInterval(updatePuebla, 1000 / 30);
+        }
+
+        function updatePuebla() {
+            roadFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar fondo gris carretera con líneas de carril divisorias
+            ctx.fillStyle = "#4a5568";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Líneas divisorias discontinuas amarillas animadas
+            ctx.strokeStyle = "#ecc94b";
+            ctx.lineWidth = 4;
+            ctx.setLineDash([20, 20]);
+            ctx.lineDashOffset = -roadFrame * roadSpeed;
+            
+            ctx.beginPath();
+            ctx.moveTo(120, 0); ctx.lineTo(120, canvas.height);
+            ctx.moveTo(240, 0); ctx.lineTo(240, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]); // Limpiar formato discontinuo
+
+            // Dibujar auto del conductor (🚗)
+            ctx.font = "36px sans-serif";
+            ctx.fillText("🚗", LANES[playerLane] - 18, 420);
+
+            // Generar amenazas (Autobús 🚌, Baches 🕳, Obras 🚧) o premios (Corazones 💚, Mapas 🗺)
+            if (roadFrame % 30 === 0) {
+                const obstacleLane = Math.floor(Math.random() * 3);
+                const isItem = Math.random() > 0.65;
+                let elemEmoji = "🚌";
+                
+                if (isItem) {
+                    elemEmoji = Math.random() > 0.5 ? "💚" : "🗺";
+                } else {
+                    let rand = Math.random();
+                    elemEmoji = rand > 0.6 ? "🚌" : (rand > 0.3 ? "🚧" : "🕳");
+                }
+
+                roadObjects.push({
+                    lane: obstacleLane,
+                    y: -50,
+                    emoji: elemEmoji,
+                    isItem: isItem
+                });
+            }
+
+            // Actualizar elementos de la carretera
+            for (let i = roadObjects.length - 1; i >= 0; i--) {
+                let obj = roadObjects[i];
+                obj.y += roadSpeed;
+                ctx.fillText(obj.emoji, LANES[obj.lane] - 18, obj.y);
+
+                // Comprobar colisión en el eje Y
+                if (obj.y >= 385 && obj.y <= 425 && obj.lane === playerLane) {
+                    if (obj.isItem) {
+                        score += 10; // Bonus por recolectar
+                        currentGameScore.innerText = score;
+                        roadObjects.splice(i, 1);
+                        continue;
+                    } else {
+                        // Accidente con obstáculo
+                        gameOver(score);
+                        return;
+                    }
+                }
+
+                if (obj.y > canvas.height + 50) roadObjects.splice(i, 1);
+            }
+
+            // Acumular puntos estándar por distancia recorrida
+            if (roadFrame % 10 === 0) {
+                score += 1;
+                currentGameScore.innerText = score;
+                // Aumento de velocidad de desplazamiento
+                if (score % 30 === 0) roadSpeed += 1;
+            }
+        }
+    </script>
+</body>
+</html>
