@@ -44,16 +44,92 @@
         html { scroll-behavior: smooth; }
         body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
         
-        /* MENU INTELIGENTE */
+        /* MENU INTELIGENTE RESPONSIVO */
         nav {
             position: fixed; top: 0; width: 100%; 
             background: var(--olivo-trans);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            z-index: 1000; padding: 12px 0;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            z-index: 1000; padding: 14px 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
         }
-        .nav-container { display: flex; justify-content: center; align-items: center; flex-wrap: nowrap; width: 98%; max-width: 1000px; margin: 0 auto; }
-        nav a { text-decoration: none; color: var(--nav-texto); font-size: clamp(9px, 2.5vw, 12px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 1vw; transition: 0.3s ease; white-space: nowrap; }
+        .nav-container { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 90%; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+        .nav-logo {
+            font-family: 'Alex Brush', cursive;
+            font-size: 1.5rem;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-links { 
+            display: flex; 
+            gap: 15px;
+        }
+        .nav-links a { 
+            text-decoration: none; 
+            color: var(--nav-texto); 
+            font-size: 11px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            padding: 4px 8px; 
+            transition: 0.3s ease; 
+            white-space: nowrap; 
+        }
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+        
+        /* Botón de Hamburguesa para celular */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 1100;
+        }
+        .menu-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* Panel Lateral Desplegable Móvil */
+        .mobile-drawer {
+            position: fixed;
+            top: 0; right: 0;
+            width: 260px; height: 100vh;
+            background: var(--olivo-trans);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            box-shadow: -5px 0 25px rgba(0,0,0,0.2);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            padding: 80px 30px;
+            gap: 20px;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mobile-drawer.is-active {
+            transform: translateX(0);
+        }
+        .mobile-drawer a {
+            text-decoration: none;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+        }
 
         /* PORTADA CON ANIMACIÓN DE ENTRADA SUAVE (TEXTO) */
         header {
@@ -139,6 +215,16 @@
         .faq-bg {
             background-color: #d8dcd0; /* El tono salvia suave y elegante */
             background-image: linear-gradient(rgba(225, 228, 215, 0.93), rgba(213, 218, 201, 0.88));
+        }
+
+        /* FONDO ELEGANTE CON ALUSIÓN SUTIL A ARCADE */
+        .retro-grid-bg {
+            background-color: #f6f8f3;
+            background-image: 
+                linear-gradient(rgba(82, 88, 47, 0.035) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(82, 88, 47, 0.035) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            background-position: center;
         }
 
         h1 { font-family: 'Alex Brush', cursive; font-size: clamp(3.5rem, 12vw, 6rem); margin: 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
@@ -457,6 +543,11 @@
         }
 
         /* ADAPTACIÓN MÓVIL */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .menu-toggle { display: block; }
+        }
+
         @media (max-width: 600px) {
             section { padding: 60px 20px; }
             .timeline-wrapper { margin-left: 20px; }
@@ -491,16 +582,40 @@
 
     <nav>
         <div class="nav-container">
-            <a href="#inicio">Inicio</a>
-            <a href="#historia">Historia</a>
-            <a href="#celebracion">Lugar</a>
-            <a href="#itinerario">Itinerario</a>
-            <a href="#hospedaje">Hospedaje</a>
-            <a href="#fotos-invitados">Fotos</a>
-            <a href="#juegos-acceso">Juegos</a>
-            <a href="#confirmacion">RSVP</a>
+            <a href="#inicio" class="nav-logo">M & M</a>
+            
+            <!-- Links para pantallas medianas/grandes -->
+            <div class="nav-links">
+                <a href="#inicio">Inicio</a>
+                <a href="#historia">Historia</a>
+                <a href="#celebracion">Lugar</a>
+                <a href="#itinerario">Itinerario</a>
+                <a href="#hospedaje">Hospedaje</a>
+                <a href="#fotos-invitados">Fotos</a>
+                <a href="#juegos-acceso">Juegos</a>
+                <a href="#confirmacion">RSVP</a>
+            </div>
+
+            <!-- Botón Hamburguesa de Navegación Móvil -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir Menú">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                </svg>
+            </button>
         </div>
     </nav>
+
+    <!-- Panel Lateral Desplegable Móvil -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="#inicio" onclick="closeDrawer()">Inicio</a>
+        <a href="#historia" onclick="closeDrawer()">Historia</a>
+        <a href="#celebracion" onclick="closeDrawer()">Lugar</a>
+        <a href="#itinerario" onclick="closeDrawer()">Itinerario</a>
+        <a href="#hospedaje" onclick="closeDrawer()">Hospedaje</a>
+        <a href="#fotos-invitados" onclick="closeDrawer()">Fotos</a>
+        <a href="#juegos-acceso" onclick="closeDrawer()">Juegos</a>
+        <a href="#confirmacion" onclick="closeDrawer()">RSVP</a>
+    </div>
 
     <header id="inicio">
         <div class="bg-fixed header-bg"></div>
@@ -796,17 +911,39 @@
         </div>
     </section>
 
-    <!-- NUEVA SECCIÓN: ACCESO AL ARCADE DE JUEGOS DE LOS CHICOS -->
-    <section id="juegos-acceso" class="fade-in-section" style="background-color: #fff; padding: 80px 20px;">
+    <!-- NUEVA SECCIÓN: ACCESO AL ARCADE DE JUEGOS CON FONDO RETRO ELEGANTE -->
+    <section id="juegos-acceso" class="fade-in-section retro-grid-bg" style="padding: 80px 20px; border-top: 1px solid rgba(82, 88, 47, 0.08); border-bottom: 1px solid rgba(82, 88, 47, 0.08);">
         <h2 style="font-family: 'Alex Brush', cursive; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 15px;">Juegos de los Chicos</h2>
-        <div style="font-size: 1.1rem; line-height: 1.8; color: #555; max-width: 600px; margin: 0 auto;">
-            <p>¿Quieres llevarte un premio especial el día de la boda? 🎁</p>
-            <p style="font-style: italic; font-size: 0.95rem; margin-top: 15px; color: #666; line-height: 1.6;">
-                Supera las 4 metas de los retos interactivos que preparamos para ti: atrapa café con el Chico, recolecta amor con la Chica, localiza a la traviesa Maddie y conduce esquivando el tráfico en la autopista rumbo a Puebla.
+        
+        <div style="font-size: 1.05rem; line-height: 1.8; color: #444; max-width: 650px; margin: 0 auto;">
+            <p style="font-weight: 600; color: var(--olivo-base); font-size: 1.15rem;">¿No puedes esperar a la boda? Pasa el tiempo con nuestros juegos y llévate un premio el día de la boda.</p>
+            <p style="font-style: italic; font-size: 0.92rem; margin-top: 10px; color: #666;">
+                Supera el puntaje meta de los 4 desafíos que diseñamos de nuestra historia. Si logras conquistar todos los retos, podrás reclamar un premio físico especial el día del evento.
             </p>
         </div>
-        <div style="margin-top: 30px;">
-            <a href="juegos.html" class="btn btn-rsvp" style="background-color: var(--olivo-base);">Entrar al Arcade 🎮</a>
+
+        <!-- Vista previa discreta de los desafíos -->
+        <div style="max-width: 680px; margin: 35px auto 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; text-align: left;">
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🦖 Chicosaurio</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Salta agendas de oficina (📅) y alarmas (⏰) como Chicosaurio y atrapa todos los controles de videojuegos (🎮) posibles.</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">👸 Atrapa el Amor</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Recolecta corazones y anillos moviendo a Mariana de prisa en la base, pero cuidado de no tocar las nubes de tormenta (🌧).</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🐶 Atrapa a Maddie</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Nuestra perrita asoma la cabeza por los agujeros del jardín. Pon a prueba tu destreza y atrápala en 30 segundos.</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🚗 Camino a Puebla</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Conduce en perspectiva retro 3D rebasando coches (🚘) y baches rumbo a Cholula. Atrapa corazones y mapas para ganar.</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <a href="juegos.html" class="btn btn-rsvp" style="background-color: var(--olivo-base); box-shadow: 0 4px 15px rgba(82, 88, 47, 0.15);">Entrar al Arcade 🎮</a>
         </div>
     </section>
 
@@ -825,6 +962,24 @@
         // VARIABLES GLOBALES PARA LA GALERÍA DE INVITADOS
         let guestImages = []; // Almacena las URLs de las fotos cargadas
         let currentGuestImageIndex = 0; // Índice de la foto activa
+
+        // LÓGICA DE CONTROL DEL MENÚ HAMBURGUESA DESPLEGABLE (MOBILE)
+        const menuToggle = document.getElementById("menuToggle");
+        const mobileDrawer = document.getElementById("mobileDrawer");
+
+        menuToggle.addEventListener("click", () => {
+            mobileDrawer.classList.toggle("is-active");
+            // Cambiar dinámicamente el icono de hamburguesa a un icono 'X'
+            const isOpen = mobileDrawer.classList.contains("is-active");
+            menuToggle.innerHTML = isOpen 
+                ? `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"/></svg>`
+                : `<svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="white"/></svg>`;
+        });
+
+        function closeDrawer() {
+            mobileDrawer.classList.remove("is-active");
+            menuToggle.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="white"/></svg>`;
+        }
 
         // Contador en tiempo real
         const targetDate = new Date("Feb 13, 2027 16:00:00").getTime();
