@@ -186,23 +186,39 @@
             <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
             <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 rounded-2xl max-w-full max-h-[70vh] shadow-lg hidden"></canvas>
 
-            <!-- Agujeros de Maddie (DOM-based) -->
-            <div id="maddieGrid" class="grid grid-cols-3 gap-3 max-w-[340px] w-full hidden">
+            <!-- MARCADOR RETRO REALTIME PARA MADDIE -->
+            <div id="maddieScoreboard" class="hidden mb-4 text-center select-none font-mono text-[#535353] text-sm tracking-widest">
+                HI <span id="maddieHighScore" class="font-bold">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold">00000</span>
+            </div>
+
+            <!-- Agujeros de Maddie (DOM-based 4x4) -->
+            <div id="maddieGrid" class="grid grid-cols-4 gap-3 max-w-[340px] w-full hidden">
                 <!-- Se generará dinámicamente -->
             </div>
 
-            <!-- PANTALLA SUPERPUESTA / GAME OVER / MENÚ DE INICIO -->
-            <div id="gameOverlay" class="absolute inset-0 bg-black/90 flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl">
+            <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO -->
+            <div id="gameOverlay" class="absolute inset-0 bg-[#f7f7f7] flex flex-col justify-center items-center text-center p-6 rounded-2xl">
                 
+                <!-- G A M E   O V E R  STYLE CHROME DINO -->
+                <div id="gameOverTitle" class="hidden text-xl md:text-2xl font-bold text-[#535353] tracking-[0.3em] font-mono uppercase mb-4 select-none">
+                    G A M E   O V E R
+                </div>
+
                 <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
-                <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/20 p-4 rounded-2xl w-64">
-                    <p class="text-[10px] tracking-widest text-gray-400 font-bold uppercase">Puntuación Obtenida</p>
-                    <p id="overlayFinalScore" class="text-5xl font-extrabold text-yellow-400 my-1">00000</p>
-                    <p id="overlayMetaCompare" class="text-xs text-gray-300 font-semibold">Meta del juego: 100 pts</p>
+                <div id="overlayScoreBox" class="hidden mb-6 bg-white border border-gray-200 p-4 rounded-2xl w-64 shadow-sm text-gray-700">
+                    <p class="text-[10px] tracking-widest text-gray-400 font-bold uppercase font-mono">Puntuación Obtenida</p>
+                    <p id="overlayFinalScore" class="text-4xl font-extrabold text-[#52582f] font-mono my-1">00000</p>
+                    <p id="overlayMetaCompare" class="text-xs text-gray-500 font-semibold font-mono">Meta del juego: 100 pts</p>
                 </div>
                 
-                <p id="overlayInstructions" class="text-sm max-w-[280px] mb-6 text-gray-300 leading-relaxed">Presiona "Empezar" para jugar.</p>
-                <button id="startGameBtn" class="bg-olivo-acento text-black font-extrabold px-8 py-3.5 rounded-full text-xs tracking-wider uppercase transition active:scale-95 shadow-md">¡Empezar!</button>
+                <p id="overlayInstructions" class="text-sm max-w-[280px] mb-6 text-gray-500 leading-relaxed">Presiona el botón de reinicio para jugar.</p>
+                
+                <!-- Botón de reinicio circular clásico de Chrome Dino -->
+                <button id="startGameBtn" class="focus:outline-none" aria-label="Iniciar / Reiniciar">
+                    <svg viewBox="0 0 24 24" class="w-12 h-12 fill-[#535353] hover:scale-110 active:scale-95 transition-transform duration-100 cursor-pointer">
+                        <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -317,6 +333,8 @@
         const overlayScoreBox = document.getElementById("overlayScoreBox");
         const overlayFinalScore = document.getElementById("overlayFinalScore");
         const overlayMetaCompare = document.getElementById("overlayMetaCompare");
+        const gameOverTitle = document.getElementById("gameOverTitle");
+        const maddieScoreboard = document.getElementById("maddieScoreboard");
 
         // INICIALIZACIÓN
         document.addEventListener("DOMContentLoaded", () => {
@@ -426,7 +444,7 @@
             const gameTitles = {
                 chico: "Chicosaurio",
                 chica: "Atrapa el Amor",
-                maddie: "Atrapa a la perrita (Maddie)",
+                maddie: "Atrapa a Maddie",
                 puebla: "Camino a Puebla: OutRun 80s"
             };
             const gameIcons = { chico: "🦖", chica: "👸", maddie: "🐶", puebla: "🚗" };
@@ -445,24 +463,10 @@
 
             canvas.classList.add("hidden");
             maddieGrid.classList.add("hidden");
+            maddieScoreboard.classList.add("hidden");
             gameOverlay.classList.remove("hidden");
-            overlayScoreBox.classList.add("hidden"); // Ocultar marcador en el menú de inicio inicial
-
-            const targetScore = METAS[activeGame];
-            let inst = "";
-            if (activeGame === 'chico') {
-                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas (📅) y alarmas (⏰). Atrapa los controles (🎮) para obtener 15 pts extra.\nMeta: ${targetScore} pts.`;
-            } else if (activeGame === 'chica') {
-                inst = `Mueve a la Chica tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍) antes de que caigan. Evita las nubes de tormenta (🌧).\nMeta: ${targetScore} pts.`;
-            } else if (activeGame === 'maddie') {
-                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los agujeros de tierra. Tienes 30 segundos.\nMeta: ${targetScore} clics.`;
-            } else if (activeGame === 'puebla') {
-                inst = `Toca el lado IZQUIERDO para cambiar de carril a la izquierda, o el lado DERECHO para cambiar a la derecha. Evita baches y rebasa autos (🚘).\nMeta: ${targetScore} pts.`;
-            }
-            
-            overlayInstructions.innerText = inst;
-            startGameBtn.innerText = "¡Empezar!";
-            startGameBtn.onclick = startActiveGame;
+            overlayScoreBox.classList.add("hidden"); 
+            gameOverTitle.classList.add("hidden"); // Ocultar G A M E  O V E R en pantalla inicial
         }
 
         function closeActiveGame() {
@@ -499,6 +503,7 @@
                 initChicaGame();
             } else if (activeGame === 'maddie') {
                 maddieGrid.classList.remove("hidden");
+                maddieScoreboard.classList.remove("hidden");
                 initMaddieGame();
             } else if (activeGame === 'puebla') {
                 canvas.classList.remove("hidden");
@@ -524,7 +529,8 @@
             
             const meta = METAS[activeGame];
             
-            // Mostrar y configurar el recuadro de puntuación central en el overlay
+            // Configurar aspecto G A M E  O V E R idéntico a Chrome Dino para todos los juegos
+            gameOverTitle.classList.remove("hidden");
             overlayScoreBox.classList.remove("hidden");
             overlayFinalScore.innerText = finalScore.toString().padStart(5, '0');
             overlayMetaCompare.innerText = `Meta requerida: ${meta} ${activeGame === 'maddie' ? 'clics' : 'pts'}`;
@@ -540,8 +546,7 @@
             }
 
             overlayInstructions.innerText = resultMessage;
-            startGameBtn.innerText = "Reintentar";
-            startGameBtn.onclick = resetGameUI;
+            startGameBtn.innerText = ""; // El botón de inicio ahora funciona como flecha de reinicio sin texto adicional
             gameOverlay.classList.remove("hidden");
             
             updateScoresDashboard();
@@ -596,8 +601,8 @@
             };
 
             const endJump = () => {
-                if (!memo.isGrounded && memo.vy < -4) {
-                    memo.vy = -4; // Detener impulso de salto hacia arriba (salto de altura variable)
+                if (!memo.isGrounded && memo.vy < -7.5) {
+                    memo.vy = -7.5; // Menos abrupto, da un salto más fluido y flotante al soltar
                 }
             };
 
@@ -737,11 +742,11 @@
                 });
             }
 
-            // Generar Items (Controles de videojuegos 🎮) - Rango vertical óptimo para que siempre sean alcanzables (215px a 290px)
+            // Generar Items (Controles de videojuegos 🎮) - Rango vertical óptimo ajustado para obligar al salto (215px a 275px)
             if (chicoFrame % 85 === 0) {
                 items.push({
                     x: canvas.width,
-                    y: 215 + Math.random() * 75,
+                    y: 215 + Math.random() * 60,
                     emoji: "🎮"
                 });
             }
@@ -941,20 +946,25 @@
         }
 
         // ==========================================
-        // JUEGO 3: MADDIE (Click-a-mole)
-        let maddieTimer, activeHole, timeRemaining;
+        // JUEGO 3: MADDIE (Click-a-mole 4x4)
+        let maddieTimer, activeHole, activeDistractorHole, lastActiveHole, timeRemaining;
         
         function initMaddieGame() {
             maddieGrid.innerHTML = "";
             timeRemaining = 30;
             currentGameState.innerText = "Tiempo: 30s";
+            lastActiveHole = -1;
+            activeDistractorHole = -1;
+            
+            // Actualizar el marcador retro superior de Maddie en el inicio de partida
+            updateMaddieRetroScore();
 
-            // Generar cuadrícula de 9 agujeros de tierra rápidos y optimizados
-            for (let i = 0; i < 9; i++) {
+            // Generar cuadrícula de 16 agujeros de tierra (4x4)
+            for (let i = 0; i < 16; i++) {
                 const hole = document.createElement("button");
-                hole.className = "aspect-square rounded-full bg-amber-950/20 border-4 border-amber-900/40 flex justify-center items-center text-4xl p-2 relative shadow-inner overflow-hidden active:bg-amber-950/30";
+                hole.className = "aspect-square rounded-full bg-amber-950/20 border-4 border-amber-900/40 flex justify-center items-center text-3xl p-1 relative shadow-inner overflow-hidden active:bg-amber-950/30";
                 hole.id = "hole-" + i;
-                hole.onclick = () => hitMaddie(i);
+                hole.onclick = () => handleHoleClick(i);
                 maddieGrid.appendChild(hole);
             }
 
@@ -969,43 +979,89 @@
             maddiePop();
         }
 
+        function updateMaddieRetroScore() {
+            const curStr = score.toString().padStart(5, '0');
+            const hiStr = getScore('maddie').toString().padStart(5, '0');
+            document.getElementById("maddieCurrentScore").innerText = curStr;
+            document.getElementById("maddieHighScore").innerText = hiStr;
+        }
+
         function maddiePop() {
             if (!gameRunning) return;
             
-            // Vaciar agujero anterior de manera inmediata
-            if (activeHole !== undefined) {
+            // Vaciar agujeros de Maddie y distractor del turno anterior
+            if (activeHole !== undefined && activeHole !== -1) {
                 const prev = document.getElementById("hole-" + activeHole);
                 if (prev) prev.innerHTML = "";
             }
+            if (activeDistractorHole !== undefined && activeDistractorHole !== -1) {
+                const prevDist = document.getElementById("hole-" + activeDistractorHole);
+                if (prevDist) prevDist.innerHTML = "";
+            }
 
-            // Seleccionar nueva ubicación
-            activeHole = Math.floor(Math.random() * 9);
-            const next = document.getElementById("hole-" + activeHole);
+            // Seleccionar nueva ubicación para Maddie sin repetir consecutivamente
+            let nextHole;
+            do {
+                nextHole = Math.floor(Math.random() * 16);
+            } while (nextHole === lastActiveHole);
             
-            // Colocar emoji de la perrita Maddie
-            next.innerHTML = "<span class='select-none pointer-events-none'>🐶</span>";
+            activeHole = nextHole;
+            lastActiveHole = activeHole;
 
-            // Tiempo que dura visible (se vuelve más veloz a medida que ganas clics)
+            const next = document.getElementById("hole-" + activeHole);
+            next.innerHTML = "<span class='select-none pointer-events-none text-3xl'>🐶</span>";
+
+            // 30% Probabilidad de spawnear un distractor (Jabón de Baño 🧼) en otro agujero vacío
+            activeDistractorHole = -1;
+            if (Math.random() < 0.3) {
+                let distHole;
+                do {
+                    distHole = Math.floor(Math.random() * 16);
+                } while (distHole === activeHole);
+                
+                activeDistractorHole = distHole;
+                const distEl = document.getElementById("hole-" + activeDistractorHole);
+                distEl.innerHTML = "<span class='select-none pointer-events-none text-3xl animate-pulse'>🧼</span>";
+            }
+
+            // El intervalo se reduce de forma dinámica a mayor puntuación
             let popDelay = Math.max(400, 800 - (score * 18));
             maddieTimer = setTimeout(maddiePop, popDelay);
         }
 
-        function hitMaddie(index) {
-            if (index === activeHole && gameRunning) {
+        function handleHoleClick(index) {
+            if (!gameRunning) return;
+
+            if (index === activeHole) {
+                // ACIERTO: Pulsaste a Maddie
                 score++;
-                playSound('coin'); // Emitir pitido de acierto cada clic rápido
+                playSound('coin'); // Pitido retro positivo
                 
-                // Formatear marcador superior de barra informativa a estilo retro
+                // Formatear marcadores
                 document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
+                updateMaddieRetroScore();
                 
-                // Limpiar Maddie de inmediato de la celda
+                // Limpiar casilla y forzar salto instantáneo
                 const hitHole = document.getElementById("hole-" + index);
                 hitHole.innerHTML = "";
                 activeHole = -1;
 
                 clearTimeout(maddieTimer);
-                // Saltar de forma instantánea al siguiente ciclo
                 maddiePop();
+                
+            } else if (index === activeDistractorHole) {
+                // ERROR: Intentaste bañar a Maddie tocando el jabón
+                score = Math.max(0, score - 3); // Penalización de -3 puntos (mínimo 0)
+                playSound('hit'); // Zumbido de choque/error
+                
+                // Formatear marcadores
+                document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
+                updateMaddieRetroScore();
+
+                // Limpiar distractor
+                const distHole = document.getElementById("hole-" + index);
+                distHole.innerHTML = "";
+                activeDistractorHole = -1;
             }
         }
 
