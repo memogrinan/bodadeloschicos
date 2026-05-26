@@ -748,21 +748,30 @@
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // OPTIMIZACIÓN RETRO: Apagar suavizado del canvas para evitar bordes borrosos al moverse
+            ctx.imageSmoothingEnabled = false;
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.msImageSmoothingEnabled = false;
+
             ctx.fillStyle = "#f7f7f7";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (sprite.complete && sprite.naturalWidth !== 0) {
                 for (let cl of clouds) {
                     cl.x -= cl.speed;
-                    ctx.drawImage(sprite, 166, 2, 92, 28, cl.x, cl.y, 46, 14);
+                    // Alineación a pixel entero (Math.round) para evitar temblor
+                    ctx.drawImage(sprite, 166, 2, 92, 28, Math.round(cl.x), Math.round(cl.y), 46, 14);
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
 
                 groundX = (groundX + chicoSpeed) % 1200;
-                ctx.drawImage(sprite, 2 + groundX, 104, 360, 24, 0, 345, 360, 12);
+                let roundedGroundX = Math.round(groundX);
+                ctx.drawImage(sprite, 2 + roundedGroundX, 104, 360, 24, 0, 345, 360, 12);
                 if (groundX > 1200 - 360) {
-                    let rest = 360 - (1200 - groundX);
-                    ctx.drawImage(sprite, 2, 104, rest, 24, 360 - rest, 345, rest, 12);
+                    let roundedRest = Math.round(360 - (1200 - groundX));
+                    ctx.drawImage(sprite, 2, 104, roundedRest, 24, 360 - roundedRest, 345, roundedRest, 12);
                 }
 
                 let frameOffset = 1; 
@@ -780,14 +789,14 @@
                     sprite, 
                     1678 + (88 * frameOffset), 2, 
                     88, 94, 
-                    memo.x, memo.y, 
+                    Math.round(memo.x), Math.round(memo.y), 
                     memo.width, memo.height
                 );
             } else {
                 ctx.font = "20px sans-serif";
                 for (let cl of clouds) {
                     cl.x -= cl.speed;
-                    ctx.fillText("☁️", cl.x, cl.y);
+                    ctx.fillText("☁️", Math.round(cl.x), Math.round(cl.y));
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
 
@@ -800,7 +809,7 @@
                 ctx.stroke();
 
                 ctx.font = "32px sans-serif";
-                ctx.fillText("🦖", memo.x, memo.y + 35);
+                ctx.fillText("🦖", Math.round(memo.x), Math.round(memo.y) + 35);
             }
 
             memo.vy += memo.gravity;
@@ -823,7 +832,7 @@
                 let randObs = obsTypes[Math.floor(Math.random() * obsTypes.length)];
                 obstacles.push({
                     x: canvas.width,
-                    y: 312, // Alineado al suelo de manera óptima
+                    y: 312, 
                     width: 32,
                     height: 32,
                     img: randObs.img,
@@ -843,18 +852,17 @@
                 });
             }
 
-            // Dibujar y procesar Obstáculos (PNG)
+            // Dibujar y procesar Obstáculos (Math.round previene el shimmering y mantiene fluidez)
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.x -= chicoSpeed;
                 
                 if (obs.img.complete && obs.img.naturalWidth !== 0) {
-                    ctx.drawImage(obs.img, obs.x, obs.y, obs.width, obs.height);
+                    ctx.drawImage(obs.img, Math.round(obs.x), Math.round(obs.y), obs.width, obs.height);
                 } else {
-                    // Fallback en caso de que tarde en cargar la ruta
                     ctx.font = "30px sans-serif";
                     ctx.textAlign = "left";
-                    ctx.fillText(obs.fallback, obs.x, obs.y + 26);
+                    ctx.fillText(obs.fallback, Math.round(obs.x), Math.round(obs.y) + 26);
                 }
 
                 // Detección de colisión estrecha (AABB)
@@ -868,17 +876,17 @@
                 if (obs.x < -40) obstacles.splice(i, 1);
             }
 
-            // Dibujar y procesar Controles Recolectables (PNG)
+            // Dibujar y procesar Controles Recolectables
             for (let i = items.length - 1; i >= 0; i--) {
                 let it = items[i];
                 it.x -= chicoSpeed;
                 
                 if (it.img.complete && it.img.naturalWidth !== 0) {
-                    ctx.drawImage(it.img, it.x, it.y, it.width, it.height);
+                    ctx.drawImage(it.img, Math.round(it.x), Math.round(it.y), it.width, it.height);
                 } else {
                     ctx.font = "26px sans-serif";
                     ctx.textAlign = "left";
-                    ctx.fillText(it.fallback, it.x, it.y + 22);
+                    ctx.fillText(it.fallback, Math.round(it.x), Math.round(it.y) + 22);
                 }
 
                 // Detección de recolección de gamepad estrecha
@@ -911,7 +919,7 @@
                 ctx.font = "20px 'Monogram'";
                 ctx.fillStyle = `rgba(83, 83, 83, ${p.life / 25})`; 
                 ctx.textAlign = "center";
-                ctx.fillText(p.text, p.x, p.y);
+                ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
                 ctx.restore();
 
                 if (p.life <= 0) {
@@ -1003,7 +1011,7 @@
             for (let i = fallObjects.length - 1; i >= 0; i--) {
                 let obj = fallObjects[i];
                 obj.y += obj.speed;
-                ctx.fillText(obj.emoji, obj.x, obj.y);
+                ctx.fillText(obj.emoji, Math.round(obj.x), Math.round(obj.y));
 
                 if (obj.y >= 415 && obj.y <= 455 && obj.x >= basketX - 15 && obj.x <= basketX + 40) {
                     if (obj.isDanger) {
@@ -1295,7 +1303,7 @@
 
                 ctx.font = `${currentScale}px sans-serif`;
                 ctx.textAlign = "center";
-                ctx.fillText(obj.emoji, currentLaneX, obj.y);
+                ctx.fillText(obj.emoji, Math.round(currentLaneX), Math.round(obj.y));
 
                 if (obj.y >= 390 && obj.y <= 440 && obj.lane === targetLane) {
                     if (obj.isItem) {
@@ -1322,7 +1330,7 @@
 
             ctx.font = "44px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("🚗", playerX, 440);
+            ctx.fillText("🚗", Math.round(playerX), 440);
 
             if (roadFrame % 8 === 0) {
                 score += 1;
