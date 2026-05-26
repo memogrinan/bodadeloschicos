@@ -235,14 +235,76 @@
         let score = 0;
         let gameRunning = false;
 
-        // SPRITE COMPLETO DE GOOGLE CHROME (Ruta apuntando a sprites.png)
+        // SISTEMA DE AUDIO SINTETIZADO RETRO (Web Audio API)
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'jump') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.13);
+            } else if (type === 'hit') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(25, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.28);
+            } else if (type === 'coin') {
+                osc.type = 'sine';
+                // Beep rápido agudo doble (efecto moneda Mario)
+                osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.005, audioCtx.currentTime + 0.05);
+
+                osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.06);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime + 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.16);
+            } else if (type === 'score') {
+                // Pitido doble seco estilo milestone del original
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.001, audioCtx.currentTime + 0.06);
+
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.16);
+            }
+        }
+
+        // SPRITE OFICIAL DE CHROME DINOSAURIO
         const sprite = new Image();
         sprite.src = 'ImagenesWeb/Juegos/Dino/sprites.png';
 
-        // Alerta de depuración en consola en caso de que falte el archivo consolidado
         sprite.onerror = function() {
-            console.error("ERROR: No se pudo cargar el archivo completo de sprites en: " + sprite.src);
-            console.error("Asegúrate de que la carpeta se llame Juegos/Dino/ y el archivo consolidado se llame sprites.png en tu GitHub.");
+            console.error("ERROR: No se pudo cargar 'sprites.png' en: " + sprite.src);
         };
 
         // ELEMENTOS DEL DOM
@@ -412,6 +474,7 @@
         }
 
         function startActiveGame() {
+            initAudio(); // Inicializar y desbloquear Web Audio Context
             gameOverlay.classList.add("hidden");
             gameRunning = true;
             score = 0;
@@ -436,6 +499,7 @@
             gameRunning = false;
             clearInterval(gameInterval);
             saveScore(activeGame, finalScore);
+            playSound('hit'); // Sonido retro de colisión o fin de juego
             
             const meta = METAS[activeGame];
             
@@ -464,7 +528,7 @@
 
         // ==========================================
         // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial HDPI 2x)
-        let memo, obstacles, items, clouds, chicoFrame;
+        let memo, obstacles, items, clouds, chicoFrame, chicoSpeed, groundX, lastScoreMilestone;
         
         function drawDinoScore(ctx, score, highscore, x, y) {
             ctx.save();
@@ -495,11 +559,15 @@
                 {x: 320, y: 90, speed: 0.4}
             ];
             chicoFrame = 0;
+            chicoSpeed = 6.0; // Velocidad de juego base
+            groundX = 0;
+            lastScoreMilestone = 0;
 
             const triggerJump = () => {
                 if (memo.isGrounded) {
                     memo.vy = memo.jumpHeight;
                     memo.isGrounded = false;
+                    playSound('jump'); // Audio retro al saltar
                 }
             };
 
@@ -514,13 +582,19 @@
 
         function updateChico() {
             chicoFrame++;
+            
+            // Aceleración de terreno y juego progresivo continuo
+            if (chicoSpeed < 13.5) {
+                chicoSpeed += 0.0016; // Incremento de velocidad gradual sutil
+            }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Fondo gris-blanco característico del juego de Chrome
             ctx.fillStyle = "#f7f7f7";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // SISTEMA DE SEGURIDAD DEFENSIVO: Si el sprite consolidado ya cargó, dibuja el original usando las coordenadas HDPI de sprites.png
+            // SISTEMA DE SEGURIDAD DEFENSIVO: Si el sprite consolidado ya cargó correctamente, dibuja el original usando las coordenadas HDPI de sprites.png
             if (sprite.complete && sprite.naturalWidth !== 0) {
                 // 1. Dibujar nubes de fondo estilo pixel usando el sprite oficial
                 // Cloud HDPI coordinates en sprites.png: x: 166, y: 2, w: 92, h: 28. Se dibuja escalada a la mitad (46x14)
@@ -530,9 +604,9 @@
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
 
-                // 2. Línea de suelo infinita usando el sprite oficial HDPI de carretera
+                // 2. Línea de suelo infinita perfectamente sincronizada con la velocidad del juego
                 // Horizon HDPI coordinates en sprites.png: x: 2, y: 104, w: 2400, h: 24.
-                let groundX = (chicoFrame * 6.5) % 1200;
+                groundX = (groundX + chicoSpeed) % 1200;
                 ctx.drawImage(sprite, 2 + groundX, 104, 360, 24, 0, 345, 360, 12);
                 if (groundX > 1200 - 360) {
                     let rest = 360 - (1200 - groundX);
@@ -570,7 +644,8 @@
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
 
-                // Línea de tierra gris básica de soporte
+                // Línea de tierra gris básica de soporte (Velocidad de avance coordinada)
+                groundX = (groundX + chicoSpeed) % 360;
                 ctx.strokeStyle = "#535353";
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -592,15 +667,15 @@
                 memo.isGrounded = true;
             }
 
-            // Generar Obstáculos (Alarmas ⏰, Calendarios 📅 o Carpetas 📁)
-            if (chicoFrame % 65 === 0) {
+            // Generar Obstáculos (Intervalo adaptativo a la velocidad para evitar amontonamientos injustos)
+            let spawnInterval = Math.max(45, 75 - Math.floor(chicoSpeed * 2));
+            if (chicoFrame % spawnInterval === 0) {
                 let obsTypes = ["📅", "⏰", "📁"];
                 let randType = obsTypes[Math.floor(Math.random() * obsTypes.length)];
                 obstacles.push({
                     x: canvas.width,
                     y: 310,
-                    emoji: randType,
-                    speed: 6.5 + Math.floor(score / 50)
+                    emoji: randType
                 });
             }
 
@@ -609,15 +684,14 @@
                 items.push({
                     x: canvas.width,
                     y: 180 + Math.random() * 60,
-                    emoji: "🎮",
-                    speed: 6.5
+                    emoji: "🎮"
                 });
             }
 
-            // Actualizar Obstáculos
+            // Actualizar Obstáculos coordinados con la velocidad del juego
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
-                obs.x -= obs.speed;
+                obs.x -= chicoSpeed;
                 
                 // Dibujar el obstáculo emoji de forma alineada al suelo
                 ctx.font = "30px sans-serif";
@@ -632,18 +706,19 @@
                 if (obs.x < -30) obstacles.splice(i, 1);
             }
 
-            // Actualizar Controles Recolectables
+            // Actualizar Controles Recolectables coordinados con la velocidad del juego
             for (let i = items.length - 1; i >= 0; i--) {
                 let it = items[i];
-                it.x -= it.speed;
+                it.x -= chicoSpeed;
                 
                 ctx.font = "26px sans-serif";
                 ctx.textAlign = "left";
                 ctx.fillText(it.emoji, it.x, it.y + 20);
 
-                // Recolectar Control (Bonus grande de 15 puntos)
+                // Recolectar Control (Bonus grande de 15 puntos con sonido retro de moneda)
                 if (it.x < memo.x + 32 && it.x + 24 > memo.x && it.y < memo.y + 40 && it.y + 20 > memo.y) {
                     score += 15;
+                    playSound('coin');
                     items.splice(i, 1);
                     continue;
                 }
@@ -653,6 +728,12 @@
             // Suma progresiva estándar
             if (chicoFrame % 5 === 0) {
                 score += 1;
+            }
+
+            // Emitir sonido característico doble pitido cada 100 puntos de récord
+            if (score > 0 && score % 100 === 0 && score !== lastScoreMilestone) {
+                lastScoreMilestone = score;
+                playSound('score');
             }
 
             // Marcador gris superior derecho original de Chrome Dino
@@ -744,6 +825,7 @@
                         lives--;
                     } else {
                         score += 1;
+                        playSound('coin'); // Reutilizar sonido retro para acierto de amor
                     }
                     fallObjects.splice(i, 1);
 
@@ -826,6 +908,7 @@
         function hitMaddie(index) {
             if (index === activeHole && gameRunning) {
                 score++;
+                playSound('coin'); // Emitir pitido de acierto cada clic rápido
                 
                 // Formatear marcador superior de barra informativa a estilo retro
                 document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
@@ -860,10 +943,16 @@
                 const clickX = clientX - rect.left;
                 if (clickX < rect.width / 2) {
                     // Toque Izquierdo -> Desplazar a la izquierda
-                    if (targetLane > 0) targetLane--;
+                    if (targetLane > 0) {
+                        targetLane--;
+                        playSound('jump'); // Reutilizar tono de deslizamiento para simular cambio de carril
+                    }
                 } else {
                     // Toque Derecho -> Desplazar a la derecha
-                    if (targetLane < 2) targetLane++;
+                    if (targetLane < 2) {
+                        targetLane++;
+                        playSound('jump');
+                    }
                 }
             };
 
@@ -1008,6 +1097,7 @@
                 if (obj.y >= 390 && obj.y <= 440 && obj.lane === targetLane) {
                     if (obj.isItem) {
                         score += 10;
+                        playSound('coin'); // Sonido retro de moneda al agarrar mapa o corazón
                         roadObjects.splice(i, 1);
                         continue;
                     } else {
