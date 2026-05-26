@@ -213,11 +213,9 @@
                 
                 <p id="overlayInstructions" class="text-sm max-w-[280px] mb-6 text-gray-500 leading-relaxed">Presiona el botón de reinicio para jugar.</p>
                 
-                <!-- Botón de reinicio circular clásico de Chrome Dino -->
-                <button id="startGameBtn" class="focus:outline-none" aria-label="Iniciar / Reiniciar">
-                    <svg viewBox="0 0 24 24" class="w-12 h-12 fill-[#535353] hover:scale-110 active:scale-95 transition-transform duration-100 cursor-pointer">
-                        <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-                    </svg>
+                <!-- Botón Jugar/Reiniciar elegante de texto directo (Soluciona problemas de click en celular) -->
+                <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 active:scale-95 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
+                    Jugar
                 </button>
             </div>
         </div>
@@ -254,6 +252,75 @@
         let gameInterval = null;
         let score = 0;
         let gameRunning = false;
+
+        // SISTEMA DE AUDIO SINTETIZADO RETRO (Web Audio API)
+        let audioCtx = null;
+
+        function initAudio() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx && AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            } catch (e) {
+                console.warn("Web Audio API no soportado o bloqueado por el navegador:", e);
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'jump') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.13);
+            } else if (type === 'hit') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(25, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.28);
+            } else if (type === 'coin') {
+                osc.type = 'sine';
+                // Beep rápido agudo doble (efecto moneda Mario)
+                osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.005, audioCtx.currentTime + 0.05);
+
+                osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.06);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime + 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.16);
+            } else if (type === 'score') {
+                // Pitido doble seco estilo milestone del original
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.001, audioCtx.currentTime + 0.06);
+
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.16);
+            }
+        }
 
         // SPRITE OFICIAL DE CHROME DINOSAURIO
         const sprite = new Image();
@@ -426,7 +493,8 @@
             }
             
             overlayInstructions.innerText = inst;
-            startGameBtn.onclick = startActiveGame; // El evento de clic se vincula al vector del botón
+            startGameBtn.innerText = "Jugar"; // Configuración del texto del botón principal
+            startGameBtn.onclick = startActiveGame;
         }
 
         function closeActiveGame() {
@@ -449,7 +517,7 @@
         }
 
         function startActiveGame() {
-            initAudio(); // Inicializar y desbloquear Web Audio Context
+            initAudio(); // Inicializar y desbloquear Web Audio Context de forma segura
             gameOverlay.classList.add("hidden");
             gameRunning = true;
             score = 0;
@@ -506,6 +574,7 @@
             }
 
             overlayInstructions.innerText = resultMessage;
+            startGameBtn.innerText = "Volver a Jugar"; // Configuración del texto del botón tras perder
             startGameBtn.onclick = startActiveGame;
             gameOverlay.classList.remove("hidden");
             
