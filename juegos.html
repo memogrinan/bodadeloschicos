@@ -74,7 +74,7 @@
                 <div>
                     <p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p>
                     <div class="flex items-center gap-2">
-                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-lg font-monogram">Cargando...</span>
+                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-xl md:text-2xl font-monogram">Cargando...</span>
                         <button onclick="changeGamerTagPrompt()" class="text-xs text-blue-500 hover:underline">Editar</button>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
-                        <p class="font-bold text-gray-700 text-sm font-monogram text-base"><span id="score-chico">0</span> pts / <span class="text-olivo-base font-bold">100 pts</span></p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chico">0</span> pts / <span class="text-olivo-base font-bold">100 pts</span></p>
                     </div>
                     <button onclick="openGame('chico')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -121,7 +121,7 @@
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
-                        <p class="font-bold text-gray-700 text-sm font-monogram text-base"><span id="score-chica">0</span> pts / <span class="text-olivo-base font-bold">15 pts</span></p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chica">0</span> pts / <span class="text-olivo-base font-bold">15 pts</span></p>
                     </div>
                     <button onclick="openGame('chica')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -140,7 +140,7 @@
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
-                        <p class="font-bold text-gray-700 text-sm font-monogram text-base"><span id="score-maddie">0</span> clics / <span class="text-olivo-base font-bold">20 clics</span></p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-maddie">0</span> clics / <span class="text-olivo-base font-bold">20 clics</span></p>
                     </div>
                     <button onclick="openGame('maddie')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -159,7 +159,7 @@
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
-                        <p class="font-bold text-gray-700 text-sm font-monogram text-base"><span id="score-puebla">0</span> pts / <span class="text-olivo-base font-bold">80 pts</span></p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-puebla">0</span> pts / <span class="text-olivo-base font-bold">80 pts</span></p>
                     </div>
                     <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -198,36 +198,37 @@
             <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 rounded-2xl max-w-full max-h-[70vh] shadow-lg hidden"></canvas>
 
             <!-- MARCADOR RETRO REALTIME PARA MADDIE -->
-            <div id="maddieScoreboard" class="hidden mb-4 text-center select-none font-monogram text-[#535353] text-lg tracking-widest">
+            <div id="maddieScoreboard" class="hidden mb-4 text-center select-none font-monogram text-gray-600 text-xl md:text-2xl tracking-widest">
                 HI <span id="maddieHighScore" class="font-bold">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold">00000</span>
             </div>
 
             <!-- Agujeros de Maddie (DOM-based 4x4) -->
             <div id="maddieGrid" class="grid grid-cols-4 gap-3 max-w-[340px] w-full hidden">
-                <!-- Se generará dinámicamente -->
+                <!-- Se generará dinámemete -->
             </div>
 
             <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO (FONDO GRIS OSCURO) -->
             <div id="gameOverlay" class="absolute inset-0 bg-[#1a1c1e] flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl">
                 
-                <!-- G A M E   O V E R  DIBUJADO CON SPRITES ORIGINALES DE DINO -->
+                <!-- G A M E   O V E R  DIBUJADO CON SPRITES ORIGINALES DE DINO (Corregido y escalado) -->
                 <div id="gameOverTitleContainer" class="hidden mb-6 flex justify-center items-center">
-                    <canvas id="gameOverSpriteCanvas" width="382" height="22" class="w-[280px] h-[16px] md:w-[382px] md:h-[22px] select-none pointer-events-none" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                    <canvas id="gameOverSpriteCanvas" width="382" height="22" class="w-[320px] h-[18px] md:w-[382px] md:h-[22px] select-none pointer-events-none" style="filter: invert(0.7) brightness(1.2);"></canvas>
                 </div>
 
-                <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
+                <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO (Fuentes más grandes) -->
                 <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/15 p-4 rounded-2xl w-64 shadow-sm text-gray-200">
-                    <p class="text-[10px] tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
-                    <p id="overlayFinalScore" class="text-5xl font-extrabold text-[#a3ad73] font-monogram my-1">00000</p>
-                    <p id="overlayMetaCompare" class="text-xs text-gray-400 font-semibold font-monogram">Meta del juego: 100 pts</p>
+                    <p class="text-xs md:text-sm tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
+                    <p id="overlayFinalScore" class="text-6xl md:text-7xl font-extrabold text-[#a3ad73] font-monogram my-2">00000</p>
+                    <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
                 </div>
                 
-                <p id="overlayInstructions" class="text-sm max-w-[280px] mb-6 text-gray-300 leading-relaxed font-monogram text-lg"></p>
+                <!-- Instrucciones y mensaje de fin con tamaño de fuente mejorado -->
+                <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-8 text-gray-300 leading-relaxed font-monogram"></p>
                 
-                <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Soportando icono de sprites de Dino) -->
+                <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Soportando icono original corregido) -->
                 <div id="restartBtnContainer" class="flex flex-col items-center gap-4 mt-2">
-                    <!-- Botón circular de reinicio de sprites de Dino -->
-                    <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[36px] h-[32px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                    <!-- Botón circular de reintento clásica de sprites de Dino (Engrandecido para mejor tacto móvil) -->
+                    <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[54px] h-[48px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
                     
                     <!-- Botón estándar elegante de inicio -->
                     <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
@@ -237,19 +238,19 @@
             </div>
         </div>
 
-        <!-- Barra inferior informativa (Visor de Estado General de 3 Columnas) -->
+        <!-- Barra inferior informativa (Visor de Estado de Fuentes más grandes) -->
         <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center text-white text-xs font-monogram text-sm">
             <div>
                 <p class="text-gray-400 uppercase font-semibold">Marcador Actual</p>
-                <p class="text-sm font-extrabold text-olivo-claro font-monogram text-lg" id="currentGameScore">00000</p>
+                <p class="text-lg md:text-xl font-extrabold text-olivo-claro font-monogram" id="currentGameScore">00000</p>
             </div>
             <div class="text-center">
                 <p class="text-gray-400 uppercase font-semibold">GamerTag</p>
-                <p class="text-sm font-extrabold text-olivo-claro font-monogram text-lg" id="bottomGamerTag">Jugador</p>
+                <p class="text-lg md:text-xl font-extrabold text-olivo-claro font-monogram" id="bottomGamerTag">Jugador</p>
             </div>
             <div class="text-right">
                 <p class="text-gray-400 uppercase font-semibold">Estado</p>
-                <p class="text-xs font-bold font-monogram text-base" id="currentGameState">Listo para iniciar</p>
+                <p class="text-sm md:text-base font-bold font-monogram" id="currentGameState">Listo para iniciar</p>
             </div>
         </div>
     </div>
@@ -553,7 +554,7 @@
             }
         }
 
-        // DIBUJA EL TÍTULO "G A M E  O V E R" Y EL REINICIO DESDE SPRITES.PNG
+        // CORRECCIÓN DE RECORTE DE GAME OVER Y RESTART EN CANVASES
         function drawGameOverOverlaySprites() {
             const goCanvas = document.getElementById("gameOverSpriteCanvas");
             const goCtx = goCanvas.getContext("2d");
@@ -564,10 +565,11 @@
             rCtx.clearRect(0, 0, restartCanvas.width, restartCanvas.height);
 
             if (sprite.complete && sprite.naturalWidth !== 0) {
-                // TEXT_SPRITE: HDPI x: 1294, y: 2, w: 382, h: 22
-                goCtx.drawImage(sprite, 1294, 2, 382, 22, 0, 0, 382, 22);
-                // RESTART: HDPI x: 2, y: 130, w: 72, h: 64
-                rCtx.drawImage(sprite, 2, 130, 72, 64, 0, 0, 72, 64);
+                // SOLUCIÓN: Usamos la segunda fila vertical (y: 29) de la hoja de sprites HDPI
+                goCtx.drawImage(sprite, 1294, 29, 382, 22, 0, 0, 382, 22);
+                
+                // SOLUCIÓN: Usamos la esquina superior izquierda real (x: 2, y: 2) para el icono de reintento circular
+                rCtx.drawImage(sprite, 2, 2, 72, 64, 0, 0, 72, 64);
             } else {
                 // Fallback elegante en caso de error de ruta del sprite
                 goCtx.fillStyle = "#ffffff";
@@ -605,7 +607,7 @@
             overlayFinalScore.innerText = finalScore.toString().padStart(5, '0');
             overlayMetaCompare.innerText = `Meta requerida: ${meta} ${activeGame === 'maddie' ? 'clics' : 'pts'}`;
             
-            // Dibujar sobre los lienzos usando sprites.png
+            // Dibujar sobre los lienzos usando sprites.png (con coordenadas corregidas)
             drawGameOverOverlaySprites();
 
             // Intercambiar botones interactivos
