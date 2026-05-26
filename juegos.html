@@ -749,7 +749,7 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // OPTIMIZACIÓN RETRO: Apagar suavizado del canvas para evitar bordes borrosos al moverse
+            // CONFIGURACIÓN INICIAL DEL FRAME: El T-rex, el fondo y las nubes requieren pixel art (smoothing = false)
             ctx.imageSmoothingEnabled = false;
             ctx.mozImageSmoothingEnabled = false;
             ctx.webkitImageSmoothingEnabled = false;
@@ -761,7 +761,6 @@
             if (sprite.complete && sprite.naturalWidth !== 0) {
                 for (let cl of clouds) {
                     cl.x -= cl.speed;
-                    // Alineación a pixel entero (Math.round) para evitar temblor
                     ctx.drawImage(sprite, 166, 2, 92, 28, Math.round(cl.x), Math.round(cl.y), 46, 14);
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
@@ -852,13 +851,16 @@
                 });
             }
 
-            // Dibujar y procesar Obstáculos (Math.round previene el shimmering y mantiene fluidez)
+            // Dibujar y procesar Obstáculos ( PNG de Alta Resolución )
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.x -= chicoSpeed;
                 
                 if (obs.img.complete && obs.img.naturalWidth !== 0) {
+                    // SOLUCIÓN: Encendemos la interpolación bilineal suave de forma temporal antes de dibujar este sprite de alta resolución
+                    ctx.imageSmoothingEnabled = true;
                     ctx.drawImage(obs.img, Math.round(obs.x), Math.round(obs.y), obs.width, obs.height);
+                    ctx.imageSmoothingEnabled = false; // Lo apagamos inmediatamente después
                 } else {
                     ctx.font = "30px sans-serif";
                     ctx.textAlign = "left";
@@ -882,7 +884,10 @@
                 it.x -= chicoSpeed;
                 
                 if (it.img.complete && it.img.naturalWidth !== 0) {
+                    // SOLUCIÓN: Suavizado temporal para encoger el gamepad limpio sin deformaciones
+                    ctx.imageSmoothingEnabled = true;
                     ctx.drawImage(it.img, Math.round(it.x), Math.round(it.y), it.width, it.height);
+                    ctx.imageSmoothingEnabled = false; 
                 } else {
                     ctx.font = "26px sans-serif";
                     ctx.textAlign = "left";
