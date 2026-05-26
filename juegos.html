@@ -304,7 +304,7 @@
         sprite.src = 'ImagenesWeb/Juegos/Dino/sprites.png';
 
         sprite.onerror = function() {
-            console.error("ERROR: No se pudo cargar 'sprites.png' en: " + sprite.src);
+            console.error("ERROR: No se pudo cargar la imagen 'sprites.png' en: " + sprite.src);
         };
 
         // ELEMENTOS DEL DOM
@@ -528,7 +528,7 @@
 
         // ==========================================
         // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial HDPI 2x)
-        let memo, obstacles, items, clouds, chicoFrame, chicoSpeed, groundX, lastScoreMilestone;
+        let memo, obstacles, items, clouds, chicoFrame, chicoSpeed, groundX, lastScoreMilestone, scorePopups;
         
         function drawDinoScore(ctx, score, highscore, x, y) {
             ctx.save();
@@ -562,6 +562,7 @@
             chicoSpeed = 6.0; // Velocidad de juego base
             groundX = 0;
             lastScoreMilestone = 0;
+            scorePopups = []; // Limpiar popups de puntuación flotante al reiniciar
 
             const triggerJump = () => {
                 if (memo.isGrounded) {
@@ -679,11 +680,11 @@
                 });
             }
 
-            // Generar Items (Controles de videojuegos 🎮)
+            // Generar Items (Controles de videojuegos 🎮) - Rango vertical óptimo para que siempre sean alcanzables (215px a 290px)
             if (chicoFrame % 85 === 0) {
                 items.push({
                     x: canvas.width,
-                    y: 180 + Math.random() * 60,
+                    y: 215 + Math.random() * 75,
                     emoji: "🎮"
                 });
             }
@@ -715,14 +716,41 @@
                 ctx.textAlign = "left";
                 ctx.fillText(it.emoji, it.x, it.y + 20);
 
-                // Recolectar Control (Bonus grande de 15 puntos con sonido retro de moneda)
+                // Recolectar Control (Bonus grande de 15 puntos con sonido retro de moneda y popup flotante)
                 if (it.x < memo.x + 32 && it.x + 24 > memo.x && it.y < memo.y + 40 && it.y + 20 > memo.y) {
                     score += 15;
                     playSound('coin');
+                    
+                    // Añadir popup de puntuación flotante en las coordenadas de recolección
+                    scorePopups.push({
+                        x: it.x,
+                        y: it.y,
+                        text: "+15",
+                        life: 25 // Duración en fotogramas de la partícula
+                    });
+
                     items.splice(i, 1);
                     continue;
                 }
                 if (it.x < -30) items.splice(i, 1);
+            }
+
+            // Dibujar Popups de Puntuación Flotante Estilo Pixel
+            for (let i = scorePopups.length - 1; i >= 0; i--) {
+                let p = scorePopups[i];
+                p.y -= 1.5; // Flotar hacia arriba lentamente
+                p.life--;
+
+                ctx.save();
+                ctx.font = "bold 14px 'Courier New', Courier, monospace";
+                ctx.fillStyle = `rgba(83, 83, 83, ${p.life / 25})`; // Desvanecimiento gradual
+                ctx.textAlign = "center";
+                ctx.fillText(p.text, p.x, p.y);
+                ctx.restore();
+
+                if (p.life <= 0) {
+                    scorePopups.splice(i, 1);
+                }
             }
 
             // Suma progresiva estándar
