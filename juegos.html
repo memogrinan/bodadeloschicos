@@ -451,7 +451,7 @@
             const targetScore = METAS[activeGame];
             let inst = "";
             if (activeGame === 'chico') {
-                inst = `Salta tocando la pantalla para evitar agendas (📅) y alarmas (⏰). Atrapa los controles (🎮) para obtener 15 pts extra.\nMeta: ${targetScore} pts.`;
+                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas (📅) y alarmas (⏰). Atrapa los controles (🎮) para obtener 15 pts extra.\nMeta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
                 inst = `Mueve a la Chica tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍) antes de que caigan. Evita las nubes de tormenta (🌧).\nMeta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
@@ -468,6 +468,17 @@
         function closeActiveGame() {
             clearInterval(gameInterval);
             gameRunning = false;
+
+            // Limpieza robusta de escuchadores de teclado para Chicosaurio
+            if (chicoKeyDownHandler) {
+                window.removeEventListener("keydown", chicoKeyDownHandler);
+                chicoKeyDownHandler = null;
+            }
+            if (chicoKeyUpHandler) {
+                window.removeEventListener("keyup", chicoKeyUpHandler);
+                chicoKeyUpHandler = null;
+            }
+
             document.getElementById("gameContainer").classList.add("hidden");
             document.body.style.overflow = ""; // Reactiva scroll general
             updateScoresDashboard();
@@ -500,6 +511,16 @@
             clearInterval(gameInterval);
             saveScore(activeGame, finalScore);
             playSound('hit'); // Sonido retro de colisión o fin de juego
+
+            // Limpieza de escuchadores de teclado tras perder
+            if (chicoKeyDownHandler) {
+                window.removeEventListener("keydown", chicoKeyDownHandler);
+                chicoKeyDownHandler = null;
+            }
+            if (chicoKeyUpHandler) {
+                window.removeEventListener("keyup", chicoKeyUpHandler);
+                chicoKeyUpHandler = null;
+            }
             
             const meta = METAS[activeGame];
             
@@ -529,6 +550,8 @@
         // ==========================================
         // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial HDPI 2x)
         let memo, obstacles, items, clouds, chicoFrame, chicoSpeed, groundX, lastScoreMilestone, scorePopups;
+        let chicoKeyDownHandler = null;
+        let chicoKeyUpHandler = null;
         
         function drawDinoScore(ctx, score, highscore, x, y) {
             ctx.save();
@@ -572,11 +595,45 @@
                 }
             };
 
-            canvas.onclick = triggerJump;
+            const endJump = () => {
+                if (!memo.isGrounded && memo.vy < -4) {
+                    memo.vy = -4; // Detener impulso de salto hacia arriba (salto de altura variable)
+                }
+            };
+
+            // CONTROLES DE CLICK INSTANTÁNEO (mousedown en vez de click para evitar retraso)
+            canvas.onmousedown = (e) => {
+                triggerJump();
+            };
+            canvas.onmouseup = () => {
+                endJump();
+            };
+
+            // CONTROLES TÁCTILES MÓVILES (Salto inmediato y reducción de inercia)
             canvas.ontouchstart = (e) => {
                 e.preventDefault();
                 triggerJump();
             };
+            canvas.ontouchend = (e) => {
+                e.preventDefault();
+                endJump();
+            };
+
+            // CONTROLES DE TECLADO (Barra espaciadora y flecha arriba)
+            chicoKeyDownHandler = (e) => {
+                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp") {
+                    e.preventDefault(); // Evita scroll vertical de la ventana
+                    triggerJump();
+                }
+            };
+            chicoKeyUpHandler = (e) => {
+                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp") {
+                    endJump();
+                }
+            };
+
+            window.addEventListener("keydown", chicoKeyDownHandler);
+            window.addEventListener("keyup", chicoKeyUpHandler);
 
             gameInterval = setInterval(updateChico, 1000 / 30);
         }
