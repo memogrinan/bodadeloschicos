@@ -4,155 +4,1013 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Arcade de los Chicos - Boda Mariana & Memo</title>
+    
+    <!-- Tailwind CSS para diseño rápido y moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        olivo: {
+                            base: '#52582f',
+                            trans: 'rgba(82, 88, 47, 0.75)',
+                            acento: '#a3ad73',
+                            claro: '#f2f4ed'
+                        },
+                        crema: {
+                            fondo: '#fcfaf7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { background-color: #fcfaf7; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-        button, canvas { touch-action: manipulation; }
+        body {
+            background-color: #fcfaf7;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        /* Ajuste para evitar retrasos de pulsación en pantallas táctiles */
+        button, canvas {
+            touch-action: manipulation;
+        }
     </style>
 </head>
 <body class="font-sans min-h-screen pb-12">
 
+    <!-- CABECERA -->
     <header class="bg-[#52582f] text-white py-6 px-4 text-center shadow-md relative">
-        <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white font-semibold py-1 px-3 rounded-full text-xs transition">← Volver</a>
+        <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white font-semibold py-1 px-3 rounded-full text-xs transition">
+            ← Volver
+        </a>
         <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide">ARCADE DE LOS CHICOS</h1>
+        <p class="text-xs text-olivo-claro/80 mt-1">Supera las metas para ganar un premio el día de la boda</p>
     </header>
 
+    <!-- PANEL DEL USUARIO -->
     <div class="max-w-4xl mx-auto mt-6 px-4">
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div><p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p><span id="playerGamertag" class="font-extrabold text-olivo-base text-lg">Cargando...</span></div>
-            <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-semibold text-center">Cargando estado...</div>
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🎮</span>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p>
+                    <div class="flex items-center gap-2">
+                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-lg">Cargando...</span>
+                        <button onclick="changeGamerTagPrompt()" class="text-xs text-blue-500 hover:underline">Editar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- INDICADOR DE PREMIO GENERAL -->
+            <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-semibold text-center transition-all duration-300">
+                Cargando estado del premio...
+            </div>
         </div>
 
+        <!-- SECCIÓN DE JUEGOS (MENÚ PRINCIPAL) -->
         <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" id="gamesMenu">
-            <!-- JUEGO 1: CHICOSAURIO -->
+            
+            <!-- JUEGO 1: EL CHICO -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
-                    <span class="text-4xl">🦖</span>
-                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Chicosaurio</h3>
-                    <p class="text-gray-500 text-sm mt-2">Ayuda al chicosaurio a saltar juntas y alarmas y atrapa todos los controles de videojuegos posibles.</p>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🦖</span>
+                        <span id="badge-chico" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chicosaurio</h3>
+                    <p class="text-gray-500 text-sm mt-2">Ayuda a Chicosaurio a saltar juntas y alarmas, y atrapa todos los controles de videojuegos posibles.</p>
                 </div>
-                <div class="mt-6 pt-4 border-t flex justify-between items-center">
-                    <p class="text-xs font-bold text-gray-700"><span id="score-chico">0</span> pts / 100 pts</p>
-                    <button onclick="openGame('chico')" class="bg-[#52582f] text-white px-6 py-2 rounded-xl text-sm transition">Jugar</button>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-chico">0</span> pts / <span class="text-olivo-base">100 pts</span></p>
+                    </div>
+                    <button onclick="openGame('chico')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
             </div>
 
             <!-- JUEGO 2: LA CHICA -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
-                    <span class="text-4xl">👸</span>
-                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Atrapa el Amor</h3>
-                    <p class="text-gray-500 text-sm mt-2">Mueve a la Chica para atrapar los corazones y anillos antes de que caigan. ¡Evita las nubes de tormenta!</p>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">👸</span>
+                        <span id="badge-chica" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de la Chica: Atrapa el Amor</h3>
+                    <p class="text-gray-500 text-sm mt-2">Mueve a la Chica para atrapar los corazones (💖) y anillos de compromiso (💍) antes de que caigan, asegurándote de esquivar las nubes de tormenta (🌧).</p>
                 </div>
-                <div class="mt-6 pt-4 border-t flex justify-between items-center">
-                    <p class="text-xs font-bold text-gray-700"><span id="score-chica">0</span> pts / 15 pts</p>
-                    <button onclick="openGame('chica')" class="bg-[#52582f] text-white px-6 py-2 rounded-xl text-sm transition">Jugar</button>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-chica">0</span> pts / <span class="text-olivo-base">15 pts</span></p>
+                    </div>
+                    <button onclick="openGame('chica')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
             </div>
 
             <!-- JUEGO 3: MADDIE -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
-                    <span class="text-4xl">🐶</span>
-                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Atrapa a Maddie</h3>
-                    <p class="text-gray-500 text-sm mt-2">Maddie asoma por los agujeros del jardín. Tienes 30 segundos para atraparla todas las veces que puedas.</p>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🐶</span>
+                        <span id="badge-maddie" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de Maddie: ¡Atrapa a la perrita!</h3>
+                    <p class="text-gray-500 text-sm mt-2">Maddie asoma la cabeza por los agujeros del jardín. Pon a prueba tu destreza y atrápala en 30 segundos.</p>
                 </div>
-                <div class="mt-6 pt-4 border-t flex justify-between items-center">
-                    <p class="text-xs font-bold text-gray-700"><span id="score-maddie">0</span> clics / 20 clics</p>
-                    <button onclick="openGame('maddie')" class="bg-[#52582f] text-white px-6 py-2 rounded-xl text-sm transition">Jugar</button>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-maddie">0</span> clics / <span class="text-olivo-base">20 clics</span></p>
+                    </div>
+                    <button onclick="openGame('maddie')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
             </div>
 
-            <!-- JUEGO 4: PUEBLA -->
+            <!-- JUEGO 4: CAMINO A PUEBLA -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
-                    <span class="text-4xl">🚗</span>
-                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla</h3>
-                    <p class="text-gray-500 text-sm mt-2">Conduce en 3D retro rumbo a Cholula. Esquiva baches, obras y rebasa otros coches.</p>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🚗</span>
+                        <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: OutRun 80s</h3>
+                    <p class="text-gray-500 text-sm mt-2">Conduce en 3D retro rumbo a Cholula. Esquiva baches (🕳), obras (🚧) y rebasa otros coches (🚘). Recolecta mapas (🗺) y corazones (💚).</p>
                 </div>
-                <div class="mt-6 pt-4 border-t flex justify-between items-center">
-                    <p class="text-xs font-bold text-gray-700"><span id="score-puebla">0</span> pts / 80 pts</p>
-                    <button onclick="openGame('puebla')" class="bg-[#52582f] text-white px-6 py-2 rounded-xl text-sm transition">Jugar</button>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-sm"><span id="score-puebla">0</span> pts / <span class="text-olivo-base">80 pts</span></p>
+                    </div>
+                    <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
             </div>
+
         </main>
     </div>
 
-    <!-- CONTENEDOR JUEGO -->
-    <div id="gameContainer" class="fixed inset-0 bg-black z-40 hidden flex flex-col items-center justify-center">
-        <button onclick="closeActiveGame()" class="absolute top-4 right-4 text-white">CERRAR ✕</button>
-        <canvas id="gameCanvas" width="600" height="300" class="bg-white"></canvas>
-        <div id="gameOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white">
-            <div id="overlayScoreBox" class="hidden text-center mb-4">
-                <p class="text-xl">PUNTUACIÓN</p>
-                <p id="overlayFinalScore" class="text-4xl text-yellow-400 font-bold">00000</p>
-            </div>
-            <button id="startGameBtn" class="bg-white text-black px-8 py-3 rounded">¡Empezar!</button>
+    <!-- ========================================== -->
+    <!-- MODAL DE REGISTRO GAMERTAG -->
+    <div id="gamertagModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <span class="text-4xl">👾</span>
+            <h2 class="text-xl font-extrabold text-olivo-base mt-4">¡Ingresa tu GamerTag!</h2>
+            <p class="text-gray-500 text-xs mt-2">Para poder registrar tus récords locales en el navegador, por favor ingresa un nombre o apodo único.</p>
+            <input type="text" id="gamertagInput" maxlength="15" placeholder="Tu Apodo / Nombre" class="w-full mt-4 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition">
+            <button onclick="saveGamerTag()" class="w-full mt-4 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition">Comenzar a Jugar</button>
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- CONTENEDOR DE JUEGOS EN PANTALLA COMPLETA -->
+    <div id="gameContainer" class="fixed inset-0 bg-black/95 z-40 hidden flex flex-col justify-between p-4">
+        <div class="flex justify-between items-center text-white pb-2 border-b border-white/10">
+            <div class="flex items-center gap-2">
+                <span id="activeGameIcon" class="text-xl">🎮</span>
+                <span id="activeGameTitle" class="font-bold text-sm">Cargando Juego...</span>
+            </div>
+            <button onclick="closeActiveGame()" class="text-white hover:text-red-400 font-bold px-2 py-1 text-sm bg-white/10 rounded-lg">✕ Salir</button>
+        </div>
+
+        <!-- ÁREA INTERNA DEL JUEGO -->
+        <div class="flex-grow flex flex-col justify-center items-center relative overflow-hidden my-4">
+            
+            <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
+            <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 rounded-2xl max-w-full max-h-[70vh] shadow-lg hidden"></canvas>
+
+            <!-- Agujeros de Maddie (DOM-based) -->
+            <div id="maddieGrid" class="grid grid-cols-3 gap-3 max-w-[340px] w-full hidden">
+                <!-- Se generará dinámicamente -->
+            </div>
+
+            <!-- PANTALLA SUPERPUESTA / GAME OVER / MENÚ DE INICIO -->
+            <div id="gameOverlay" class="absolute inset-0 bg-black/90 flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl">
+                
+                <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
+                <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/20 p-4 rounded-2xl w-64">
+                    <p class="text-[10px] tracking-widest text-gray-400 font-bold uppercase">Puntuación Obtenida</p>
+                    <p id="overlayFinalScore" class="text-5xl font-extrabold text-yellow-400 my-1">00000</p>
+                    <p id="overlayMetaCompare" class="text-xs text-gray-300 font-semibold">Meta del juego: 100 pts</p>
+                </div>
+                
+                <p id="overlayInstructions" class="text-sm max-w-[280px] mb-6 text-gray-300 leading-relaxed">Presiona "Empezar" para jugar.</p>
+                <button id="startGameBtn" class="bg-olivo-acento text-black font-extrabold px-8 py-3.5 rounded-full text-xs tracking-wider uppercase transition active:scale-95 shadow-md">¡Empezar!</button>
+            </div>
+        </div>
+
+        <!-- Barra inferior informativa (Visor de Estado General) -->
+        <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center text-white text-xs">
+            <div>
+                <p class="text-gray-400 uppercase font-semibold">GamerTag</p>
+                <p class="text-sm font-extrabold text-olivo-claro" id="bottomGamerTag">Jugador</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400 uppercase font-semibold">Estado</p>
+                <p class="text-xs font-bold" id="currentGameState">Listo para iniciar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GLOBAL Y LÓGICA DE JUEGOS -->
     <script>
-        const METAS = { chico: 100, chica: 15, maddie: 20, puebla: 80 };
+        // CONFIGURACIÓN DE METAS (Score targets)
+        const METAS = {
+            chico: 100,
+            chica: 15,
+            maddie: 20,
+            puebla: 80
+        };
+
+        let playerGamertag = "";
+        let activeGame = null;
+        let gameInterval = null;
+        let score = 0;
+        let gameRunning = false;
+
+        // SPRITE OFICIAL DE CHROME DINOSAURIO
         const sprite = new Image();
         sprite.src = 'ImagenesWeb/Juegos/dino_sprite.png';
 
-        // Lógica simplificada de carga y juego
+        // ELEMENTOS DEL DOM
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const gameOverlay = document.getElementById("gameOverlay");
+        const overlayInstructions = document.getElementById("overlayInstructions");
+        const startGameBtn = document.getElementById("startGameBtn");
+        const maddieGrid = document.getElementById("maddieGrid");
+        const overlayScoreBox = document.getElementById("overlayScoreBox");
+        const overlayFinalScore = document.getElementById("overlayFinalScore");
+        const overlayMetaCompare = document.getElementById("overlayMetaCompare");
+
+        // INICIALIZACIÓN
+        document.addEventListener("DOMContentLoaded", () => {
+            checkGamertag();
+            updateScoresDashboard();
+        });
+
+        function checkGamertag() {
+            const saved = localStorage.getItem("bodachicos_gamertag");
+            if (!saved) {
+                document.getElementById("gamertagModal").classList.remove("hidden");
+            } else {
+                playerGamertag = saved;
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+                document.getElementById("bottomGamerTag").innerText = playerGamertag;
+            }
+        }
+
+        function saveGamerTag() {
+            const val = document.getElementById("gamertagInput").value.trim();
+            if (val) {
+                localStorage.setItem("bodachicos_gamertag", val);
+                playerGamertag = val;
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+                document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                document.getElementById("gamertagModal").classList.add("hidden");
+                updateScoresDashboard();
+            }
+        }
+
+        function changeGamerTagPrompt() {
+            const val = prompt("Ingresa tu nuevo GamerTag:", playerGamertag);
+            if (val && val.trim()) {
+                localStorage.setItem("bodachicos_gamertag", val.trim());
+                playerGamertag = val.trim();
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+                document.getElementById("bottomGamerTag").innerText = playerGamertag;
+            }
+        }
+
+        function getScore(game) {
+            return parseInt(localStorage.getItem("bodachicos_score_" + game) || "0");
+        }
+
+        function saveScore(game, newScore) {
+            const current = getScore(game);
+            if (newScore > current) {
+                localStorage.setItem("bodachicos_score_" + game, newScore);
+            }
+        }
+
+        function updateScoresDashboard() {
+            let totalMetasSuperadas = 0;
+
+            Object.keys(METAS).forEach(game => {
+                const gameScore = getScore(game);
+                const target = METAS[game];
+                document.getElementById("score-" + game).innerText = gameScore;
+
+                const badge = document.getElementById("badge-" + game);
+                if (gameScore >= target) {
+                    badge.innerText = "¡Completado! ✓";
+                    badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-green-100 text-green-700";
+                    totalMetasSuperadas++;
+                } else {
+                    badge.innerText = "Pendiente";
+                    badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-yellow-100 text-yellow-700";
+                }
+            });
+
+            // Actualizar banner de premio general
+            const prizeStatus = document.getElementById("prizeStatus");
+            if (totalMetasSuperadas === 4) {
+                prizeStatus.innerHTML = "🏆 ¡Premio Desbloqueado! Toma una captura y canjéala el día de la boda.";
+                prizeStatus.className = "bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md";
+            } else {
+                prizeStatus.innerHTML = `Progreso: ${totalMetasSuperadas}/4 metas superadas.`;
+                prizeStatus.className = "bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-semibold text-center";
+            }
+        }
+
+        // DIBUJADO DE MARCADORES RETRO EN CANVAS (ESTILO PAC-MAN)
+        function drawRetroScore(ctx, score, x, y) {
+            ctx.save();
+            ctx.font = "bold 13px 'Courier New', Courier, monospace";
+            ctx.fillStyle = "#ffcc00"; // Amarillo Pac-Man
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 3.5;
+            ctx.textAlign = "right";
+            
+            // Texto superior
+            ctx.strokeText("1P SCORE", x, y);
+            ctx.fillText("1P SCORE", x, y);
+            
+            // Marcador relleno
+            const padded = score.toString().padStart(5, '0');
+            ctx.strokeText(padded, x, y + 16);
+            ctx.fillText(padded, x, y + 16);
+            ctx.restore();
+        }
+
         function openGame(game) {
             activeGame = game;
             document.getElementById("gameContainer").classList.remove("hidden");
+            document.body.style.overflow = "hidden"; // Deshabilita el scroll de fondo
+
+            const gameTitles = {
+                chico: "Chicosaurio",
+                chica: "Atrapa el Amor",
+                maddie: "Atrapa a la perrita (Maddie)",
+                puebla: "Camino a Puebla: OutRun 80s"
+            };
+            const gameIcons = { chico: "🦖", chica: "👸", maddie: "🐶", puebla: "🚗" };
+
+            document.getElementById("activeGameTitle").innerText = gameTitles[game];
+            document.getElementById("activeGameIcon").innerText = gameIcons[game];
+            
             resetGameUI();
         }
 
         function resetGameUI() {
-            document.getElementById("gameOverlay").classList.remove("hidden");
-            document.getElementById("overlayScoreBox").classList.add("hidden");
+            gameRunning = false;
+            clearInterval(gameInterval);
+            score = 0;
+            currentGameState.innerText = "Esperando inicio";
+
+            canvas.classList.add("hidden");
+            maddieGrid.classList.add("hidden");
+            gameOverlay.classList.remove("hidden");
+            overlayScoreBox.classList.add("hidden"); // Ocultar marcador en el menú de inicio inicial
+
+            const targetScore = METAS[activeGame];
+            let inst = "";
+            if (activeGame === 'chico') {
+                inst = `Salta tocando la pantalla para evitar agendas (📅) y alarmas (⏰). Atrapa los controles (🎮) para obtener 15 pts extra.\nMeta: ${targetScore} pts.`;
+            } else if (activeGame === 'chica') {
+                inst = `Mueve a la Chica tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍) antes de que caigan. Evita las nubes de tormenta (🌧).\nMeta: ${targetScore} pts.`;
+            } else if (activeGame === 'maddie') {
+                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los agujeros de tierra. Tienes 30 segundos.\nMeta: ${targetScore} clics.`;
+            } else if (activeGame === 'puebla') {
+                inst = `Toca el lado IZQUIERDO para cambiar de carril a la izquierda, o el lado DERECHO para cambiar a la derecha. Evita baches y rebasa autos (🚘).\nMeta: ${targetScore} pts.`;
+            }
+            
+            overlayInstructions.innerText = inst;
+            startGameBtn.innerText = "¡Empezar!";
+            startGameBtn.onclick = startActiveGame;
         }
 
         function closeActiveGame() {
-            document.getElementById("gameContainer").classList.add("hidden");
             clearInterval(gameInterval);
+            gameRunning = false;
+            document.getElementById("gameContainer").classList.add("hidden");
+            document.body.style.overflow = ""; // Reactiva scroll general
             updateScoresDashboard();
         }
 
         function startActiveGame() {
-            document.getElementById("gameOverlay").classList.add("hidden");
-            if(activeGame === 'chico') runChicosaurio();
-            // (Lógica de los otros juegos permanece similar)
+            gameOverlay.classList.add("hidden");
+            gameRunning = true;
+            score = 0;
+            currentGameState.innerText = "Jugando";
+
+            if (activeGame === 'chico') {
+                canvas.classList.remove("hidden");
+                initChicoGame();
+            } else if (activeGame === 'chica') {
+                canvas.classList.remove("hidden");
+                initChicaGame();
+            } else if (activeGame === 'maddie') {
+                maddieGrid.classList.remove("hidden");
+                initMaddieGame();
+            } else if (activeGame === 'puebla') {
+                canvas.classList.remove("hidden");
+                initPueblaGame();
+            }
         }
 
-        // MOTOR CHICOSAURIO (DINO CHROME)
-        let gameInterval, score = 0;
-        function runChicosaurio() {
-            const c = document.getElementById("gameCanvas");
-            const ctx = c.getContext("2d");
-            let dinoY = 150, velY = 0, gravity = 0.6;
+        function gameOver(finalScore) {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            saveScore(activeGame, finalScore);
             
+            const meta = METAS[activeGame];
+            
+            // Mostrar y configurar el recuadro de puntuación central en el overlay
+            overlayScoreBox.classList.remove("hidden");
+            overlayFinalScore.innerText = finalScore.toString().padStart(5, '0');
+            overlayMetaCompare.innerText = `Meta requerida: ${meta} ${activeGame === 'maddie' ? 'clics' : 'pts'}`;
+            
+            let resultMessage = "";
+            if (finalScore >= meta) {
+                resultMessage = `🎉 ¡Reto superado con éxito! Lograste sobrepasar el objetivo.`;
+                currentGameState.innerText = "¡Meta lograda!";
+            } else {
+                const diff = meta - finalScore;
+                resultMessage = `Te quedaste a ${diff} ${activeGame === 'maddie' ? 'clics' : 'puntos'} para alcanzar la meta. ¡No te rindas!`;
+                currentGameState.innerText = "Buen intento";
+            }
+
+            overlayInstructions.innerText = resultMessage;
+            startGameBtn.innerText = "Reintentar";
+            startGameBtn.onclick = resetGameUI;
+            gameOverlay.classList.remove("hidden");
+            
+            updateScoresDashboard();
+        }
+
+        // ==========================================
+        // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial)
+        let memo, obstacles, items, clouds, chicoFrame;
+        
+        function drawDinoScore(ctx, score, highscore, x, y) {
+            ctx.save();
+            ctx.font = "bold 13px 'Courier New', Courier, monospace";
+            ctx.fillStyle = "#535353"; // Gris del dinosaurio de Chrome
+            ctx.textAlign = "right";
+            const scoreStr = score.toString().padStart(5, '0');
+            const hiStr = highscore.toString().padStart(5, '0');
+            ctx.fillText(`HI ${hiStr}  ${scoreStr}`, x, y);
+            ctx.restore();
+        }
+
+        function initChicoGame() {
+            memo = {
+                x: 45,
+                y: 303, // Suelo es 350, altura es 47 (350 - 47)
+                width: 44, // Proporción al 50% de escala del original hdpi (88x94)
+                height: 47,
+                vy: 0,
+                gravity: 1.6,
+                jumpHeight: -17,
+                isGrounded: true
+            };
+            obstacles = [];
+            items = [];
+            clouds = [
+                {x: 120, y: 60, speed: 0.6},
+                {x: 320, y: 90, speed: 0.4}
+            ];
+            chicoFrame = 0;
+
+            const triggerJump = () => {
+                if (memo.isGrounded) {
+                    memo.vy = memo.jumpHeight;
+                    memo.isGrounded = false;
+                }
+            };
+
+            canvas.onclick = triggerJump;
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                triggerJump();
+            };
+
+            gameInterval = setInterval(updateChico, 1000 / 30);
+        }
+
+        function updateChico() {
+            chicoFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Fondo gris-blanco característico del juego de Chrome
+            ctx.fillStyle = "#f7f7f7";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Nubes de fondo decorativas estilo pixel usando el sprite oficial
+            // Cloud HDPI coordinates: x: 166, y: 2, w: 92, h: 28. Se dibuja escalada a la mitad (46x14)
+            for (let cl of clouds) {
+                cl.x -= cl.speed;
+                ctx.drawImage(sprite, 166, 2, 92, 28, cl.x, cl.y, 46, 14);
+                if (cl.x < -50) cl.x = canvas.width + 20;
+            }
+
+            // Línea de suelo infinita usando el sprite oficial de carretera
+            // Horizon HDPI coordinates: x: 2, y: 104, w: 1200, h: 24.
+            let groundX = (chicoFrame * 6.5) % 600;
+            ctx.drawImage(sprite, 2 + groundX, 104, 360, 24, 0, 345, 360, 12);
+            ctx.drawImage(sprite, 2 + groundX, 104, 360, 24, 600 - groundX, 345, 360, 12);
+
+            // Gravedad y física de Chicosaurio
+            memo.vy += memo.gravity;
+            memo.y += memo.vy;
+            if (memo.y >= 303) {
+                memo.y = 303;
+                memo.vy = 0;
+                memo.isGrounded = true;
+            }
+
+            // Dibujar Chicosaurio (Dinosaurio 🦖 oficial)
+            // HDPI TREX standard offset: x: 1678, y: 2, w: 88, h: 94
+            let frameOffset = 1; // Parado por defecto
+            if (gameRunning) {
+                if (memo.isGrounded) {
+                    // Alternar piernas al correr (frames index 2 y 3 del spritesheet)
+                    frameOffset = (Math.floor(chicoFrame / 3) % 2) === 0 ? 2 : 3;
+                } else {
+                    frameOffset = 0; // Animación estática de salto (frame index 1)
+                }
+            } else {
+                frameOffset = 4; // Animación de colisión (frame index 5)
+            }
+            
+            ctx.drawImage(
+                sprite, 
+                1678 + (88 * frameOffset), 2, 
+                88, 94, 
+                memo.x, memo.y, 
+                memo.width, memo.height
+            );
+
+            // Generar Obstáculos (Alarmas ⏰, Calendarios 📅 o Carpetas 📁)
+            if (chicoFrame % 65 === 0) {
+                let obsTypes = ["📅", "⏰", "📁"];
+                let randType = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+                obstacles.push({
+                    x: canvas.width,
+                    y: 310,
+                    emoji: randType,
+                    speed: 6.5 + Math.floor(score / 50)
+                });
+            }
+
+            // Generar Items (Controles de videojuegos 🎮)
+            if (chicoFrame % 85 === 0) {
+                items.push({
+                    x: canvas.width,
+                    y: 180 + Math.random() * 60,
+                    emoji: "🎮",
+                    speed: 6.5
+                });
+            }
+
+            // Actualizar Obstáculos
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.x -= obs.speed;
+                
+                // Dibujar el obstáculo emoji de forma alineada al suelo
+                ctx.font = "30px sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText(obs.emoji, obs.x, obs.y + 30);
+
+                // Colisión con Obstáculo
+                if (obs.x < memo.x + 32 && obs.x + 22 > memo.x && obs.y < memo.y + 40 && obs.y + 30 > memo.y) {
+                    gameOver(score);
+                    return;
+                }
+                if (obs.x < -30) obstacles.splice(i, 1);
+            }
+
+            // Actualizar Controles Recolectables
+            for (let i = items.length - 1; i >= 0; i--) {
+                let it = items[i];
+                it.x -= it.speed;
+                
+                ctx.font = "26px sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText(it.emoji, it.x, it.y + 20);
+
+                // Recolectar Control (Bonus grande de 15 puntos)
+                if (it.x < memo.x + 32 && it.x + 24 > memo.x && it.y < memo.y + 40 && it.y + 20 > memo.y) {
+                    score += 15;
+                    items.splice(i, 1);
+                    continue;
+                }
+                if (it.x < -30) items.splice(i, 1);
+            }
+
+            // Suma progresiva estándar
+            if (chicoFrame % 5 === 0) {
+                score += 1;
+            }
+
+            // Marcador gris superior derecho original de Chrome Dino
+            drawDinoScore(ctx, score, getScore('chico'), canvas.width - 20, 30);
+        }
+
+        // ==========================================
+        // JUEGO 2: LA CHICA (Atrapa el Amor)
+        let basketX, fallObjects, lives, chicaFrame;
+        const CHICA_LANES = [40, 130, 220, 310]; // Carriles estrictos para evitar encimamientos
+
+        function initChicaGame() {
+            basketX = canvas.width / 2 - 25;
+            fallObjects = [];
+            lives = 3;
+            chicaFrame = 0;
+
+            const moveBasket = (clientX) => {
+                const rect = canvas.getBoundingClientRect();
+                const relativeX = (clientX - rect.left) * (canvas.width / rect.width);
+                basketX = Math.max(0, Math.min(canvas.width - 50, relativeX - 25));
+            };
+
+            canvas.onmousemove = (e) => moveBasket(e.clientX);
+            canvas.ontouchmove = (e) => {
+                e.preventDefault();
+                moveBasket(e.touches[0].clientX);
+            };
+
+            gameInterval = setInterval(updateChica, 1000 / 30);
+        }
+
+        function updateChica() {
+            chicaFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Fondo rosa pastel elegante
+            ctx.fillStyle = "#fff5f5";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Generar corazones (💖), anillos (💍) o nubes tormentosas (🌧) sin superponerse
+            if (chicaFrame % 25 === 0) {
+                const laneIdx = Math.floor(Math.random() * 4);
+                const spawnX = CHICA_LANES[laneIdx];
+                const randType = Math.random();
+                let typeEmoji = "💖";
+                let isDanger = false;
+
+                if (randType > 0.7) {
+                    typeEmoji = "🌧"; // Objeto que se debe evitar a toda costa
+                    isDanger = true;
+                } else if (randType > 0.45) {
+                    typeEmoji = "💍";
+                }
+
+                fallObjects.push({
+                    x: spawnX + Math.random() * 10, // Pequeño desfase orgánico
+                    y: -30,
+                    emoji: typeEmoji,
+                    isDanger: isDanger,
+                    speed: 4.5 + Math.random() * 4
+                });
+            }
+
+            // Dibujar Mariana / Canasta (👸) en la base
+            ctx.font = "40px sans-serif";
+            ctx.fillText("👸", basketX, 450);
+
+            // Dibujar barra de vidas de corazones estilizados (Llena ❤️ / Vacía ♡)
+            ctx.font = "14px sans-serif";
+            let heartUI = "LIVES: ";
+            for (let h = 0; h < 3; h++) {
+                heartUI += h < lives ? "❤️ " : "♡ ";
+            }
+            ctx.fillStyle = "#52582f";
+            ctx.textAlign = "left";
+            ctx.fillText(heartUI, 20, 30);
+
+            // Actualizar objetos cayendo
+            for (let i = fallObjects.length - 1; i >= 0; i--) {
+                let obj = fallObjects[i];
+                obj.y += obj.speed;
+                ctx.fillText(obj.emoji, obj.x, obj.y);
+
+                // Colisión con Mariana/Canasta
+                if (obj.y >= 415 && obj.y <= 455 && obj.x >= basketX - 15 && obj.x <= basketX + 40) {
+                    if (obj.isDanger) {
+                        // Tocar una nube resta una vida directamente
+                        lives--;
+                    } else {
+                        score += 1;
+                    }
+                    fallObjects.splice(i, 1);
+
+                    if (lives <= 0) {
+                        gameOver(score);
+                        return;
+                    }
+                    continue;
+                }
+
+                // Salirse de los límites inferiores
+                if (obj.y > canvas.height) {
+                    // Solo perdemos vidas si se nos pasa un objeto positivo (corazón o anillo)
+                    if (!obj.isDanger) {
+                        lives--;
+                    }
+                    fallObjects.splice(i, 1);
+
+                    if (lives <= 0) {
+                        gameOver(score);
+                        return;
+                    }
+                }
+            }
+
+            // Dibujar marcador de estilo arcade
+            drawRetroScore(ctx, score, canvas.width - 20, 20);
+        }
+
+        // ==========================================
+        // JUEGO 3: MADDIE (Click-a-mole)
+        let maddieTimer, activeHole, timeRemaining;
+        
+        function initMaddieGame() {
+            maddieGrid.innerHTML = "";
+            timeRemaining = 30;
+            currentGameState.innerText = "Tiempo: 30s";
+
+            // Generar cuadrícula de 9 agujeros de tierra rápidos y optimizados
+            for (let i = 0; i < 9; i++) {
+                const hole = document.createElement("button");
+                hole.className = "aspect-square rounded-full bg-amber-950/20 border-4 border-amber-900/40 flex justify-center items-center text-4xl p-2 relative shadow-inner overflow-hidden active:bg-amber-950/30";
+                hole.id = "hole-" + i;
+                hole.onclick = () => hitMaddie(i);
+                maddieGrid.appendChild(hole);
+            }
+
             gameInterval = setInterval(() => {
-                ctx.clearRect(0,0,600,300);
-                // Dibujar dinosaurio usando el sprite (Coordenadas aproximadas originales)
-                // Sprite Dino: x:848, y:0, w:88, h:94
-                ctx.drawImage(sprite, 848, 0, 88, 94, 50, dinoY, 44, 47);
-                
-                // Física básica
-                velY += gravity;
-                dinoY += velY;
-                if(dinoY > 150) { dinoY = 150; velY = 0; }
-                
+                timeRemaining--;
+                currentGameState.innerText = `Tiempo: ${timeRemaining}s`;
+                if (timeRemaining <= 0) {
+                    gameOver(score);
+                }
+            }, 1000);
+
+            maddiePop();
+        }
+
+        function maddiePop() {
+            if (!gameRunning) return;
+            
+            // Vaciar agujero anterior de manera inmediata
+            if (activeHole !== undefined) {
+                const prev = document.getElementById("hole-" + activeHole);
+                if (prev) prev.innerHTML = "";
+            }
+
+            // Seleccionar nueva ubicación
+            activeHole = Math.floor(Math.random() * 9);
+            const next = document.getElementById("hole-" + activeHole);
+            
+            // Colocar emoji de la perrita Maddie
+            next.innerHTML = "<span class='select-none pointer-events-none'>🐶</span>";
+
+            // Tiempo que dura visible (se vuelve más veloz a medida que ganas clics)
+            let popDelay = Math.max(400, 800 - (score * 18));
+            maddieTimer = setTimeout(maddiePop, popDelay);
+        }
+
+        function hitMaddie(index) {
+            if (index === activeHole && gameRunning) {
                 score++;
-                drawRetroScore(ctx, score, 500, 30);
-            }, 30);
+                
+                // Formatear marcador superior de barra informativa a estilo retro
+                document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
+                
+                // Limpiar Maddie de inmediato de la celda
+                const hitHole = document.getElementById("hole-" + index);
+                hitHole.innerHTML = "";
+                activeHole = -1;
+
+                clearTimeout(maddieTimer);
+                // Saltar de forma instantánea al siguiente ciclo
+                maddiePop();
+            }
         }
 
-        function drawRetroScore(ctx, score, x, y) {
-            ctx.fillStyle = "#000";
-            ctx.font = "20px Arial";
-            ctx.fillText("SCORE: " + score.toString().padStart(5, '0'), x, y);
+        // ==========================================
+        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro)
+        let playerX, targetLane, roadObjects, roadFrame, roadSpeed;
+        const PUEBLA_LANES_TARGET = [80, 180, 280]; // Coordenadas del plano inferior proyectado
+
+        function initPueblaGame() {
+            playerX = 180; // Iniciar en el centro de la carretera
+            targetLane = 1; // Carril central por defecto
+            roadObjects = [];
+            roadFrame = 0;
+            roadSpeed = 9;
+            currentGameState.innerText = "Manejando";
+
+            // Control táctil de 2 bandas (Mitad Izquierda / Mitad Derecha)
+            const handleSideTouch = (clientX) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = clientX - rect.left;
+                if (clickX < rect.width / 2) {
+                    // Toque Izquierdo -> Desplazar a la izquierda
+                    if (targetLane > 0) targetLane--;
+                } else {
+                    // Toque Derecho -> Desplazar a la derecha
+                    if (targetLane < 2) targetLane++;
+                }
+            };
+
+            canvas.onclick = (e) => handleSideTouch(e.clientX);
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                handleSideTouch(e.touches[0].clientX);
+            };
+
+            gameInterval = setInterval(updatePuebla, 1000 / 30);
         }
 
-        document.getElementById("startGameBtn").onclick = startActiveGame;
-        updateScoresDashboard(); // Llamada inicial
-        function updateScoresDashboard() { /* Lógica de metas */ }
+        function updatePuebla() {
+            roadFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Dibujar el horizonte y el cielo retro azul
+            ctx.fillStyle = "#3498db"; 
+            ctx.fillRect(0, 0, canvas.width, 180);
+
+            // Dibujar el suelo de césped verde
+            ctx.fillStyle = "#27ae60"; 
+            ctx.fillRect(0, 180, canvas.width, canvas.height - 180);
+
+            // 2. Dibujo en perspectiva 3D del asfalto y barreras laterales (OutRun)
+            const horizonY = 180;
+            const roadHeight = canvas.height - horizonY;
+            const totalStripeSegments = 12;
+
+            for (let i = totalStripeSegments; i >= 1; i--) {
+                // Cálculo de curvas exponenciales para dar ilusión de profundidad
+                const y1 = horizonY + Math.pow((i - 1) / totalStripeSegments, 2) * roadHeight;
+                const y2 = horizonY + Math.pow(i / totalStripeSegments, 2) * roadHeight;
+                
+                // Color alternante rápido en base a fotogramas para sensación de avance
+                const stripeActive = (i + Math.floor(roadFrame / 2.5)) % 2 === 0;
+
+                // Ancho de la autopista proyectado
+                const roadWidth1 = 40 + ((y1 - horizonY) / roadHeight) * 260;
+                const roadWidth2 = 40 + ((y2 - horizonY) / roadHeight) * 260;
+
+                const xl1 = 180 - roadWidth1 / 2;
+                const xl2 = 180 - roadWidth2 / 2;
+                const xr1 = 180 + roadWidth1 / 2;
+                const xr2 = 180 + roadWidth2 / 2;
+
+                // Dibujar bordillo alterno (Rojo y Blanco)
+                ctx.fillStyle = stripeActive ? "#e74c3c" : "#ffffff";
+                
+                // Bordillo Izquierdo
+                ctx.beginPath();
+                ctx.moveTo(xl1 - 6, y1); ctx.lineTo(xl2 - 10, y2);
+                ctx.lineTo(xl2, y2); ctx.lineTo(xl1, y1);
+                ctx.fill();
+
+                // Bordillo Derecho
+                ctx.beginPath();
+                ctx.moveTo(xr1, y1); ctx.lineTo(xr2, y2);
+                ctx.lineTo(xr2 + 10, y2); ctx.lineTo(xr1 + 6, y1);
+                ctx.fill();
+
+                // Superficie gris de autopista
+                ctx.fillStyle = "#2c3e50";
+                ctx.beginPath();
+                ctx.moveTo(xl1, y1); ctx.lineTo(xl2, y2);
+                ctx.lineTo(xr2, y2); ctx.lineTo(xr1, y1);
+                ctx.fill();
+
+                // Líneas divisorias de carriles (Amarillo discontinuo en movimiento)
+                if (stripeActive) {
+                    ctx.strokeStyle = "#f1c40f";
+                    ctx.lineWidth = 1.5 + (i / totalStripeSegments) * 3;
+
+                    // Línea izquierda divisoria
+                    const lineL1 = xl1 + roadWidth1 / 3;
+                    const lineL2 = xl2 + roadWidth2 / 3;
+                    ctx.beginPath();
+                    ctx.moveTo(lineL1, y1); ctx.lineTo(lineL2, y2);
+                    ctx.stroke();
+
+                    // Línea derecha divisoria
+                    const lineR1 = xl1 + (2 * roadWidth1) / 3;
+                    const lineR2 = xl2 + (2 * roadWidth2) / 3;
+                    ctx.beginPath();
+                    ctx.moveTo(lineR1, y1); ctx.lineTo(lineR2, y2);
+                    ctx.stroke();
+                }
+            }
+
+            // 3. Generar amenazas, rebases e ítems de recolección
+            if (roadFrame % 32 === 0) {
+                const laneIdx = Math.floor(Math.random() * 3);
+                const rollType = Math.random();
+                let typeEmoji = "🚧";
+                let isItem = false;
+                let isTrafficCar = false;
+
+                if (rollType > 0.7) {
+                    typeEmoji = Math.random() > 0.5 ? "💚" : "🗺";
+                    isItem = true;
+                } else if (rollType > 0.35) {
+                    typeEmoji = "🚘"; // Coche a rebasar del mismo estilo
+                    isTrafficCar = true;
+                } else {
+                    typeEmoji = Math.random() > 0.5 ? "🚧" : "🕳";
+                }
+
+                roadObjects.push({
+                    lane: laneIdx,
+                    y: horizonY,
+                    emoji: typeEmoji,
+                    isItem: isItem,
+                    isCar: isTrafficCar,
+                    speed: isTrafficCar ? 4.5 : 0 // Los coches de tráfico se desplazan más lento que el avance del jugador
+                });
+            }
+
+            // 4. Actualizar y proyectar obstáculos 3D
+            for (let i = roadObjects.length - 1; i >= 0; i--) {
+                let obj = roadObjects[i];
+                
+                // Movimiento relativo hacia el jugador
+                if (obj.isCar) {
+                    obj.y += roadSpeed - obj.speed; // Se aproximan gradualmente
+                } else {
+                    obj.y += roadSpeed; // Objetos estáticos avanzan a velocidad del asfalto
+                }
+
+                // Calcular posición X e Y mapeada en la perspectiva 3D
+                const depthPct = (obj.y - horizonY) / roadHeight;
+                const currentRoadWidth = 40 + depthPct * 260;
+                const currentLaneX = 180 - currentRoadWidth / 2 + (obj.lane * currentRoadWidth) / 2 + currentRoadWidth / 6;
+
+                // Escalar tamaño de emoji para dar efecto de acercamiento visual
+                const currentScale = Math.max(10, Math.floor(8 + depthPct * 36));
+
+                ctx.font = `${currentScale}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(obj.emoji, currentLaneX, obj.y);
+
+                // Comprobar colisión
+                if (obj.y >= 390 && obj.y <= 440 && obj.lane === targetLane) {
+                    if (obj.isItem) {
+                        score += 10;
+                        roadObjects.splice(i, 1);
+                        continue;
+                    } else {
+                        // Impacto con coche de tráfico u obstáculo vial
+                        gameOver(score);
+                        return;
+                    }
+                }
+
+                // Rebase exitoso (El coche rebasado cruza de forma segura el límite inferior)
+                if (obj.y > canvas.height + 40) {
+                    if (obj.isCar) {
+                        score += 5; // Premio por rebasar coches
+                    }
+                    roadObjects.splice(i, 1);
+                }
+            }
+
+            // 5. Suavizado en la animación de desplazamiento de carril
+            const playerTargetX = PUEBLA_LANES_TARGET[targetLane];
+            playerX += (playerTargetX - playerX) * 0.45; // Desplazamiento fluido instantáneo al tacto
+
+            // Dibujar jugador en tercera persona (🚗)
+            ctx.font = "44px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("🚗", playerX, 440);
+
+            // Suma progresiva de puntuación por distancia recorrida
+            if (roadFrame % 8 === 0) {
+                score += 1;
+                if (score % 40 === 0) roadSpeed += 0.8; // Dificultad escalable
+            }
+
+            // Marcador retro Pac-Man
+            drawRetroScore(ctx, score, canvas.width - 20, 20);
+        }
     </script>
 </body>
 </html>
