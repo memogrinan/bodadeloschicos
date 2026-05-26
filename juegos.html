@@ -89,7 +89,7 @@
         <!-- SECCIÓN DE JUEGOS (MENÚ PRINCIPAL) -->
         <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" id="gamesMenu">
             
-            <!-- JUEGO 1: EL CHICO -->
+            <!-- JUEGO 1: EL CHICO (Con iconos reales en la descripción) -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-start">
@@ -97,7 +97,17 @@
                         <span id="badge-chico" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chicosaurio</h3>
-                    <p class="text-gray-500 text-sm mt-2">Ayuda a Chicosaurio (🦖) a saltar juntas (📅), alarmas (⏰) y emails (📩) en el camino, y atrapa los controles de videojuegos (🎮) antes de que escapen.</p>
+                    <p class="text-gray-500 text-sm mt-2 leading-relaxed">
+                        Ayuda a Chicosaurio (🦖) a saltar juntas 
+                        <img src="ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendario">, 
+                        alarmas 
+                        <img src="ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarma"> 
+                        y emails 
+                        <img src="ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
+                        y atrapa los controles de videojuegos 
+                        <img src="ImagenesWeb/Juegos/Dino/Controller_Gamepad.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
+                        en el camino.
+                    </p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
@@ -222,14 +232,15 @@
                     <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
                 </div>
                 
-                <!-- Instrucciones y mensaje de fin -->
+                <!-- Instrucciones y mensaje de fin (Soporta imágenes reales dinámicas) -->
                 <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-8 text-gray-300 leading-relaxed font-monogram"></p>
                 
-                <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO -->
+                <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Corregida la desaparición del botón de texto) -->
                 <div id="restartBtnContainer" class="flex flex-col items-center gap-4 mt-2">
+                    <!-- Icono circular original de Dino -->
                     <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[54px] h-[48px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
                     
-                    <!-- Botón estándar de inicio -->
+                    <!-- Botón de texto para iniciar y reiniciar de forma segura -->
                     <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
                         Jugar
                     </button>
@@ -274,7 +285,7 @@
         const sprite = new Image();
         sprite.src = 'ImagenesWeb/Juegos/Dino/sprites.png';
 
-        // CARGA DE NUEVOS SPRITES EN PNG
+        // CARGA DE SPRITES EN PNG
         const imgCalendar = new Image();
         imgCalendar.src = 'ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3.png';
 
@@ -287,7 +298,7 @@
         const imgGamepad = new Image();
         imgGamepad.src = 'ImagenesWeb/Juegos/Dino/Controller_Gamepad.png';
 
-        // Comprobaciones de error de carga para los nuevos sprites
+        // Comprobaciones de error de carga para los sprites
         const handleImageError = (name, src) => {
             console.error(`ERROR: No se pudo cargar el sprite '${name}' en: ${src}`);
         };
@@ -511,24 +522,26 @@
             document.getElementById("gameOverTitleContainer").classList.add("hidden");
             document.getElementById("restartSpriteCanvas").classList.add("hidden");
             
-            // Mostramos botón de inicio
-            document.getElementById("startGameBtn").classList.remove("hidden");
+            // Restauramos el botón estándar con el texto original
+            const startBtn = document.getElementById("startGameBtn");
+            startBtn.innerText = "Jugar";
+            startBtn.classList.remove("hidden");
+            startBtn.onclick = startActiveGame;
 
             const targetScore = METAS[activeGame];
             let inst = "";
             if (activeGame === 'chico') {
-                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas (📅), alarmas (⏰) y emails (📩). Atrapa los controles (🎮) para obtener 15 pts extra.\nMeta: ${targetScore} pts.`;
+                // SOLUCIÓN: Mostramos los iconos reales inline en la pantalla de instrucciones del juego de Dino
+                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed.png" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="ImagenesWeb/Juegos/Dino/Controller_Gamepad.png" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
-                inst = `Mueve a la Chica tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍) antes de que caigan. Evita las nubes de tormenta (🌧).\nMeta: ${targetScore} pts.`;
+                inst = `Mueve a la Chica tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍) antes de que caigan. Evita las nubes de tormenta (🌧).<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
-                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los agujeros de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!\nMeta: ${targetScore} clics.`;
+                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los agujeros de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
             } else if (activeGame === 'puebla') {
-                inst = `Toca el lado IZQUIERDO para cambiar de carril a la izquierda, o el lado DERECHO para cambiar a la derecha. Evita baches y rebasa autos (🚘).\nMeta: ${targetScore} pts.`;
+                inst = `Toca el lado IZQUIERDO para cambiar de carril a la izquierda, o el lado DERECHO para cambiar a la derecha. Evita baches y rebasa autos (🚘).<br>Meta: ${targetScore} pts.`;
             }
             
-            overlayInstructions.innerText = inst;
-            startGameBtn.innerText = "Jugar"; 
-            startGameBtn.onclick = startActiveGame;
+            overlayInstructions.innerHTML = inst; // Cambiado a innerHTML para soportar las imágenes inline
         }
 
         function closeActiveGame() {
@@ -572,7 +585,7 @@
             }
         }
 
-        // CORRECCIÓN DE RECORTE DE GAME OVER Y RESTART EN CANVASES
+        // RECORTE DE GAME OVER Y RESTART EN CANVASES
         function drawGameOverOverlaySprites() {
             const goCanvas = document.getElementById("gameOverSpriteCanvas");
             const goCtx = goCanvas.getContext("2d");
@@ -628,9 +641,13 @@
             // Dibujar sobre los lienzos usando sprites.png (con coordenadas corregidas)
             drawGameOverOverlaySprites();
 
-            // Intercambiar botones interactivos
-            document.getElementById("startGameBtn").classList.add("hidden");
+            // SOLUCIÓN: El botón de texto para reiniciar cambia de texto y se MANTIENE visible debajo del icono
+            const startBtn = document.getElementById("startGameBtn");
+            startBtn.innerText = "Jugar de nuevo";
+            startBtn.classList.remove("hidden");
+            startBtn.onclick = startActiveGame;
             
+            // También hacemos clickeable el icono circular de reinicio
             const restartCanvas = document.getElementById("restartSpriteCanvas");
             restartCanvas.classList.remove("hidden");
             restartCanvas.onclick = startActiveGame;
@@ -645,7 +662,7 @@
                 currentGameState.innerText = "Buen intento";
             }
 
-            overlayInstructions.innerText = resultMessage;
+            overlayInstructions.innerHTML = resultMessage;
             gameOverlay.classList.remove("hidden");
             
             updateScoresDashboard();
@@ -761,6 +778,7 @@
             if (sprite.complete && sprite.naturalWidth !== 0) {
                 for (let cl of clouds) {
                     cl.x -= cl.speed;
+                    // Alineación a pixel entero (Math.round) para evitar temblor
                     ctx.drawImage(sprite, 166, 2, 92, 28, Math.round(cl.x), Math.round(cl.y), 46, 14);
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
@@ -857,7 +875,7 @@
                 obs.x -= chicoSpeed;
                 
                 if (obs.img.complete && obs.img.naturalWidth !== 0) {
-                    // SOLUCIÓN: Encendemos la interpolación bilineal suave de forma temporal antes de dibujar este sprite de alta resolución
+                    // Encendemos la interpolación bilineal suave de forma temporal antes de dibujar este sprite de alta resolución
                     ctx.imageSmoothingEnabled = true;
                     ctx.drawImage(obs.img, Math.round(obs.x), Math.round(obs.y), obs.width, obs.height);
                     ctx.imageSmoothingEnabled = false; // Lo apagamos inmediatamente después
@@ -884,7 +902,7 @@
                 it.x -= chicoSpeed;
                 
                 if (it.img.complete && it.img.naturalWidth !== 0) {
-                    // SOLUCIÓN: Suavizado temporal para encoger el gamepad limpio sin deformaciones
+                    // Suavizado temporal para encoger el gamepad limpio sin deformaciones
                     ctx.imageSmoothingEnabled = true;
                     ctx.drawImage(it.img, Math.round(it.x), Math.round(it.y), it.width, it.height);
                     ctx.imageSmoothingEnabled = false; 
