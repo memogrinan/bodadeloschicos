@@ -235,7 +235,7 @@
         let score = 0;
         let gameRunning = false;
 
-        // SPRITE OFICIAL DE CHROME DINOSAURIO (Ruta corregida con la carpeta Dino)
+        // SPRITE OFICIAL DE CHROME DINOSAURIO (Ruta con la carpeta Dino)
         const sprite = new Image();
         sprite.src = 'ImagenesWeb/Juegos/Dino/dino_sprite.png';
 
@@ -463,7 +463,7 @@
         }
 
         // ==========================================
-        // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial)
+        // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial LDPI 1x)
         let memo, obstacles, items, clouds, chicoFrame;
         
         function drawDinoScore(ctx, score, highscore, x, y) {
@@ -481,7 +481,7 @@
             memo = {
                 x: 45,
                 y: 303, // Suelo es 350, altura es 47 (350 - 47)
-                width: 44, // Proporción al 50% de escala del original hdpi (88x94)
+                width: 44, // Proporción al 50% de escala del original ldpi (44x47)
                 height: 47,
                 vy: 0,
                 gravity: 1.6,
@@ -520,24 +520,24 @@
             ctx.fillStyle = "#f7f7f7";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // SISTEMA DE SEGURIDAD DEFENSIVO: Si el sprite de Chrome ya se cargó correctamente, dibuja el original
+            // SISTEMA DE SEGURIDAD DEFENSIVO: Si el sprite de Chrome ya se cargó correctamente, dibuja el original con coordenadas LDPI (1x)
             if (sprite.complete && sprite.naturalWidth !== 0) {
-                // 1. Dibujar nubes de fondo estilo pixel usando el sprite oficial
-                // Cloud HDPI coordinates: x: 166, y: 2, w: 92, h: 28. Se dibuja escalada a la mitad (46x14)
+                // 1. Dibujar nubes de fondo estilo pixel usando el sprite oficial LDPI
+                // Cloud LDPI coordinates: x: 86, y: 2, w: 46, h: 14
                 for (let cl of clouds) {
                     cl.x -= cl.speed;
-                    ctx.drawImage(sprite, 166, 2, 92, 28, cl.x, cl.y, 46, 14);
+                    ctx.drawImage(sprite, 86, 2, 46, 14, cl.x, cl.y, 46, 14);
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
 
-                // 2. Línea de suelo infinita usando el sprite oficial de carretera
-                // Horizon HDPI coordinates: x: 2, y: 104, w: 1200, h: 24.
+                // 2. Línea de suelo infinita usando el sprite oficial LDPI de carretera
+                // Horizon LDPI coordinates: x: 2, y: 54, w: 1200, h: 12
                 let groundX = (chicoFrame * 6.5) % 600;
-                ctx.drawImage(sprite, 2 + groundX, 104, 360, 24, 0, 345, 360, 12);
-                ctx.drawImage(sprite, 2 + groundX, 104, 360, 24, 600 - groundX, 345, 360, 12);
+                ctx.drawImage(sprite, 2 + groundX, 54, 360, 12, 0, 345, 360, 12);
+                ctx.drawImage(sprite, 2 + groundX, 54, 360, 12, 600 - groundX, 345, 360, 12);
 
-                // 3. Dibujar Chicosaurio (Dinosaurio 🦖 oficial del sprite)
-                // HDPI TREX standard offset: x: 1678, y: 2, w: 88, h: 94
+                // 3. Dibujar Chicosaurio (Dinosaurio 🦖 oficial del sprite LDPI 1x)
+                // LDPI TREX standard offset: x: 848, y: 2, w: 44, h: 47
                 let frameOffset = 1; // Parado por defecto
                 if (gameRunning) {
                     if (memo.isGrounded) {
@@ -552,8 +552,8 @@
                 
                 ctx.drawImage(
                     sprite, 
-                    1678 + (88 * frameOffset), 2, 
-                    88, 94, 
+                    848 + (44 * frameOffset), 2, 
+                    44, 47, 
                     memo.x, memo.y, 
                     memo.width, memo.height
                 );
