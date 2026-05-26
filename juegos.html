@@ -97,7 +97,7 @@
                         <span id="badge-chico" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chicosaurio</h3>
-                    <p class="text-gray-500 text-sm mt-2">Ayuda a Chicosaurio (🦖) a saltar juntas y alarmas, y atrapa todos los controles de videojuegos (🎮) en el camino.</p>
+                    <p class="text-gray-500 text-sm mt-2">Ayuda a Chicosaurio (🦖) a saltar juntas (📅), alarmas (⏰) y emails (📩) en el camino, y atrapa los controles de videojuegos (🎮) antes de que escapen.</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
@@ -204,33 +204,32 @@
 
             <!-- Agujeros de Maddie (DOM-based 4x4) -->
             <div id="maddieGrid" class="grid grid-cols-4 gap-3 max-w-[340px] w-full hidden">
-                <!-- Se generará dinámemete -->
+                <!-- Se generará dinámicamente -->
             </div>
 
             <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO (FONDO GRIS OSCURO) -->
             <div id="gameOverlay" class="absolute inset-0 bg-[#1a1c1e] flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl">
                 
-                <!-- G A M E   O V E R  DIBUJADO CON SPRITES ORIGINALES DE DINO (Corregido y escalado) -->
+                <!-- G A M E   O V E R  DIBUJADO CON SPRITES ORIGINALES DE DINO -->
                 <div id="gameOverTitleContainer" class="hidden mb-6 flex justify-center items-center">
                     <canvas id="gameOverSpriteCanvas" width="382" height="22" class="w-[320px] h-[18px] md:w-[382px] md:h-[22px] select-none pointer-events-none" style="filter: invert(0.7) brightness(1.2);"></canvas>
                 </div>
 
-                <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO (Fuentes más grandes) -->
+                <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
                 <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/15 p-4 rounded-2xl w-64 shadow-sm text-gray-200">
                     <p class="text-xs md:text-sm tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
                     <p id="overlayFinalScore" class="text-6xl md:text-7xl font-extrabold text-[#a3ad73] font-monogram my-2">00000</p>
                     <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
                 </div>
                 
-                <!-- Instrucciones y mensaje de fin con tamaño de fuente mejorado -->
+                <!-- Instrucciones y mensaje de fin -->
                 <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-8 text-gray-300 leading-relaxed font-monogram"></p>
                 
-                <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Soportando icono original corregido) -->
+                <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO -->
                 <div id="restartBtnContainer" class="flex flex-col items-center gap-4 mt-2">
-                    <!-- Botón circular de reintento clásica de sprites de Dino (Engrandecido para mejor tacto móvil) -->
                     <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[54px] h-[48px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
                     
-                    <!-- Botón estándar elegante de inicio -->
+                    <!-- Botón estándar de inicio -->
                     <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
                         Jugar
                     </button>
@@ -238,7 +237,7 @@
             </div>
         </div>
 
-        <!-- Barra inferior informativa (Visor de Estado de Fuentes más grandes) -->
+        <!-- Barra inferior informativa -->
         <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center text-white text-xs font-monogram text-sm">
             <div>
                 <p class="text-gray-400 uppercase font-semibold">Marcador Actual</p>
@@ -271,13 +270,32 @@
         let score = 0;
         let gameRunning = false;
 
-        // SPRITE OFICIAL DE CHROME DINOSAURIO
+        // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
         sprite.src = 'ImagenesWeb/Juegos/Dino/sprites.png';
 
-        sprite.onerror = function() {
-            console.error("ERROR: No se pudo cargar la imagen 'sprites.png' en: " + sprite.src);
+        // CARGA DE NUEVOS SPRITES EN PNG
+        const imgCalendar = new Image();
+        imgCalendar.src = 'ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3.png';
+
+        const imgClock = new Image();
+        imgClock.src = 'ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png';
+
+        const imgEmail = new Image();
+        imgEmail.src = 'ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed.png';
+
+        const imgGamepad = new Image();
+        imgGamepad.src = 'ImagenesWeb/Juegos/Dino/Controller_Gamepad.png';
+
+        // Comprobaciones de error de carga para los nuevos sprites
+        const handleImageError = (name, src) => {
+            console.error(`ERROR: No se pudo cargar el sprite '${name}' en: ${src}`);
         };
+        sprite.onerror = () => handleImageError('sprites.png', sprite.src);
+        imgCalendar.onerror = () => handleImageError('Calendar.png', imgCalendar.src);
+        imgClock.onerror = () => handleImageError('Clock.png', imgClock.src);
+        imgEmail.onerror = () => handleImageError('Email.png', imgEmail.src);
+        imgGamepad.onerror = () => handleImageError('Gamepad.png', imgGamepad.src);
 
         // AUDIO CONTEXT NATIVO DE 8-BITS
         let audioCtx = null;
@@ -499,7 +517,7 @@
             const targetScore = METAS[activeGame];
             let inst = "";
             if (activeGame === 'chico') {
-                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas (📅) y alarmas (⏰). Atrapa los controles (🎮) para obtener 15 pts extra.\nMeta: ${targetScore} pts.`;
+                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas (📅), alarmas (⏰) y emails (📩). Atrapa los controles (🎮) para obtener 15 pts extra.\nMeta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
                 inst = `Mueve a la Chica tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍) antes de que caigan. Evita las nubes de tormenta (🌧).\nMeta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
@@ -565,10 +583,10 @@
             rCtx.clearRect(0, 0, restartCanvas.width, restartCanvas.height);
 
             if (sprite.complete && sprite.naturalWidth !== 0) {
-                // SOLUCIÓN: Usamos la segunda fila vertical (y: 29) de la hoja de sprites HDPI
+                // Usamos la segunda fila vertical (y: 29) de la hoja de sprites HDPI
                 goCtx.drawImage(sprite, 1294, 29, 382, 22, 0, 0, 382, 22);
                 
-                // SOLUCIÓN: Usamos la esquina superior izquierda real (x: 2, y: 2) para el icono de reintento circular
+                // Usamos la esquina superior izquierda real (x: 2, y: 2) para el icono de reintento circular
                 rCtx.drawImage(sprite, 2, 2, 72, 64, 0, 0, 72, 64);
             } else {
                 // Fallback elegante en caso de error de ruta del sprite
@@ -724,8 +742,9 @@
         function updateChico() {
             chicoFrame++;
             
-            if (chicoSpeed < 13.5) {
-                chicoSpeed += 0.0016; 
+            // Incremento acelerado más veloz y nuevo tope de velocidad (15.0)
+            if (chicoSpeed < 15.0) {
+                chicoSpeed += 0.004; 
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -793,53 +812,85 @@
             }
 
             let spawnInterval = Math.max(45, 75 - Math.floor(chicoSpeed * 2));
+            
+            // Generar Obstáculos usando los sprites PNG pre-cargados
             if (chicoFrame % spawnInterval === 0) {
-                let obsTypes = ["📅", "⏰", "📁"];
-                let randType = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+                let obsTypes = [
+                    { img: imgCalendar, fallback: "📅" },
+                    { img: imgClock, fallback: "⏰" },
+                    { img: imgEmail, fallback: "📩" }
+                ];
+                let randObs = obsTypes[Math.floor(Math.random() * obsTypes.length)];
                 obstacles.push({
                     x: canvas.width,
-                    y: 310,
-                    emoji: randType
+                    y: 312, // Alineado al suelo de manera óptima
+                    width: 32,
+                    height: 32,
+                    img: randObs.img,
+                    fallback: randObs.fallback
                 });
             }
 
-            if (chicoFrame % 85 === 0) {
+            // Generar Controles con menor frecuencia (cada 200 fotogramas)
+            if (chicoFrame % 200 === 0) {
                 items.push({
                     x: canvas.width,
                     y: 215 + Math.random() * 60,
-                    emoji: "🎮"
+                    width: 30,
+                    height: 30,
+                    img: imgGamepad,
+                    fallback: "🎮"
                 });
             }
 
+            // Dibujar y procesar Obstáculos (PNG)
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.x -= chicoSpeed;
                 
-                ctx.font = "30px sans-serif";
-                ctx.textAlign = "left";
-                ctx.fillText(obs.emoji, obs.x, obs.y + 30);
+                if (obs.img.complete && obs.img.naturalWidth !== 0) {
+                    ctx.drawImage(obs.img, obs.x, obs.y, obs.width, obs.height);
+                } else {
+                    // Fallback en caso de que tarde en cargar la ruta
+                    ctx.font = "30px sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText(obs.fallback, obs.x, obs.y + 26);
+                }
 
-                if (obs.x < memo.x + 32 && obs.x + 22 > memo.x && obs.y < memo.y + 40 && obs.y + 30 > memo.y) {
+                // Detección de colisión estrecha (AABB)
+                if (obs.x < memo.x + memo.width - 6 &&
+                    obs.x + obs.width > memo.x + 6 &&
+                    obs.y < memo.y + memo.height - 6 &&
+                    obs.y + obs.height > memo.y + 6) {
                     gameOver(score);
                     return;
                 }
-                if (obs.x < -30) obstacles.splice(i, 1);
+                if (obs.x < -40) obstacles.splice(i, 1);
             }
 
+            // Dibujar y procesar Controles Recolectables (PNG)
             for (let i = items.length - 1; i >= 0; i--) {
                 let it = items[i];
                 it.x -= chicoSpeed;
                 
-                ctx.font = "26px sans-serif";
-                ctx.textAlign = "left";
-                ctx.fillText(it.emoji, it.x, it.y + 20);
+                if (it.img.complete && it.img.naturalWidth !== 0) {
+                    ctx.drawImage(it.img, it.x, it.y, it.width, it.height);
+                } else {
+                    ctx.font = "26px sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText(it.fallback, it.x, it.y + 22);
+                }
 
-                if (it.x < memo.x + 32 && it.x + 24 > memo.x && it.y < memo.y + 40 && it.y + 20 > memo.y) {
+                // Detección de recolección de gamepad estrecha
+                if (it.x < memo.x + memo.width - 4 &&
+                    it.x + it.width > memo.x + 4 &&
+                    it.y < memo.y + memo.height - 4 &&
+                    it.y + it.height > memo.y + 4) {
                     score += 15;
                     playSound('coin');
                     
                     scorePopups.push({
-                        x: it.x,
+                        x: it.x + it.width / 2,
                         y: it.y,
                         text: "+15",
                         life: 25 
@@ -848,7 +899,7 @@
                     items.splice(i, 1);
                     continue;
                 }
-                if (it.x < -30) items.splice(i, 1);
+                if (it.x < -40) items.splice(i, 1);
             }
 
             for (let i = scorePopups.length - 1; i >= 0; i--) {
