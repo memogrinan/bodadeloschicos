@@ -53,6 +53,62 @@
         button, canvas {
             touch-action: manipulation;
         }
+
+        /* CRT SCANLINES & SCREEN OVERLAY */
+        .crt-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .crt-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            background-size: 100% 3px, 6px 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        @keyframes crt-flicker {
+            0% { opacity: 0.985; }
+            50% { opacity: 0.995; }
+            100% { opacity: 0.985; }
+        }
+        .crt-screen {
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        /* DISEÑO DE MADRIGUERA DE TIERRA (MADDIE GAME) */
+        .maddie-hole {
+            aspect-ratio: 1 / 1;
+            border-radius: 9999px;
+            background: radial-gradient(circle, #2a1b14 30%, #442a1d 70%, #634331 100%);
+            border: 3.5px solid #5a3d28;
+            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 3px;
+            box-sizing: border-box;
+            transition: transform 0.1s, background 0.2s;
+        }
+        .maddie-hole:active {
+            transform: scale(0.95);
+            background: radial-gradient(circle, #1a0f0a 30%, #301d14 70%, #4f3426 100%);
+        }
+
+        /* ANIMACIÓN DE POP-UP PARA MADDIE Y POPÓ */
+        @keyframes maddiePopUp {
+            0% { transform: translateY(100%) scale(0.6); opacity: 0; }
+            70% { transform: translateY(-5%) scale(1.05); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .animate-pop-up {
+            animation: maddiePopUp 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.18) forwards;
+            will-change: transform, opacity;
+        }
     </style>
 </head>
 <body class="font-sans min-h-screen pb-12">
@@ -99,13 +155,13 @@
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chicosaurio</h3>
                     <p class="text-gray-500 text-sm mt-2 leading-relaxed">
                         Ayuda a Chicosaurio (🦖) a saltar juntas 
-                        <img src="ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendario">, 
+                        <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendario">, 
                         alarmas 
-                        <img src="ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarma"> 
+                        <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarma"> 
                         y emails 
-                        <img src="ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
+                        <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
                         y atrapa los controles de videojuegos 
-                        <img src="ImagenesWeb/Juegos/Dino/Controller_Gamepad.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
+                        <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
                         en el camino.
                     </p>
                 </div>
@@ -122,11 +178,11 @@
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-start">
-                        <span class="text-4xl">👸</span>
+                        <span class="text-4xl">👰🏻</span>
                         <span id="badge-chica" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de la Chica: Atrapa el Amor</h3>
-                    <p class="text-gray-500 text-sm mt-2">Mueve a la Chica para atrapar los corazones (💖) y anillos de compromiso (💍) antes de que caigan, asegurándote de esquivar las nubes de tormenta (🌧).</p>
+                    <p class="text-gray-500 text-sm mt-2">Mueve a la Novia (👰🏻) para atrapar corazones (💖) y anillos de compromiso (💍) antes de que caigan. ¡Esquiva las tormentas eléctricas (🌩️)!</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
@@ -145,7 +201,7 @@
                         <span id="badge-maddie" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de Maddie: ¡Atrapa a la perrita!</h3>
-                    <p class="text-gray-500 text-sm mt-2">Maddie asoma la cabeza por los agujeros del jardín. Pon a prueba tu destreza y atrápala en 30 segundos. ¡Evita las popós (💩)!</p>
+                    <p class="text-gray-500 text-sm mt-2">Maddie (🐶) asoma la cabeza por los hoyos de su jardín. Pon a prueba tus reflejos y atrápala en 30 segundos. ¡Evita las popós (💩)!</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
@@ -163,8 +219,8 @@
                         <span class="text-4xl">🚗</span>
                         <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
-                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: OutRun 80s</h3>
-                    <p class="text-gray-500 text-sm mt-2">Conduce en 3D retro rumbo a Cholula. Esquiva baches (🕳), obras (🚧) y rebasa otros coches (🚘). Recolecta mapas (🗺) y corazones (💚).</p>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: OutRun Retro</h3>
+                    <p class="text-gray-500 text-sm mt-2">Conduce un auto deportivo rumbo a Cholula esquivando tráfico (🚙/🚕), baches (🕳️) y obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
@@ -202,49 +258,71 @@
         </div>
 
         <!-- ÁREA INTERNA DEL JUEGO -->
-        <div class="flex-grow flex flex-col justify-center items-center relative overflow-hidden my-4">
+        <div class="flex-grow flex flex-col justify-center items-center relative my-4 w-full">
             
-            <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
-            <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 rounded-2xl max-w-full max-h-[70vh] shadow-lg hidden"></canvas>
-
-            <!-- MARCADOR RETRO REALTIME PARA MADDIE -->
-            <div id="maddieScoreboard" class="hidden mb-4 text-center select-none font-monogram text-gray-600 text-xl md:text-2xl tracking-widest">
-                HI <span id="maddieHighScore" class="font-bold">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold">00000</span>
-            </div>
-
-            <!-- Agujeros de Maddie (DOM-based 4x4) -->
-            <div id="maddieGrid" class="grid grid-cols-4 gap-3 max-w-[340px] w-full hidden">
-                <!-- Se generará dinámicamente -->
-            </div>
-
-            <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO (FONDO GRIS OSCURO) -->
-            <div id="gameOverlay" class="absolute inset-0 bg-[#1a1c1e] flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl">
+            <!-- Contenedor del Gabinete Arcade con scanlines CRT -->
+            <div id="crtWrapper" class="relative max-w-full rounded-2xl overflow-hidden shadow-2xl bg-gray-900 border border-white/10 w-[360px] h-[480px] flex flex-col items-center justify-center crt-container">
                 
-                <!-- G A M E   O V E R  DIBUJADO CON SPRITES ORIGINALES DE DINO -->
-                <div id="gameOverTitleContainer" class="hidden mb-6 flex justify-center items-center">
-                    <canvas id="gameOverSpriteCanvas" width="382" height="22" class="w-[320px] h-[18px] md:w-[382px] md:h-[22px] select-none pointer-events-none" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
+                <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 w-full h-full hidden relative z-1"></canvas>
+
+                <!-- Contenedor para Maddie (con marco de jardín de madera y césped) -->
+                <div id="maddieContainer" class="hidden flex flex-col items-center justify-between w-full h-full p-3.5 relative z-1 select-none" style="background: radial-gradient(ellipse at 50% 25%, #3d8b40 0%, #256b29 55%, #134217 100%);">
+                    <!-- ENCABEZADO: TÍTULO Y MARCADOR -->
+                    <div class="w-full flex flex-col items-center pointer-events-none">
+                        <div class="w-full flex justify-center items-center px-1 mb-1 text-[11px] font-bold text-white/80 opacity-70">
+                            <span class="tracking-widest uppercase">🌿 Jardín de Maddie</span>
+                        </div>
+                        <div id="maddieScoreboard" class="text-center select-none font-monogram text-white/95 text-lg md:text-xl tracking-widest bg-black/40 px-5 py-0.5 rounded-lg border border-white/10 shadow-inner">
+                            HI <span id="maddieHighScore" class="font-bold text-[#f1c40f]">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold text-white">00000</span>
+                        </div>
+                    </div>
+
+                    <!-- CAJA DE ARENA / MADRIGUERA (ÁREA INTERACTIVA CON TAMAÑO FIJO INMUTABLE) -->
+                    <div class="p-2.5 rounded-2xl bg-[#2a170e]/80 border-4 border-[#795548] shadow-2xl my-auto w-[290px] h-[290px] min-w-[290px] min-h-[290px] flex items-center justify-center">
+                        <div id="maddieGrid" class="grid grid-cols-4 grid-rows-4 gap-2 w-full h-full">
+                            <!-- Se generará dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- PIE ILUSTRATIVO DECORATIVO (NO CLICKEABLE) -->
+                    <div class="w-full flex justify-center items-center gap-6 py-0.5 text-xs text-white/60 pointer-events-none select-none tracking-widest font-monogram">
+                        <span>🐾 TOCA A MADDIE CUANDO ASOME 🐾</span>
+                    </div>
                 </div>
 
-                <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
-                <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/15 p-4 rounded-2xl w-64 shadow-sm text-gray-200">
-                    <p class="text-xs md:text-sm tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
-                    <p id="overlayFinalScore" class="text-6xl md:text-7xl font-extrabold text-[#a3ad73] font-monogram my-2">00000</p>
-                    <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
-                </div>
-                
-                <!-- Instrucciones y mensaje de fin (Soporta imágenes reales dinámicas) -->
-                <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-8 text-gray-300 leading-relaxed font-monogram"></p>
-                
-                <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Corregida la desaparición del botón de texto) -->
-                <div id="restartBtnContainer" class="flex flex-col items-center gap-4 mt-2">
-                    <!-- Icono circular original de Dino -->
-                    <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[54px] h-[48px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO (FONDO GRIS OSCURO) -->
+                <div id="gameOverlay" class="absolute inset-0 bg-[#151719] flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl z-2">
                     
-                    <!-- Botón de texto para iniciar y reiniciar de forma segura -->
-                    <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
-                        Jugar
-                    </button>
+                    <!-- G A M E   O V E R  DIBUJADO CON FUENTE RETRO MONOGRAM -->
+                    <div id="gameOverTitleContainer" class="hidden mb-6 text-center select-none pointer-events-none">
+                        <h2 class="text-4xl md:text-5xl font-monogram font-bold tracking-widest text-[#e74c3c] animate-pulse">GAME OVER</h2>
+                    </div>
+
+                    <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
+                    <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/15 p-4 rounded-2xl w-64 shadow-sm text-gray-200">
+                        <p class="text-xs md:text-sm tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
+                        <p id="overlayFinalScore" class="text-6xl md:text-7xl font-extrabold text-[#a3ad73] font-monogram my-2">00000</p>
+                        <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
+                    </div>
+                    
+                    <!-- Instrucciones y mensaje de fin (Soporta imágenes reales dinámicas) -->
+                    <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-8 text-gray-300 leading-relaxed font-monogram"></p>
+                    
+                    <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Corregida la desaparición del botón de texto) -->
+                    <div id="restartBtnContainer" class="flex flex-col items-center gap-4 mt-2">
+                        <!-- Icono circular original de Dino -->
+                        <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[54px] h-[48px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                        
+                        <!-- Botón de texto para iniciar y reiniciar de forma segura -->
+                        <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
+                            Jugar
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Capa de líneas CRT Scanlines -->
+                <div class="crt-screen absolute inset-0 pointer-events-none z-10 rounded-2xl"></div>
             </div>
         </div>
 
@@ -283,20 +361,69 @@
 
         // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
-        sprite.src = 'ImagenesWeb/Juegos/Dino/sprites.png';
+        sprite.src = 'SpritesNecesarios/sprites.png';
 
         // CARGA DE SPRITES EN PNG
         const imgCalendar = new Image();
-        imgCalendar.src = 'ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3.png';
+        imgCalendar.src = 'SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png';
 
         const imgClock = new Image();
-        imgClock.src = 'ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png';
+        imgClock.src = 'SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png';
 
         const imgEmail = new Image();
-        imgEmail.src = 'ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed.png';
+        imgEmail.src = 'SpritesNecesarios/Software_Email_Message_Unread_Closed.png';
 
         const imgGamepad = new Image();
-        imgGamepad.src = 'ImagenesWeb/Juegos/Dino/Controller_Gamepad.png';
+        imgGamepad.src = 'SpritesNecesarios/Controller_Gamepad.png';
+
+        // SPRITES PARA JUEGO 2: LA CHICA
+        const imgChicaCrown = new Image();
+        imgChicaCrown.src = 'SpritesNecesarios/Hats_Crown_Queen_Tiara.png';
+
+        const imgChicaHeart = new Image();
+        imgChicaHeart.src = 'SpritesNecesarios/Boardgames_Card_Suit_Hearts.png';
+
+        const imgChicaRing = new Image();
+        imgChicaRing.src = 'ImagenesWeb/icono_anillo_compromiso.png';
+
+        const imgChicaCloud = new Image();
+        imgChicaCloud.src = 'SpritesNecesarios/Weather_Thunderstorm_Cloud_Lightning_Zap.png';
+
+        // SPRITES PARA JUEGO 3: MADDIE
+        const imgMaddiePoop = new Image();
+        imgMaddiePoop.src = 'SpritesNecesarios/Emoji_Poop_Shite_Doodoo_Poopoo_Brown_Mousse_Cream_Creme.png';
+
+        // SPRITES PARA JUEGO 4: PUEBLA
+        const imgPueblaCar = new Image();
+        imgPueblaCar.src = 'SpritesNecesarios/Travel_Veichle_Car_1.png';
+
+        const imgPueblaTraffic = new Image();
+        imgPueblaTraffic.src = 'SpritesNecesarios/Travel_Veichle_Car_2.png';
+
+        const imgPueblaHeart = new Image();
+        imgPueblaHeart.src = 'SpritesNecesarios/RPG_Stat_HP_Health_Heart_Small.png';
+
+        const imgPueblaMap = new Image();
+        imgPueblaMap.src = 'SpritesNecesarios/Map_Markers_Travel_Map_Folded.png';
+
+        const imgPueblaPothole = new Image();
+        imgPueblaPothole.src = 'SpritesNecesarios/Map_Markers_Hole_Trap.png';
+
+        const imgPueblaBarrier = new Image();
+        imgPueblaBarrier.src = 'SpritesNecesarios/Map_Markers_Building_Stone_Wall_Fortification.png';
+
+        // PAISAJE DINÁMICO PARA CAMINO A PUEBLA
+        const imgSceneryTree = new Image();
+        imgSceneryTree.src = 'SpritesNecesarios/Map_Markers_Tree_Forest_Pine.png';
+
+        const imgSceneryCactus = new Image();
+        imgSceneryCactus.src = 'SpritesNecesarios/Map_Markers_Cactus_Desert.png';
+
+        const imgSceneryLamp = new Image();
+        imgSceneryLamp.src = 'SpritesNecesarios/Map_Markers_Building_Lamp_Post_1.png';
+
+        const imgSceneryChurch = new Image();
+        imgSceneryChurch.src = 'SpritesNecesarios/Map_Markers_Building_Church_Faith_Temple.png';
 
         // Comprobaciones de error de carga para los sprites
         const handleImageError = (name, src) => {
@@ -307,6 +434,22 @@
         imgClock.onerror = () => handleImageError('Clock.png', imgClock.src);
         imgEmail.onerror = () => handleImageError('Email.png', imgEmail.src);
         imgGamepad.onerror = () => handleImageError('Gamepad.png', imgGamepad.src);
+
+        imgChicaCrown.onerror = () => handleImageError('Hats_Crown_Queen_Tiara.png', imgChicaCrown.src);
+        imgChicaHeart.onerror = () => handleImageError('Boardgames_Card_Suit_Hearts.png', imgChicaHeart.src);
+        imgChicaRing.onerror = () => handleImageError('icono_anillo_compromiso.png', imgChicaRing.src);
+        imgChicaCloud.onerror = () => handleImageError('Weather_Thunderstorm_Cloud_Lightning_Zap.png', imgChicaCloud.src);
+        imgMaddiePoop.onerror = () => handleImageError('Emoji_Poop.png', imgMaddiePoop.src);
+        imgPueblaCar.onerror = () => handleImageError('Travel_Veichle_Car_1.png', imgPueblaCar.src);
+        imgPueblaTraffic.onerror = () => handleImageError('Travel_Veichle_Car_2.png', imgPueblaTraffic.src);
+        imgPueblaHeart.onerror = () => handleImageError('RPG_Stat_HP_Health_Heart_Small.png', imgPueblaHeart.src);
+        imgPueblaMap.onerror = () => handleImageError('Map_Markers_Travel_Map_Folded.png', imgPueblaMap.src);
+        imgPueblaPothole.onerror = () => handleImageError('Map_Markers_Hole_Trap.png', imgPueblaPothole.src);
+        imgPueblaBarrier.onerror = () => handleImageError('Map_Markers_Building_Stone_Wall_Fortification.png', imgPueblaBarrier.src);
+        imgSceneryTree.onerror = () => handleImageError('Tree.png', imgSceneryTree.src);
+        imgSceneryCactus.onerror = () => handleImageError('Cactus.png', imgSceneryCactus.src);
+        imgSceneryLamp.onerror = () => handleImageError('Lamp.png', imgSceneryLamp.src);
+        imgSceneryChurch.onerror = () => handleImageError('Church.png', imgSceneryChurch.src);
 
         // AUDIO CONTEXT NATIVO DE 8-BITS
         let audioCtx = null;
@@ -327,11 +470,87 @@
         function playSound(type) {
             if (!audioCtx) return;
             try {
+                const now = audioCtx.currentTime;
+
+                if (type === 'bark') {
+                    // Ladrido alegre y simpático de perrito ("Woof!")
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const barkGain = audioCtx.createGain();
+                    
+                    osc1.type = 'triangle';
+                    osc2.type = 'sine';
+                    
+                    osc1.frequency.setValueAtTime(460, now);
+                    osc1.frequency.exponentialRampToValueAtTime(740, now + 0.04);
+                    osc1.frequency.exponentialRampToValueAtTime(320, now + 0.12);
+                    
+                    osc2.frequency.setValueAtTime(230, now);
+                    osc2.frequency.exponentialRampToValueAtTime(370, now + 0.04);
+                    osc2.frequency.exponentialRampToValueAtTime(160, now + 0.12);
+
+                    barkGain.gain.setValueAtTime(0.18, now);
+                    barkGain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
+                    
+                    osc1.connect(barkGain);
+                    osc2.connect(barkGain);
+                    barkGain.connect(audioCtx.destination);
+                    
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.13);
+                    osc2.stop(now + 0.13);
+                    return;
+                } else if (type === 'car_rev') {
+                    // Sonido potente y auténtico de acelerón / rev de motor de auto deportivo ("VRROOOM!")
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const engineGain = audioCtx.createGain();
+                    const filter = audioCtx.createBiquadFilter();
+                    
+                    // Doble oscilador en diente de sierra con desfase para el rugido mecánico de cilindros
+                    osc1.type = 'sawtooth';
+                    osc2.type = 'sawtooth';
+                    osc2.detune.setValueAtTime(24, now);
+
+                    // Barrido de revoluciones del motor (RPM surge)
+                    osc1.frequency.setValueAtTime(75, now);
+                    osc1.frequency.exponentialRampToValueAtTime(240, now + 0.08);
+                    osc1.frequency.exponentialRampToValueAtTime(110, now + 0.22);
+
+                    osc2.frequency.setValueAtTime(76, now);
+                    osc2.frequency.exponentialRampToValueAtTime(245, now + 0.08);
+                    osc2.frequency.exponentialRampToValueAtTime(112, now + 0.22);
+
+                    // Filtro paso-banda resonante para simular el tubo de escape rugiendo
+                    filter.type = 'bandpass';
+                    filter.Q.setValueAtTime(2.2, now);
+                    filter.frequency.setValueAtTime(320, now);
+                    filter.frequency.exponentialRampToValueAtTime(1450, now + 0.08);
+                    filter.frequency.exponentialRampToValueAtTime(450, now + 0.22);
+
+                    // Envolvente de volumen (ataque rápido y corte limpio)
+                    engineGain.gain.setValueAtTime(0.01, now);
+                    engineGain.gain.linearRampToValueAtTime(0.24, now + 0.03);
+                    engineGain.gain.linearRampToValueAtTime(0.18, now + 0.12);
+                    engineGain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(engineGain);
+                    engineGain.connect(audioCtx.destination);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.22);
+                    osc2.stop(now + 0.22);
+                    return;
+                }
+
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
 
                 if (type === 'jump') {
                     osc.type = 'square';
@@ -513,8 +732,7 @@
             currentGameScore.innerText = "00000";
 
             canvas.classList.add("hidden");
-            maddieGrid.classList.add("hidden");
-            maddieScoreboard.classList.add("hidden");
+            document.getElementById("maddieContainer").classList.add("hidden");
             gameOverlay.classList.remove("hidden");
             overlayScoreBox.classList.add("hidden"); 
             
@@ -531,22 +749,26 @@
             const targetScore = METAS[activeGame];
             let inst = "";
             if (activeGame === 'chico') {
-                // SOLUCIÓN: Mostramos los iconos reales inline en la pantalla de instrucciones del juego de Dino
-                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed.png" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="ImagenesWeb/Juegos/Dino/Controller_Gamepad.png" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
+                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
-                inst = `Mueve a la Chica tocando o arrastrando tu dedo en la base para recolectar corazones (💖) y anillos (💍) antes de que caigan. Evita las nubes de tormenta (🌧).<br>Meta: ${targetScore} pts.`;
+                inst = `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos de compromiso (💍). ¡Esquiva las tormentas eléctricas (🌩️)!<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
-                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los agujeros de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
+                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los hoyos de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
             } else if (activeGame === 'puebla') {
-                inst = `Toca el lado IZQUIERDO para cambiar de carril a la izquierda, o el lado DERECHO para cambiar a la derecha. Evita baches y rebasa autos (🚘).<br>Meta: ${targetScore} pts.`;
+                inst = `Usa las flechas ⬅️ / ➡️ o toca la pantalla para conducir a Puebla. Esquiva baches (🕳️), obras (🚧) y tráfico (🚙/🚕). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
             }
             
-            overlayInstructions.innerHTML = inst; // Cambiado a innerHTML para soportar las imágenes inline
+            overlayInstructions.innerHTML = inst; 
         }
 
         function closeActiveGame() {
             clearInterval(gameInterval);
             gameRunning = false;
+
+            canvas.onclick = null;
+            canvas.ontouchstart = null;
+            canvas.onmousemove = null;
+            canvas.ontouchmove = null;
 
             if (chicoKeyDownHandler) {
                 window.removeEventListener("keydown", chicoKeyDownHandler);
@@ -555,6 +777,14 @@
             if (chicoKeyUpHandler) {
                 window.removeEventListener("keyup", chicoKeyUpHandler);
                 chicoKeyUpHandler = null;
+            }
+            if (pueblaKeyDownHandler) {
+                window.removeEventListener("keydown", pueblaKeyDownHandler);
+                pueblaKeyDownHandler = null;
+            }
+            if (maddieTimer) {
+                clearTimeout(maddieTimer);
+                maddieTimer = null;
             }
 
             document.getElementById("gameContainer").classList.add("hidden");
@@ -576,8 +806,7 @@
                 canvas.classList.remove("hidden");
                 initChicaGame();
             } else if (activeGame === 'maddie') {
-                maddieGrid.classList.remove("hidden");
-                maddieScoreboard.classList.remove("hidden");
+                document.getElementById("maddieContainer").classList.remove("hidden");
                 initMaddieGame();
             } else if (activeGame === 'puebla') {
                 canvas.classList.remove("hidden");
@@ -585,29 +814,16 @@
             }
         }
 
-        // RECORTE DE GAME OVER Y RESTART EN CANVASES
+        // RECORTE DE RESTART EN CANVASES
         function drawGameOverOverlaySprites() {
-            const goCanvas = document.getElementById("gameOverSpriteCanvas");
-            const goCtx = goCanvas.getContext("2d");
-            goCtx.clearRect(0, 0, goCanvas.width, goCanvas.height);
-
             const restartCanvas = document.getElementById("restartSpriteCanvas");
+            if (!restartCanvas) return;
             const rCtx = restartCanvas.getContext("2d");
             rCtx.clearRect(0, 0, restartCanvas.width, restartCanvas.height);
 
             if (sprite.complete && sprite.naturalWidth !== 0) {
-                // Usamos la segunda fila vertical (y: 29) de la hoja de sprites HDPI
-                goCtx.drawImage(sprite, 1294, 29, 382, 22, 0, 0, 382, 22);
-                
-                // Usamos la esquina superior izquierda real (x: 2, y: 2) para el icono de reintento circular
                 rCtx.drawImage(sprite, 2, 2, 72, 64, 0, 0, 72, 64);
             } else {
-                // Fallback elegante en caso de error de ruta del sprite
-                goCtx.fillStyle = "#ffffff";
-                goCtx.font = "bold 20px sans-serif";
-                goCtx.textAlign = "center";
-                goCtx.fillText("GAME OVER", 191, 18);
-
                 rCtx.fillStyle = "#ffffff";
                 rCtx.font = "bold 24px sans-serif";
                 rCtx.textAlign = "center";
@@ -628,6 +844,14 @@
             if (chicoKeyUpHandler) {
                 window.removeEventListener("keyup", chicoKeyUpHandler);
                 chicoKeyUpHandler = null;
+            }
+            if (pueblaKeyDownHandler) {
+                window.removeEventListener("keydown", pueblaKeyDownHandler);
+                pueblaKeyDownHandler = null;
+            }
+            if (maddieTimer) {
+                clearTimeout(maddieTimer);
+                maddieTimer = null;
             }
             
             const meta = METAS[activeGame];
@@ -966,13 +1190,115 @@
         // ==========================================
         // JUEGO 2: LA CHICA (Atrapa el Amor)
         let basketX, fallObjects, lives, chicaFrame;
-        const CHICA_LANES = [40, 130, 220, 310]; 
+        const CHICA_LANES = [45, 135, 225, 315]; 
+
+        function drawChurchBackdrop(ctx, w, h) {
+            ctx.save();
+            ctx.strokeStyle = "rgba(180, 100, 125, 0.42)";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            const cx = w / 2;
+            const groundY = 445;
+
+            // Cuerpo principal de la parroquia
+            ctx.fillRect(cx - 75, groundY - 170, 150, 170);
+            ctx.strokeRect(cx - 75, groundY - 170, 150, 170);
+
+            // Puerta con arco
+            ctx.beginPath();
+            ctx.moveTo(cx - 22, groundY);
+            ctx.lineTo(cx - 22, groundY - 55);
+            ctx.arc(cx, groundY - 55, 22, Math.PI, 0);
+            ctx.lineTo(cx + 22, groundY);
+            ctx.stroke();
+
+            // Ventana circular central (Rosetón)
+            ctx.beginPath();
+            ctx.arc(cx, groundY - 120, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(cx, groundY - 120, 7, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Frontón triangular
+            ctx.beginPath();
+            ctx.moveTo(cx - 80, groundY - 170);
+            ctx.lineTo(cx, groundY - 225);
+            ctx.lineTo(cx + 80, groundY - 170);
+            ctx.stroke();
+
+            // Cúpula central
+            ctx.beginPath();
+            ctx.arc(cx, groundY - 180, 42, Math.PI, 0);
+            ctx.stroke();
+
+            // Cruz central
+            ctx.beginPath();
+            ctx.moveTo(cx, groundY - 225);
+            ctx.lineTo(cx, groundY - 250);
+            ctx.moveTo(cx - 8, groundY - 240);
+            ctx.lineTo(cx + 8, groundY - 240);
+            ctx.stroke();
+
+            // Campanario Izquierdo
+            ctx.fillRect(cx - 125, groundY - 215, 42, 215);
+            ctx.strokeRect(cx - 125, groundY - 215, 42, 215);
+            ctx.strokeRect(cx - 115, groundY - 190, 22, 40);
+            ctx.beginPath();
+            ctx.arc(cx - 104, groundY - 172, 6, 0, Math.PI * 2);
+            ctx.stroke();
+            // Techo torre izquierda
+            ctx.beginPath();
+            ctx.moveTo(cx - 130, groundY - 215);
+            ctx.lineTo(cx - 104, groundY - 262);
+            ctx.lineTo(cx - 78, groundY - 215);
+            ctx.closePath();
+            ctx.stroke();
+            // Cruz izquierda
+            ctx.beginPath();
+            ctx.moveTo(cx - 104, groundY - 262);
+            ctx.lineTo(cx - 104, groundY - 278);
+            ctx.moveTo(cx - 110, groundY - 271);
+            ctx.lineTo(cx - 98, groundY - 271);
+            ctx.stroke();
+
+            // Campanario Derecho
+            ctx.fillRect(cx + 83, groundY - 215, 42, 215);
+            ctx.strokeRect(cx + 83, groundY - 215, 42, 215);
+            ctx.strokeRect(cx + 93, groundY - 190, 22, 40);
+            ctx.beginPath();
+            ctx.arc(cx + 104, groundY - 172, 6, 0, Math.PI * 2);
+            ctx.stroke();
+            // Techo torre derecha
+            ctx.beginPath();
+            ctx.moveTo(cx + 78, groundY - 215);
+            ctx.lineTo(cx + 104, groundY - 262);
+            ctx.lineTo(cx + 130, groundY - 215);
+            ctx.closePath();
+            ctx.stroke();
+            // Cruz derecha
+            ctx.beginPath();
+            ctx.moveTo(cx + 104, groundY - 262);
+            ctx.lineTo(cx + 104, groundY - 278);
+            ctx.moveTo(cx + 98, groundY - 271);
+            ctx.lineTo(cx + 110, groundY - 271);
+            ctx.stroke();
+
+            ctx.restore();
+        }
 
         function initChicaGame() {
             basketX = canvas.width / 2 - 25;
             fallObjects = [];
             lives = 3;
             chicaFrame = 0;
+
+            // Desactivar cualquier listener de clic o salto previo para que el mouse no haga sonido al hacer clic
+            canvas.onclick = null;
+            canvas.ontouchstart = null;
 
             const moveBasket = (clientX) => {
                 const rect = canvas.getBoundingClientRect();
@@ -993,54 +1319,94 @@
             chicaFrame++;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "#fff5f5";
+            // 1. FONDO LIMPIO ROSA NUPCIAL SIN GRANULADO
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGrad.addColorStop(0, "#fdeeed"); // Crema rosado suave
+            bgGrad.addColorStop(0.55, "#fce4ec"); // Rosa pastel limpio
+            bgGrad.addColorStop(1, "#f8bbd0"); // Tono romántico cálido
+            ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (chicaFrame % 25 === 0) {
+            // 2. DIBUJO ILUSTRATIVO DE LA PARROQUIA DE FONDO
+            drawChurchBackdrop(ctx, canvas.width, canvas.height);
+
+            // Suelo / Base limpia
+            ctx.fillStyle = "#f48fb1";
+            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+            ctx.strokeStyle = "#ad1457";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 20);
+            ctx.lineTo(canvas.width, canvas.height - 20);
+            ctx.stroke();
+
+            // 3. GENERAR ÍTEMS QUE CAEN (Corazón 💖, Anillo 💍, Tormenta 🌩️)
+            if (chicaFrame % 24 === 0) {
                 const laneIdx = Math.floor(Math.random() * 4);
                 const spawnX = CHICA_LANES[laneIdx];
                 const randType = Math.random();
                 let typeEmoji = "💖";
                 let isDanger = false;
+                let pts = 1;
 
                 if (randType > 0.7) {
-                    typeEmoji = "🌧"; 
+                    typeEmoji = "🌩️"; 
                     isDanger = true;
-                } else if (randType > 0.45) {
+                } else if (randType > 0.4) {
                     typeEmoji = "💍";
+                    pts = 2;
                 }
 
                 fallObjects.push({
-                    x: spawnX + Math.random() * 10, 
+                    x: spawnX + (Math.random() * 12 - 6), 
                     y: -30,
                     emoji: typeEmoji,
                     isDanger: isDanger,
-                    speed: 4.5 + Math.random() * 4
+                    pts: pts,
+                    speed: 4.5 + Math.random() * 3.5
                 });
             }
 
-            ctx.font = "40px sans-serif";
-            ctx.fillText("👸", basketX, 450);
+            // 4. DIBUJAR A LA NOVIA (100% OPACA Y NÍTIDA)
+            ctx.save();
+            ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 3;
+            ctx.font = "48px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("👰🏻", Math.round(basketX + 25), 450);
+            ctx.restore();
 
-            ctx.font = "14px sans-serif";
-            let heartUI = "LIVES: ";
+            // 5. VIDAS EN PANTALLA
+            let heartUI = "";
             for (let h = 0; h < 3; h++) {
-                heartUI += h < lives ? "❤️ " : "♡ ";
+                heartUI += h < lives ? "💖 " : "🤍 ";
             }
-            ctx.fillStyle = "#52582f";
+            ctx.font = "18px sans-serif";
             ctx.textAlign = "left";
-            ctx.fillText(heartUI, 20, 30);
+            ctx.fillText(heartUI, 16, 32);
 
+            // 6. ANIMAR Y DIBUJAR ÍTEMS (TOTALMENTE NÍTIOS Y OPACOS)
             for (let i = fallObjects.length - 1; i >= 0; i--) {
                 let obj = fallObjects[i];
                 obj.y += obj.speed;
+                
+                ctx.save();
+                ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
+                ctx.font = "36px sans-serif";
+                ctx.textAlign = "center";
                 ctx.fillText(obj.emoji, Math.round(obj.x), Math.round(obj.y));
+                ctx.restore();
 
-                if (obj.y >= 415 && obj.y <= 455 && obj.x >= basketX - 15 && obj.x <= basketX + 40) {
+                // DETECCIÓN DE COLISIÓN
+                if (obj.y >= 405 && obj.y <= 460 && obj.x >= basketX - 12 && obj.x <= basketX + 62) {
                     if (obj.isDanger) {
                         lives--;
+                        playSound('hit');
                     } else {
-                        score += 1;
+                        score += obj.pts;
                         playSound('coin'); 
                     }
                     fallObjects.splice(i, 1);
@@ -1052,9 +1418,10 @@
                     continue;
                 }
 
-                if (obj.y > canvas.height) {
+                if (obj.y > canvas.height + 20) {
                     if (!obj.isDanger) {
                         lives--;
+                        playSound('hit');
                     }
                     fallObjects.splice(i, 1);
 
@@ -1084,7 +1451,8 @@
 
             for (let i = 0; i < 16; i++) {
                 const hole = document.createElement("button");
-                hole.className = "aspect-square rounded-full bg-amber-950/20 border-4 border-amber-900/40 flex justify-center items-center text-3xl p-1 relative shadow-inner overflow-hidden active:bg-amber-950/30";
+                // Usamos la nueva clase de hoyo de tierra de alta calidad
+                hole.className = "maddie-hole";
                 hole.id = "hole-" + i;
                 hole.onclick = () => handleHoleClick(i);
                 maddieGrid.appendChild(hole);
@@ -1120,31 +1488,54 @@
                 if (prevDist) prevDist.innerHTML = "";
             }
 
-            let nextHole;
-            do {
-                nextHole = Math.floor(Math.random() * 16);
-            } while (nextHole === lastActiveHole);
-            
-            activeHole = nextHole;
-            lastActiveHole = activeHole;
-
-            const next = document.getElementById("hole-" + activeHole);
-            next.innerHTML = "<span class='select-none pointer-events-none text-3xl'>🐶</span>";
-
-            // 30% Probabilidad de spawnear un distractor (¡Popó 💩!)
+            activeHole = -1;
             activeDistractorHole = -1;
-            if (Math.random() < 0.3) {
+
+            const isDecoyOnly = Math.random() < 0.25; // 25% de las veces sale ÚNICAMENTE una popó para destantear al jugador
+
+            if (isDecoyOnly) {
                 let distHole;
                 do {
                     distHole = Math.floor(Math.random() * 16);
-                } while (distHole === activeHole);
+                } while (distHole === lastActiveHole);
                 
                 activeDistractorHole = distHole;
+                lastActiveHole = activeDistractorHole;
                 const distEl = document.getElementById("hole-" + activeDistractorHole);
-                distEl.innerHTML = "<span class='select-none pointer-events-none text-3xl animate-pulse'>💩</span>";
+                if (distEl) {
+                    distEl.innerHTML = "<span class='select-none pointer-events-none text-4xl animate-pop-up inline-block'>💩</span>";
+                }
+            } else {
+                let nextHole;
+                do {
+                    nextHole = Math.floor(Math.random() * 16);
+                } while (nextHole === lastActiveHole);
+                
+                activeHole = nextHole;
+                lastActiveHole = activeHole;
+
+                const next = document.getElementById("hole-" + activeHole);
+                if (next) {
+                    next.innerHTML = "<span class='select-none pointer-events-none text-4xl md:text-5xl animate-pop-up inline-block'>🐶</span>";
+                }
+
+                // 25% Probabilidad de distractor popó en otro hoyo simultáneo
+                if (Math.random() < 0.25) {
+                    let distHole;
+                    do {
+                        distHole = Math.floor(Math.random() * 16);
+                    } while (distHole === activeHole);
+                    
+                    activeDistractorHole = distHole;
+                    const distEl = document.getElementById("hole-" + activeDistractorHole);
+                    if (distEl) {
+                        distEl.innerHTML = "<span class='select-none pointer-events-none text-4xl animate-pop-up inline-block'>💩</span>";
+                    }
+                }
             }
 
-            let popDelay = Math.max(400, 800 - (score * 18));
+            // Dificultad balanceada y accesible vinculada a la puntuación
+            let popDelay = Math.max(550, 1100 - (score * 18));
             maddieTimer = setTimeout(maddiePop, popDelay);
         }
 
@@ -1152,9 +1543,9 @@
             if (!gameRunning) return;
 
             if (index === activeHole) {
-                // ACIERTO: Captura a Maddie
+                // ACIERTO: Captura a Maddie con ladrido tierno
                 score++;
-                playSound('coin'); 
+                playSound('bark'); 
                 
                 document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
                 updateMaddieRetroScore();
@@ -1168,44 +1559,69 @@
                 
             } else if (index === activeDistractorHole) {
                 // ERROR: Tocaste la popó
-                score = Math.max(0, score - 3); // Penalización de -3 puntos
+                score = Math.max(0, score - 2); // Penalización moderada de -2 puntos
                 playSound('hit'); 
                 
                 document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
                 updateMaddieRetroScore();
 
                 const distHole = document.getElementById("hole-" + index);
-                distHole.innerHTML = "";
+                if (distHole) distHole.innerHTML = "";
                 activeDistractorHole = -1;
             }
         }
 
         // ==========================================
-        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro)
-        let playerX, targetLane, roadObjects, roadFrame, roadSpeed;
-        const PUEBLA_LANES_TARGET = [80, 180, 280]; 
+        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro con Letreros SCT de México)
+        let playerX, targetLane, roadObjects, sceneryObjects, roadFrame, roadSpeed;
+        let pueblaKeyDownHandler = null;
+
+        const PUEBLA_SIGNS = [
+            { text: "CHOLULA", arrow: "↑", dist: "15 km" },
+            { text: "CHALUPAS", arrow: "➔", dist: "500 m" },
+            { text: "PUEBLA CENTRO", arrow: "↑", dist: "22 km" },
+            { text: "MOLE POBLANO", arrow: "➔", dist: "1 km" },
+            { text: "VAL'QUIRICO", arrow: "➔", dist: "8 km" },
+            { text: "ATLIXCO", arrow: "↑", dist: "30 km" },
+            { text: "CEMITAS", arrow: "➔", dist: "300 m" },
+            { text: "CATEDRAL", arrow: "➔", dist: "20 km" }
+        ];
+        
+        function getPueblaLaneX(lane, y) {
+            const horizonY = 180;
+            const roadHeight = canvas.height - horizonY;
+            const depthPct = Math.max(0, Math.min(1, (y - horizonY) / roadHeight));
+            const currentRoadWidth = 40 + depthPct * 260;
+            return 180 - currentRoadWidth / 2 + (lane * currentRoadWidth) / 3 + currentRoadWidth / 6;
+        }
 
         function initPueblaGame() {
             playerX = 180; 
             targetLane = 1; 
             roadObjects = [];
+            sceneryObjects = [];
             roadFrame = 0;
-            roadSpeed = 9;
+            roadSpeed = 8.5;
             currentGameState.innerText = "Manejando";
+
+            const changeLane = (dir) => {
+                if (!gameRunning) return;
+                if (dir < 0 && targetLane > 0) {
+                    targetLane--;
+                    playSound('car_rev');
+                } else if (dir > 0 && targetLane < 2) {
+                    targetLane++;
+                    playSound('car_rev');
+                }
+            };
 
             const handleSideTouch = (clientX) => {
                 const rect = canvas.getBoundingClientRect();
                 const clickX = clientX - rect.left;
                 if (clickX < rect.width / 2) {
-                    if (targetLane > 0) {
-                        targetLane--;
-                        playSound('jump'); 
-                    }
+                    changeLane(-1);
                 } else {
-                    if (targetLane < 2) {
-                        targetLane++;
-                        playSound('jump');
-                    }
+                    changeLane(1);
                 }
             };
 
@@ -1215,23 +1631,177 @@
                 handleSideTouch(e.touches[0].clientX);
             };
 
+            pueblaKeyDownHandler = (e) => {
+                if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+                    changeLane(-1);
+                } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+                    changeLane(1);
+                }
+            };
+            window.addEventListener("keydown", pueblaKeyDownHandler);
+
             gameInterval = setInterval(updatePuebla, 1000 / 30);
+        }
+
+        // DIBUJO DEL AUTO DEPORTIVO RETRO VISTO DESDE ATRÁS (OUTRUN REAR-VIEW CAR)
+        function drawRearViewCar(ctx, x, y, width, height) {
+            ctx.save();
+            
+            // Sombra en el asfalto
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.beginPath();
+            ctx.ellipse(x, y + height / 2 - 1, width / 2 + 4, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Neumáticos anchos deportivos
+            ctx.fillStyle = "#151515";
+            ctx.fillRect(Math.round(x - width / 2 - 1), Math.round(y + height / 2 - 13), 8, 13);
+            ctx.fillRect(Math.round(x + width / 2 - 7), Math.round(y + height / 2 - 13), 8, 13);
+
+            // Chasis principal rojo deportivo
+            ctx.fillStyle = "#e53935";
+            ctx.beginPath();
+            ctx.moveTo(x - width / 2, y + height / 2 - 3);
+            ctx.lineTo(x - width / 2 + 3, y - 2);
+            ctx.lineTo(x - width / 4, y - height / 2 + 8);
+            ctx.lineTo(x + width / 4, y - height / 2 + 8);
+            ctx.lineTo(x + width / 2 - 3, y - 2);
+            ctx.lineTo(x + width / 2, y + height / 2 - 3);
+            ctx.closePath();
+            ctx.fill();
+
+            // Parabrisas / Ventana trasera polarizada
+            ctx.fillStyle = "#1e272e";
+            ctx.beginPath();
+            ctx.moveTo(x - width / 4 + 2, y - height / 2 + 10);
+            ctx.lineTo(x + width / 4 - 2, y - height / 2 + 10);
+            ctx.lineTo(x + width / 3 - 2, y - 2);
+            ctx.lineTo(x - width / 3 + 2, y - 2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Reflejo en el cristal
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x - 8, y - height / 2 + 12);
+            ctx.lineTo(x + 8, y - 4);
+            ctx.stroke();
+
+            // Alerón trasero (Spoiler)
+            ctx.fillStyle = "#b71c1c";
+            ctx.fillRect(Math.round(x - width / 2 - 1), Math.round(y - 4), width + 2, 4);
+            ctx.fillStyle = "#212121";
+            ctx.fillRect(Math.round(x - width / 2 - 2), Math.round(y - 6), 4, 6);
+            ctx.fillRect(Math.round(x + width / 2 - 2), Math.round(y - 6), 4, 6);
+
+            // Difusor trasero
+            ctx.fillStyle = "#212121";
+            ctx.fillRect(Math.round(x - width / 2 + 4), Math.round(y + height / 2 - 9), width - 8, 8);
+
+            // Calaveras / Luces traseras LED rojas brillantes
+            ctx.fillStyle = "#ff1744";
+            ctx.shadowColor = "#ff1744";
+            ctx.shadowBlur = 8;
+            ctx.fillRect(Math.round(x - width / 2 + 5), Math.round(y + height / 2 - 8), 11, 5);
+            ctx.fillRect(Math.round(x + width / 2 - 16), Math.round(y + height / 2 - 8), 11, 5);
+
+            // Placa de matrícula "BODA"
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(Math.round(x - 9), Math.round(y + height / 2 - 7), 18, 5);
+            ctx.fillStyle = "#111111";
+            ctx.font = "bold 5px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("BODA", Math.round(x), Math.round(y + height / 2 - 3));
+
+            // Tubos de escape metálicos
+            ctx.fillStyle = "#cfd8dc";
+            ctx.beginPath();
+            ctx.arc(Math.round(x - 14), Math.round(y + height / 2 - 2), 2, 0, Math.PI * 2);
+            ctx.arc(Math.round(x + 14), Math.round(y + height / 2 - 2), 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
         }
 
         function updatePuebla() {
             roadFrame++;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "#3498db"; 
-            ctx.fillRect(0, 0, canvas.width, 180);
-
-            ctx.fillStyle = "#27ae60"; 
-            ctx.fillRect(0, 180, canvas.width, canvas.height - 180);
-
             const horizonY = 180;
             const roadHeight = canvas.height - horizonY;
-            const totalStripeSegments = 12;
 
+            // 1. CIELO RETRO CON DEGRADADO
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+            skyGrad.addColorStop(0, "#1a5276");
+            skyGrad.addColorStop(0.65, "#2980b9");
+            skyGrad.addColorStop(1, "#85c1e9");
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, horizonY);
+
+            // SOL / RESPLANDOR
+            ctx.fillStyle = "rgba(255, 241, 118, 0.4)";
+            ctx.beginPath();
+            ctx.arc(280, 65, 28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#fff9c4";
+            ctx.beginPath();
+            ctx.arc(280, 65, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // CORDILLERA DE MONTAÑAS Y VOLCÁN POPOCATÉPETL
+            ctx.fillStyle = "#2c3e50";
+            ctx.beginPath();
+            ctx.moveTo(0, horizonY);
+            ctx.lineTo(40, 140);
+            ctx.lineTo(95, horizonY);
+            ctx.lineTo(130, 150);
+            ctx.lineTo(170, horizonY);
+            ctx.fill();
+
+            // Volcán Popocatépetl
+            ctx.fillStyle = "#1e272e";
+            ctx.beginPath();
+            ctx.moveTo(210, horizonY);
+            ctx.lineTo(275, 110);
+            ctx.lineTo(345, horizonY);
+            ctx.fill();
+
+            // Nieve en el cráter del Popocatépetl
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(263, 122);
+            ctx.lineTo(275, 110);
+            ctx.lineTo(287, 122);
+            ctx.closePath();
+            ctx.fill();
+
+            // Nubes flotando
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "24px sans-serif";
+            const cloud1X = (roadFrame * 0.45) % (canvas.width + 60) - 30;
+            const cloud2X = ((roadFrame * 0.25) + 190) % (canvas.width + 60) - 30;
+            ctx.fillText("☁️", cloud1X, 55);
+            ctx.fillText("☁️", cloud2X, 95);
+
+            // 2. PASTO VERDE DE FONDO
+            ctx.fillStyle = "#27ae60"; 
+            ctx.fillRect(0, horizonY, canvas.width, roadHeight);
+
+            // 3. GENERAR LETREROS MEXICANOS VERDES DE CARRETERA
+            if (roadFrame % 75 === 0) {
+                const signData = PUEBLA_SIGNS[Math.floor(Math.random() * PUEBLA_SIGNS.length)];
+                sceneryObjects.push({
+                    y: horizonY,
+                    text: signData.text,
+                    arrow: signData.arrow,
+                    dist: signData.dist
+                });
+            }
+
+            // DIBUJAR RAYAS Y CARRETERA EN PERSPECTIVA
+            const totalStripeSegments = 12;
             for (let i = totalStripeSegments; i >= 1; i--) {
                 const y1 = horizonY + Math.pow((i - 1) / totalStripeSegments, 2) * roadHeight;
                 const y2 = horizonY + Math.pow(i / totalStripeSegments, 2) * roadHeight;
@@ -1246,24 +1816,26 @@
                 const xr1 = 180 + roadWidth1 / 2;
                 const xr2 = 180 + roadWidth2 / 2;
 
+                // Cordón lateral (blanco / rojo)
                 ctx.fillStyle = stripeActive ? "#e74c3c" : "#ffffff";
-                
                 ctx.beginPath();
-                ctx.moveTo(xl1 - 6, y1); ctx.lineTo(xl2 - 10, y2);
+                ctx.moveTo(xl1 - 7, y1); ctx.lineTo(xl2 - 11, y2);
                 ctx.lineTo(xl2, y2); ctx.lineTo(xl1, y1);
                 ctx.fill();
 
                 ctx.beginPath();
                 ctx.moveTo(xr1, y1); ctx.lineTo(xr2, y2);
-                ctx.lineTo(xr2 + 10, y2); ctx.lineTo(xr1 + 6, y1);
+                ctx.lineTo(xr2 + 11, y2); ctx.lineTo(xr1 + 7, y1);
                 ctx.fill();
 
+                // Asfalto
                 ctx.fillStyle = "#2c3e50";
                 ctx.beginPath();
                 ctx.moveTo(xl1, y1); ctx.lineTo(xl2, y2);
                 ctx.lineTo(xr2, y2); ctx.lineTo(xr1, y1);
                 ctx.fill();
 
+                // Líneas divisorias amarillas
                 if (stripeActive) {
                     ctx.strokeStyle = "#f1c40f";
                     ctx.lineWidth = 1.5 + (i / totalStripeSegments) * 3;
@@ -1282,21 +1854,85 @@
                 }
             }
 
-            if (roadFrame % 32 === 0) {
+            // 4. ANIMAR Y DIBUJAR LETREROS VERDES SCT (VELOCIDAD SUAVE PARA FÁCIL LECTURA)
+            for (let i = sceneryObjects.length - 1; i >= 0; i--) {
+                let sc = sceneryObjects[i];
+                // Pasan a velocidad moderada para permitir leer con calma
+                sc.y += roadSpeed * 0.42;
+                const depthPct = Math.max(0, Math.min(1, (sc.y - horizonY) / roadHeight));
+                const currentRoadWidth = 40 + depthPct * 260;
+                
+                // Ubicado en la orilla derecha de la carretera
+                const roadEdgeX = 180 + currentRoadWidth / 2;
+                const scX = roadEdgeX + 26 + depthPct * 65;
+                
+                const scale = 0.32 + depthPct * 0.95;
+                const signW = Math.round(112 * scale);
+                const signH = Math.round(58 * scale);
+                const postH = Math.round(38 * scale);
+                const signBottomY = sc.y;
+                const signTopY = signBottomY - signH - postH;
+
+                ctx.save();
+                // Poste metálico
+                ctx.fillStyle = "#95a5a6";
+                const poleW = Math.max(2, Math.round(4 * scale));
+                ctx.fillRect(Math.round(scX - poleW / 2), Math.round(signBottomY - postH), poleW, postH);
+
+                // Letrero Verde SCT Oficial
+                ctx.fillStyle = "#1b5e20"; 
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = Math.max(1.5, Math.round(2.5 * scale));
+                
+                ctx.fillRect(Math.round(scX - signW / 2), Math.round(signTopY), signW, signH);
+                ctx.strokeRect(Math.round(scX - signW / 2), Math.round(signTopY), signW, signH);
+
+                // Borde interior blanco fino
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+                ctx.lineWidth = Math.max(0.8, scale);
+                ctx.strokeRect(Math.round(scX - signW / 2 + 2.5 * scale), Math.round(signTopY + 2.5 * scale), signW - 5 * scale, signH - 5 * scale);
+
+                // Texto del destino en mayúsculas
+                ctx.fillStyle = "#ffffff";
+                const fontSize = Math.max(7, Math.round(12 * scale));
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(sc.text, Math.round(scX), Math.round(signTopY + 18 * scale));
+
+                // Flecha direccional y distancia
+                const arrowFontSize = Math.max(8, Math.round(14 * scale));
+                ctx.font = `bold ${arrowFontSize}px sans-serif`;
+                ctx.fillText(`${sc.arrow}  ${sc.dist}`, Math.round(scX), Math.round(signTopY + 40 * scale));
+                ctx.restore();
+
+                if (sc.y > canvas.height + 90) {
+                    sceneryObjects.splice(i, 1);
+                }
+            }
+
+            // 5. GENERAR OBSTÁCULOS E ÍTEMS EN LOS CARRILES
+            if (roadFrame % 28 === 0) {
                 const laneIdx = Math.floor(Math.random() * 3);
                 const rollType = Math.random();
                 let typeEmoji = "🚧";
                 let isItem = false;
                 let isTrafficCar = false;
+                let pts = 0;
 
                 if (rollType > 0.7) {
-                    typeEmoji = Math.random() > 0.5 ? "💚" : "🗺";
+                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡)
+                    const isTaco = Math.random() > 0.5;
+                    typeEmoji = isTaco ? "🌮" : "⚡";
                     isItem = true;
+                    pts = 10;
                 } else if (rollType > 0.35) {
-                    typeEmoji = "🚘"; 
+                    // Carros de tráfico (Azul, Taxi, Camión)
+                    const carTypes = ["🚙", "🚕", "🚚"];
+                    typeEmoji = carTypes[Math.floor(Math.random() * carTypes.length)];
                     isTrafficCar = true;
                 } else {
-                    typeEmoji = Math.random() > 0.5 ? "🚧" : "🕳";
+                    // Baches u obras
+                    typeEmoji = Math.random() > 0.5 ? "🚧" : "🕳️";
                 }
 
                 roadObjects.push({
@@ -1305,10 +1941,12 @@
                     emoji: typeEmoji,
                     isItem: isItem,
                     isCar: isTrafficCar,
+                    pts: pts,
                     speed: isTrafficCar ? 4.5 : 0 
                 });
             }
 
+            // 6. ANIMAR Y DIBUJAR OBJETOS EN LOS CARRILES
             for (let i = roadObjects.length - 1; i >= 0; i--) {
                 let obj = roadObjects[i];
                 
@@ -1318,19 +1956,24 @@
                     obj.y += roadSpeed; 
                 }
 
-                const depthPct = (obj.y - horizonY) / roadHeight;
-                const currentRoadWidth = 40 + depthPct * 260;
-                const currentLaneX = 180 - currentRoadWidth / 2 + (obj.lane * currentRoadWidth) / 2 + currentRoadWidth / 6;
+                const currentLaneX = getPueblaLaneX(obj.lane, obj.y);
+                const depthPct = Math.max(0, Math.min(1, (obj.y - horizonY) / roadHeight));
+                const currentScale = Math.max(18, Math.floor(16 + depthPct * 34));
 
-                const currentScale = Math.max(10, Math.floor(8 + depthPct * 36));
-
+                // Dibujar objeto con sombra limpia y nítida (sin auras verdes que ensucien)
+                ctx.save();
+                ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
                 ctx.font = `${currentScale}px sans-serif`;
                 ctx.textAlign = "center";
                 ctx.fillText(obj.emoji, Math.round(currentLaneX), Math.round(obj.y));
+                ctx.restore();
 
-                if (obj.y >= 390 && obj.y <= 440 && obj.lane === targetLane) {
+                // COLISIÓN CON EL JUGADOR
+                if (obj.y >= 395 && obj.y <= 445 && obj.lane === targetLane) {
                     if (obj.isItem) {
-                        score += 10;
+                        score += obj.pts;
                         playSound('coin'); 
                         roadObjects.splice(i, 1);
                         continue;
@@ -1348,16 +1991,15 @@
                 }
             }
 
-            const playerTargetX = PUEBLA_LANES_TARGET[targetLane];
+            // 7. JUGADOR (Auto Deportivo Rojo Retro Visto Desde Atrás 🚗)
+            const playerTargetX = getPueblaLaneX(targetLane, 440);
             playerX += (playerTargetX - playerX) * 0.45; 
 
-            ctx.font = "44px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("🚗", Math.round(playerX), 440);
+            drawRearViewCar(ctx, playerX, 440, 62, 38);
 
             if (roadFrame % 8 === 0) {
                 score += 1;
-                if (score % 40 === 0) roadSpeed += 0.8; 
+                if (score % 40 === 0) roadSpeed += 0.7; 
             }
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);

@@ -650,7 +650,7 @@
                     <linearGradient id="vt-vine-fade" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
                         <stop offset="90%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
-                        <stop offset="100%" stop-color="var(--olivo-base)" stop-opacity="0" />
+                        <stop offset="100%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
                     </linearGradient>
                 </defs>
                 
@@ -926,19 +926,19 @@
         <div style="max-width: 680px; margin: 35px auto 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; text-align: left;">
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
                 <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🦖 Chicosaurio</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Ayuda a Chicosaurio a saltar juntas y alarmas, y atrapa todos los controles de videojuegos (🎮) posibles.</p>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Ayuda al Chico a esquivar juntas, correos y alarmas, y atrapa controles de videojuegos para ganar puntos extra.</p>
             </div>
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
-                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">👸 Atrapa el Amor</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Recolecta corazones y anillos moviendo a la Chica antes de que caigan, asegurándote de esquivar las nubes de tormenta (🌧).</p>
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">👰🏻 Atrapa el Amor</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Mueve a la Novia para recolectar corazones y anillos de compromiso antes de que caigan, esquivando las tormentas.</p>
             </div>
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
                 <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🐶 Atrapa a Maddie</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Maddie asoma la cabeza por los agujeros del jardín. Pon a prueba tu destreza y atrápala en 30 segundos.</p>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Atrapa a Maddie cada vez que asome por su jardín antes de que termine el tiempo. ¡Cuidado con las popós!</p>
             </div>
             <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
                 <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🚗 Camino a Puebla</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Conduce en perspectiva retro 3D rebasando coches (🚘) y baches rumbo a Cholula. Atrapa corazones y mapas para ganar.</p>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Conduce por la autopista rumbo a Puebla esquivando el tráfico y baches mientras recolectas chalupas y turbos.</p>
             </div>
         </div>
 
@@ -1102,7 +1102,7 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add("is-visible");
-                        obs.unobserve(entry.target); // Deja de observar una vez que ya se animó
+                        obs.unobserve(entry.target);
                     }
                 });
             }, observerOptions);
@@ -1119,7 +1119,6 @@
                 const answer = item.querySelector('.faq-answer');
                 const isOpen = item.classList.contains('is-open');
 
-                // Opcional: Cerrar cualquier otro acordeón abierto previamente para ahorrar espacio vertical
                 document.querySelectorAll('.faq-item').forEach(otherItem => {
                     if (otherItem !== item) {
                         otherItem.classList.remove('is-open');
@@ -1127,13 +1126,12 @@
                     }
                 });
 
-                // Toggle del hito activo y cálculo preciso de la altura dinámica
                 if (isOpen) {
                     item.classList.remove('is-open');
                     answer.style.maxHeight = null;
                 } else {
                     item.classList.add('is-open');
-                    answer.style.maxHeight = answer.scrollHeight + 'px'; // Toma la altura exacta del contenido
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
                 }
             });
         });
@@ -1142,7 +1140,7 @@
         async function loadGithubGallery() {
             const username = "memogrinan"; 
             const repo = "bodadeloschicos";           
-            const folder = "FotosBodaInvitados"; // Nombre de tu carpeta para fotos de invitados
+            const folder = "FotosBodaInvitados";
             
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
             const container = document.getElementById("galleryGrid");
@@ -1168,21 +1166,16 @@
                     return;
                 }
 
-                // Guardamos las URLs de descarga en el arreglo global para usarlas en la navegación secuencial
                 guestImages = images.map(img => img.download_url);
 
-                // Insertar cada imagen con su subtítulo dinámico y registrar su índice
                 images.forEach((img, index) => {
-                    // Contenedor de la tarjeta de foto
                     const itemEl = document.createElement("div");
                     itemEl.className = "gallery-item";
 
-                    // Imagen
                     const imgEl = document.createElement("img");
-                    imgEl.src = img.download_url; // URL del archivo crudo
+                    imgEl.src = img.download_url;
                     imgEl.alt = "Foto compartida";
                     
-                    // Evento para abrir el visor al hacer clic en la foto, recordando su posición
                     imgEl.addEventListener("click", () => {
                         currentGuestImageIndex = index;
                         lightboxImg.src = img.download_url;
@@ -1192,16 +1185,13 @@
 
                     itemEl.appendChild(imgEl);
 
-                    // Extraer nombre del archivo (Formato esperado: YYYYMMDD-HHmmss-De-Nombre_Apellido-foto.jpg)
                     const filename = img.name;
                     if (filename.includes("-De-")) {
                         const parts = filename.split("-De-");
                         if (parts.length > 1) {
-                            // Extrae la sección del nombre y limpia los guiones bajos de vuelta a espacios
                             const rawName = parts[1].split("-")[0];
                             const cleanName = rawName.replace(/_/g, " "); 
                             
-                            // Si el nombre no está vacío o marcado como anónimo
                             if (cleanName && cleanName.toLowerCase() !== "anonimo") {
                                 const captionEl = document.createElement("p");
                                 captionEl.className = "gallery-caption";
