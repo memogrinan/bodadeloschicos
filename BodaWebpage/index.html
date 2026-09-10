@@ -1421,6 +1421,8 @@
 
         function renderRSVPForm(data) {
             document.getElementById("rsvpLoadingContainer").style.display = "none";
+            document.getElementById("rsvpSuccessContainer").style.display = "none";
+            document.getElementById("rsvpSearchContainer").style.display = "none";
             document.getElementById("rsvpFormContainer").style.display = "block";
 
             document.getElementById("rsvpGuestTitle").innerText = `¡Hola ${data.nombre}!`;
