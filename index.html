@@ -542,37 +542,10 @@
             text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
         }
 
-        /* OPTIMIZACIÓN EXTREMA DE SCROLL PARA MÓVILES (S23 Ultra / iOS / Android 120Hz) */
+        /* ADAPTACIÓN MÓVIL Y NAVEGACIÓN */
         @media (max-width: 768px) {
             .nav-links { display: none; }
             .menu-toggle { display: block; }
-
-            /* 1. Desactivar animación continua KenBurns en móvil para liberar ciclos de GPU */
-            .header-bg {
-                animation: none !important;
-                transform: scale(1) !important;
-            }
-
-            /* 2. Optimizar capas fijas en móvil reemplazando fixed por scroll suave nativo */
-            .bg-fixed {
-                position: absolute !important;
-                top: 0 !important;
-                height: 100% !important;
-                will-change: auto;
-            }
-
-            /* 3. Reemplazar filtros de cristal borroso (backdrop-filter) en celular por fondos sólidos de alta velocidad */
-            .glass-card {
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-                background-color: rgba(255, 255, 255, 0.96) !important;
-            }
-
-            /* 4. Aceleración por hardware para secciones con desplazamiento */
-            .fade-in-section, .parallax-section {
-                transform: translateZ(0);
-                backface-visibility: hidden;
-            }
         }
 
         @media (max-width: 600px) {
@@ -1342,7 +1315,12 @@
 
                 if (data.status === "success") {
                     currentRSVPData = data;
-                    renderRSVPForm(data);
+                    const hasAnswered = (data.estadoSabado && data.estadoSabado.toString().trim() !== "");
+                    if (hasAnswered) {
+                        renderRSVPSummaryView(data);
+                    } else {
+                        renderRSVPForm(data);
+                    }
                 } else {
                     document.getElementById("rsvpLoadingContainer").style.display = "none";
                     document.getElementById("rsvpSearchContainer").style.display = "block";
@@ -1358,6 +1336,72 @@
                 errEl.innerText = "Ocurrió un error al conectar con la lista de invitados. Intenta de nuevo.";
                 errEl.style.display = "block";
             }
+        }
+
+        function renderRSVPSummaryView(data) {
+            document.getElementById("rsvpLoadingContainer").style.display = "none";
+            document.getElementById("rsvpFormContainer").style.display = "none";
+            
+            const successContainer = document.getElementById("rsvpSuccessContainer");
+            successContainer.style.display = "block";
+
+            const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
+
+            // CONTROL DEL ITINERARIO: Mostrar el Viernes 12 de Febrero en el Itinerario SOLO a invitados a la boda civil
+            const itinFriday = document.getElementById("itineraryFridayBlock");
+            if (itinFriday) {
+                itinFriday.style.display = isCivil ? "block" : "none";
+            }
+
+            let summaryHTML = `
+                <span style="font-size: 3.2rem; display: inline-block;">🎉</span>
+                <h3 style="color: var(--olivo-base); font-size: 1.5rem; font-weight: 600; margin: 10px 0 4px 0;">¡Respuesta Registrada!</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">Hola <strong>${data.nombre}</strong>, ya recibimos tu confirmación oficial.</p>
+
+                <div style="text-align: left; background: #f9faf7; padding: 18px; border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15); margin-bottom: 20px; font-size: 0.9rem; color: #444; line-height: 1.6;">
+            `;
+
+            if (isCivil) {
+                summaryHTML += `
+                    <div style="margin-bottom: 14px;">
+                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥂 Boda Civil (Viernes 12 de Feb):</h4>
+                        <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${data.estadoCivil || 'Sin respuesta'}</p>
+                    </div>
+                `;
+            }
+
+            summaryHTML += `
+                <div style="margin-bottom: 14px;">
+                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">💒 Boda & Fiesta (Sábado 13 de Feb):</h4>
+                    <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${data.estadoSabado || 'Sin respuesta'}</p>
+                </div>
+            `;
+
+            if (data.alergias && data.alergias.trim() !== "" && data.alergias.trim().toLowerCase() !== "ninguna") {
+                summaryHTML += `
+                    <div style="margin-bottom: 14px;">
+                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥗 Restricciones alimenticias:</h4>
+                        <p style="margin: 0; color: #555;">${data.alergias}</p>
+                    </div>
+                `;
+            }
+
+            if (data.celebracion && data.celebracion.trim() !== "") {
+                summaryHTML += `
+                    <div>
+                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🎉 Celebración especial:</h4>
+                        <p style="margin: 0; color: #555;">${data.celebracion}</p>
+                    </div>
+                `;
+            }
+
+            summaryHTML += `</div>`;
+
+            summaryHTML += `
+                <button onclick="renderRSVPForm(currentRSVPData)" class="btn btn-rsvp" style="padding: 12px 24px; font-size: 0.9rem; border-radius: 14px; margin-top: 5px; width: 100%; box-sizing: border-box;">Modificar o actualizar respuesta ✏️</button>
+            `;
+
+            successContainer.innerHTML = summaryHTML;
         }
 
         function updateRSVPSubmitButtonText() {
@@ -1507,8 +1551,12 @@
                     body: JSON.stringify(payload)
                 });
 
-                document.getElementById("rsvpFormContainer").style.display = "none";
-                document.getElementById("rsvpSuccessContainer").style.display = "block";
+                currentRSVPData.estadoSabado = payload.estadoSabado;
+                currentRSVPData.estadoCivil = payload.estadoCivil;
+                currentRSVPData.alergias = payload.alergias;
+                currentRSVPData.celebracion = payload.celebracion;
+
+                renderRSVPSummaryView(currentRSVPData);
             } catch (err) {
                 console.error("Error al enviar RSVP:", err);
                 alert("Ocurrió un inconveniente al guardar. Por favor intenta de nuevo.");
