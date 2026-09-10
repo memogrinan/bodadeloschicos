@@ -1419,6 +1419,23 @@
             }
         }
 
+        function parseMemberStatus(fullStr, memberName) {
+            if (!fullStr) return "SI";
+            const str = fullStr.toString().trim();
+            if (str.toUpperCase() === "SI") return "SI";
+            if (str.toUpperCase() === "NO") return "NO";
+            const parts = str.split("|").map(p => p.trim());
+            for (let part of parts) {
+                const kv = part.split(":").map(s => s.trim());
+                if (kv.length >= 2) {
+                    if (kv[0].toLowerCase() === memberName.toLowerCase() || memberName.toLowerCase().includes(kv[0].toLowerCase())) {
+                        return kv[1].toUpperCase() === "NO" ? "NO" : "SI";
+                    }
+                }
+            }
+            return "SI";
+        }
+
         function renderRSVPForm(data) {
             document.getElementById("rsvpLoadingContainer").style.display = "none";
             document.getElementById("rsvpSuccessContainer").style.display = "none";
@@ -1444,13 +1461,17 @@
                 fridaySection.style.display = "block";
                 fridayMembers.innerHTML = "";
                 integrantes.forEach((member, idx) => {
+                    const st = parseMemberStatus(data.estadoCivil, member);
+                    const siChecked = (st === "SI") ? "checked" : "";
+                    const noChecked = (st === "NO") ? "checked" : "";
+
                     const div = document.createElement("div");
                     div.style.cssText = "display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: white; border-radius: 14px; border: 1px solid #eaefe0;";
                     div.innerHTML = `
                         <span style="font-size: 0.95rem; font-weight: 600; color: #333;">👤 ${member}</span>
                         <div style="display: flex; gap: 10px; font-size: 0.85rem;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="civil_${idx}" value="SI" checked onchange="updateRSVPSubmitButtonText()"> Sí asistirá</label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="civil_${idx}" value="NO" onchange="updateRSVPSubmitButtonText()"> No asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="civil_${idx}" value="SI" ${siChecked} onchange="updateRSVPSubmitButtonText()"> Sí asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="civil_${idx}" value="NO" ${noChecked} onchange="updateRSVPSubmitButtonText()"> No asistirá</label>
                         </div>
                     `;
                     fridayMembers.appendChild(div);
@@ -1463,14 +1484,18 @@
             const saturdayMembers = document.getElementById("rsvpSaturdayMembers");
             saturdayMembers.innerHTML = "";
             integrantes.forEach((member, idx) => {
+                const st = parseMemberStatus(data.estadoSabado, member);
+                const siChecked = (st === "SI") ? "checked" : "";
+                const noChecked = (st === "NO") ? "checked" : "";
+
                 const div = document.createElement("div");
                 div.style.cssText = "padding: 12px 14px; background: white; border-radius: 14px; border: 1px solid #eaefe0; display: flex; flex-direction: column; gap: 10px;";
                 div.innerHTML = `
                     <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;">
                         <span style="font-size: 0.95rem; font-weight: 600; color: #333;">👤 ${member}</span>
                         <div style="display: flex; gap: 10px; font-size: 0.85rem;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="sabado_${idx}" value="SI" checked onchange="updateRSVPSubmitButtonText()"> Sí asistirá</label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="sabado_${idx}" value="NO" onchange="updateRSVPSubmitButtonText()"> No asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="sabado_${idx}" value="SI" ${siChecked} onchange="updateRSVPSubmitButtonText()"> Sí asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="sabado_${idx}" value="NO" ${noChecked} onchange="updateRSVPSubmitButtonText()"> No asistirá</label>
                         </div>
                     </div>
                     <div>
