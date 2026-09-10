@@ -988,7 +988,7 @@
                             <span>🥂</span> Boda Civil (Viernes 12 de Feb - 6:00 PM)
                         </h4>
                         <p style="font-size: 0.8rem; color: #777; margin: 0 0 14px 0;">¡Están invitados a nuestra ceremonia íntima!</p>
-                        <div id="rsvpFridayMembers" style="display: flex; flex-col; gap: 10px;"></div>
+                        <div id="rsvpFridayMembers" style="display: flex; flex-direction: column; gap: 10px;"></div>
                     </div>
 
                     <!-- SECCIÓN OBLIGATORIA: BODA Y FIESTA (SÁBADO) -->
@@ -997,13 +997,13 @@
                             <span>💒</span> Boda & Fiesta (Sábado 13 de Feb - 4:00 PM)
                         </h4>
                         <p style="font-size: 0.8rem; color: #777; margin: 0 0 14px 0;">Hacienda San José Actipan, Cholula</p>
-                        <div id="rsvpSaturdayMembers" style="display: flex; flex-col; gap: 10px;"></div>
+                        <div id="rsvpSaturdayMembers" style="display: flex; flex-direction: column; gap: 12px;"></div>
                     </div>
 
-                    <!-- SECCIÓN: ALERGIAS / MENÚ ESPECIAL -->
-                    <div style="margin-bottom: 22px;">
-                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">🥗 Restricciones alimenticias o mensaje especial:</label>
-                        <input type="text" id="rsvpAlergiasInput" placeholder="Ej. Juan es vegetariano, María es alérgica a los mariscos..." style="width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 0.9rem; outline: none; box-sizing: border-box; font-family: inherit;">
+                    <!-- SECCIÓN: CELEBRACIÓN ESPECIAL -->
+                    <div style="margin-bottom: 22px; background: #f9faf7; padding: 16px; border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                        <label style="display: block; font-size: 0.88rem; font-weight: 600; color: var(--olivo-base); margin-bottom: 6px;">🎉 ¿Celebras algo especial cerca de la fecha? (Cumpleaños, aniversario, etc.):</label>
+                        <input type="text" id="rsvpCelebracionInput" placeholder="Ej. Cumpleaños de Mariana, Aniversario..." style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 0.9rem; outline: none; box-sizing: border-box; font-family: inherit; background: white;">
                     </div>
 
                     <button type="submit" id="rsvpSubmitBtn" class="btn btn-rsvp" style="width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 14px;">Confirmar Asistencia 💌</button>
@@ -1362,24 +1362,47 @@
                 fridaySection.style.display = "none";
             }
 
-            // SECCIÓN SATURDAY (BODA Y FIESTA)
+            // SECCIÓN SATURDAY (BODA Y FIESTA) CON CAMPO DE RESTICCIONES INDIVIDUAL
             const saturdayMembers = document.getElementById("rsvpSaturdayMembers");
             saturdayMembers.innerHTML = "";
             integrantes.forEach((member, idx) => {
                 const div = document.createElement("div");
-                div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 12px; border: 1px solid #eaefe0;";
+                div.style.cssText = "padding: 12px; background: white; border-radius: 14px; border: 1px solid #eaefe0; display: flex; flex-direction: column; gap: 8px;";
                 div.innerHTML = `
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #333;">👤 ${member}</span>
-                    <div style="display: flex; gap: 14px; font-size: 0.85rem;">
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="SI" checked> Sí asistirá</label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="NO"> No asistirá</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.95rem; font-weight: 600; color: #333;">👤 ${member}</span>
+                        <div style="display: flex; gap: 14px; font-size: 0.85rem;">
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="SI" checked> Sí asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="NO"> No asistirá</label>
+                        </div>
+                    </div>
+                    <div>
+                        <input type="text" id="alergia_${idx}" placeholder="Restricciones alimenticias o menú de ${member} (opcional)" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 0.82rem; outline: none; box-sizing: border-box; background: #fafafa; font-family: inherit;">
                     </div>
                 `;
                 saturdayMembers.appendChild(div);
             });
 
+            // Rellenar datos existentes de alergias y celebración si ya habían respondido previamente
             if (data.alergias) {
-                document.getElementById("rsvpAlergiasInput").value = data.alergias;
+                const parts = data.alergias.split("|").map(p => p.trim());
+                parts.forEach(part => {
+                    const kv = part.split(":").map(s => s.trim());
+                    if (kv.length >= 2) {
+                        const mName = kv[0];
+                        const mVal = kv.slice(1).join(":");
+                        integrantes.forEach((member, idx) => {
+                            if (member.toLowerCase() === mName.toLowerCase()) {
+                                const input = document.getElementById(`alergia_${idx}`);
+                                if (input) input.value = mVal;
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (data.celebracion) {
+                document.getElementById("rsvpCelebracionInput").value = data.celebracion;
             }
         }
 
@@ -1396,6 +1419,7 @@
 
             const estadoSabadoList = [];
             const estadoCivilList = [];
+            const alergiasList = [];
 
             integrantes.forEach((member, idx) => {
                 const sabVal = document.querySelector(`input[name="sabado_${idx}"]:checked`)?.value || "SI";
@@ -1405,15 +1429,21 @@
                     const civVal = document.querySelector(`input[name="civil_${idx}"]:checked`)?.value || "SI";
                     estadoCivilList.push(`${member}: ${civVal}`);
                 }
+
+                const algVal = document.getElementById(`alergia_${idx}`)?.value.trim() || "";
+                if (algVal) {
+                    alergiasList.push(`${member}: ${algVal}`);
+                }
             });
 
-            const alergias = document.getElementById("rsvpAlergiasInput").value.trim();
+            const celebracionVal = document.getElementById("rsvpCelebracionInput").value.trim();
 
             const payload = {
                 id: currentRSVPData.id,
-                estadoSabado: estadoSabadoList.join(", "),
-                estadoCivil: isCivil ? estadoCivilList.join(", ") : "N/A",
-                alergias: alergias
+                estadoSabado: estadoSabadoList.join(" | "),
+                estadoCivil: isCivil ? estadoCivilList.join(" | ") : "N/A",
+                alergias: alergiasList.length > 0 ? alergiasList.join(" | ") : "Ninguna",
+                celebracion: celebracionVal
             };
 
             try {
