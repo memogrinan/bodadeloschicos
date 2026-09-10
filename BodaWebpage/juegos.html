@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arcade de los Chicos - Boda Mariana & Memo</title>
+    
+    <!-- Tailwind CSS para diseño rápido y moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        olivo: {
+                            base: '#52582f',
+                            trans: 'rgba(82, 88, 47, 0.75)',
+                            acento: '#a3ad73',
+                            claro: '#f2f4ed'
+                        },
+                        crema: {
+                            fondo: '#fcfaf7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Registro e Integración de la Fuente Pixelada monogram-extended */
+        @font-face {
+            font-family: 'Monogram';
+            src: url('Fonts/monogram-extended.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        .font-monogram {
+            font-family: 'Monogram', monospace;
+            image-rendering: pixelated;
+        }
+        body {
+            background-color: #fcfaf7;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        /* Ajuste para evitar retrasos de pulsación en pantallas táctiles */
+        button, canvas {
+            touch-action: manipulation;
+        }
+
+        /* CRT SCANLINES & SCREEN OVERLAY */
+        .crt-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .crt-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            background-size: 100% 3px, 6px 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        @keyframes crt-flicker {
+            0% { opacity: 0.985; }
+            50% { opacity: 0.995; }
+            100% { opacity: 0.985; }
+        }
+        .crt-screen {
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        /* DISEÑO DE MADRIGUERA DE TIERRA (MADDIE GAME) */
+        .maddie-hole {
+            aspect-ratio: 1 / 1;
+            border-radius: 9999px;
+            background: radial-gradient(circle, #2a1b14 30%, #442a1d 70%, #634331 100%);
+            border: 3.5px solid #5a3d28;
+            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 3px;
+            box-sizing: border-box;
+            transition: transform 0.1s, background 0.2s;
+        }
+        .maddie-hole:active {
+            transform: scale(0.95);
+            background: radial-gradient(circle, #1a0f0a 30%, #301d14 70%, #4f3426 100%);
+        }
+
+        /* ANIMACIÓN DE POP-UP PARA MADDIE Y POPÓ */
+        @keyframes maddiePopUp {
+            0% { transform: translateY(100%) scale(0.6); opacity: 0; }
+            70% { transform: translateY(-5%) scale(1.05); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .animate-pop-up {
+            animation: maddiePopUp 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.18) forwards;
+            will-change: transform, opacity;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen pb-12">
+
+    <!-- CABECERA -->
+    <header class="bg-[#52582f] text-white py-6 px-4 text-center shadow-md relative">
+        <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white font-semibold py-1 px-3 rounded-full text-xs transition">
+            ← Volver
+        </a>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide">ARCADE DE LOS CHICOS</h1>
+        <p class="text-xs text-olivo-claro/80 mt-1">Supera las metas para ganar un premio el día de la boda</p>
+    </header>
+
+    <!-- PANEL DEL USUARIO -->
+    <div class="max-w-4xl mx-auto mt-6 px-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎮</span>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p>
+                    <div class="flex items-center gap-2">
+                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-xl md:text-2xl font-monogram">Cargando...</span>
+                        <button onclick="changeGamerTagPrompt()" class="text-xs text-blue-500 hover:underline">Editar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTADOR CHI-COINS -->
+            <div class="bg-amber-50 border border-amber-200/80 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-xs">
+                <span class="text-2xl">🪙</span>
+                <div>
+                    <p class="text-[10px] text-amber-700 font-bold uppercase tracking-wider">Tus ChiCoins</p>
+                    <p id="totalChiCoinsDisplay" class="text-xl md:text-2xl font-extrabold text-amber-900 font-monogram">0 🪙</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="openLeaderboardModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm">
+                    <span>🏆</span> Tabla de Líderes
+                </button>
+                <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-3 py-2 rounded-xl text-xs font-semibold text-center transition-all duration-300">
+                    Cargando...
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE JUEGOS (MENÚ PRINCIPAL) -->
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" id="gamesMenu">
+            
+            <!-- JUEGO 1: EL CHICO (Con iconos reales en la descripción) -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🦖</span>
+                        <span id="badge-chico" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chicosaurio</h3>
+                    <p class="text-gray-500 text-sm mt-2 leading-relaxed">
+                        Ayuda a Chicosaurio (🦖) a saltar juntas 
+                        <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendario">, 
+                        alarmas 
+                        <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarma"> 
+                        y emails 
+                        <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
+                        y atrapa los controles de videojuegos 
+                        <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
+                        en el camino.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chico">0</span> pts / <span class="text-olivo-base font-bold">100 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-chico">0</span> ChiCoins</p>
+                    </div>
+                    <button onclick="openGame('chico')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 2: LA CHICA -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">👰🏻</span>
+                        <span id="badge-chica" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de la Chica: Atrapa el Amor</h3>
+                    <p class="text-gray-500 text-sm mt-2">Mueve a la Novia (👰🏻) para atrapar corazones (💖) y anillos de compromiso (💍) antes de que caigan. ¡Esquiva las tormentas eléctricas (🌩️)!</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chica">0</span> pts / <span class="text-olivo-base font-bold">15 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-chica">0</span> ChiCoins</p>
+                    </div>
+                    <button onclick="openGame('chica')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 3: MADDIE -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🐶</span>
+                        <span id="badge-maddie" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de Maddie: ¡Atrapa a la perrita!</h3>
+                    <p class="text-gray-500 text-sm mt-2">Maddie (🐶) asoma la cabeza por los hoyos de su jardín. Pon a prueba tus reflejos y atrápala en 30 segundos. ¡Evita las popós (💩)!</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-maddie">0</span> clics / <span class="text-olivo-base font-bold">20 clics</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-maddie">0</span> ChiCoins</p>
+                    </div>
+                    <button onclick="openGame('maddie')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 4: CAMINO A PUEBLA -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🚗</span>
+                        <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: OutRun Retro</h3>
+                    <p class="text-gray-500 text-sm mt-2">Conduce un auto deportivo rumbo a Cholula esquivando tráfico (🚙/🚕), baches (🕳️) y obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Récord / Meta</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-puebla">0</span> pts / <span class="text-olivo-base font-bold">80 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-puebla">0</span> ChiCoins</p>
+                    </div>
+                    <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE REGISTRO GAMERTAG -->
+    <div id="gamertagModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <span class="text-4xl">👾</span>
+            <h2 class="text-xl font-extrabold text-olivo-base mt-4">¡Ingresa tu GamerTag!</h2>
+            <p class="text-gray-500 text-xs mt-2">Para poder registrar tus récords locales en el navegador, por favor ingresa un nombre o apodo único.</p>
+            <input type="text" id="gamertagInput" maxlength="15" placeholder="Tu Apodo / Nombre" class="w-full mt-4 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition">
+            <button onclick="saveGamerTag()" class="w-full mt-4 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition">Comenzar a Jugar</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE TABLA DE LÍDERES EN VIVO -->
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl">🏆</span>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-olivo-base">Tabla de Líderes Nupcial</h2>
+                        <p class="text-xs text-gray-400 font-semibold">Ranking de ChiCoins 🪙 en tiempo real</p>
+                    </div>
+                </div>
+                <button onclick="closeLeaderboardModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold p-1">✕</button>
+            </div>
+
+            <div class="overflow-y-auto my-4 flex-1 pr-1">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-xs text-gray-400 uppercase border-b border-gray-100 pb-2">
+                            <th class="py-2">Pos</th>
+                            <th class="py-2">Jugador</th>
+                            <th class="py-2 text-right">ChiCoins 🪙</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody" class="divide-y divide-gray-50">
+                        <tr>
+                            <td colspan="3" class="py-6 text-center text-gray-400 italic">Cargando la tabla de posiciones...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+                <span>🟢 Actualización en vivo</span>
+                <button onclick="closeLeaderboardModal()" class="bg-[#52582f] text-white px-5 py-2 rounded-xl font-bold hover:bg-opacity-90 transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CONTENEDOR DE JUEGOS EN PANTALLA COMPLETA -->
+    <div id="gameContainer" class="fixed inset-0 bg-black/95 z-40 hidden flex flex-col justify-between p-4">
+        <div class="flex justify-between items-center text-white pb-2 border-b border-white/10">
+            <div class="flex items-center gap-2">
+                <span id="activeGameIcon" class="text-xl">🎮</span>
+                <span id="activeGameTitle" class="font-bold text-sm">Cargando Juego...</span>
+            </div>
+            <button onclick="closeActiveGame()" class="text-white hover:text-red-400 font-bold px-2 py-1 text-sm bg-white/10 rounded-lg">✕ Salir</button>
+        </div>
+
+        <!-- ÁREA INTERNA DEL JUEGO -->
+        <div class="flex-grow flex flex-col justify-center items-center relative my-4 w-full">
+            
+            <!-- Contenedor del Gabinete Arcade con scanlines CRT -->
+            <div id="crtWrapper" class="relative max-w-full rounded-2xl overflow-hidden shadow-2xl bg-gray-900 border border-white/10 w-[360px] h-[480px] flex flex-col items-center justify-center crt-container">
+                
+                <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
+                <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 w-full h-full hidden relative z-1"></canvas>
+
+                <!-- Contenedor para Maddie (con marco de jardín de madera y césped) -->
+                <div id="maddieContainer" class="hidden flex flex-col items-center justify-between w-full h-full p-3.5 relative z-1 select-none" style="background: radial-gradient(ellipse at 50% 25%, #3d8b40 0%, #256b29 55%, #134217 100%);">
+                    <!-- ENCABEZADO: TÍTULO Y MARCADOR -->
+                    <div class="w-full flex flex-col items-center pointer-events-none">
+                        <div class="w-full flex justify-center items-center px-1 mb-1 text-[11px] font-bold text-white/80 opacity-70">
+                            <span class="tracking-widest uppercase">🌿 Jardín de Maddie</span>
+                        </div>
+                        <div id="maddieScoreboard" class="text-center select-none font-monogram text-white/95 text-lg md:text-xl tracking-widest bg-black/40 px-5 py-0.5 rounded-lg border border-white/10 shadow-inner">
+                            HI <span id="maddieHighScore" class="font-bold text-[#f1c40f]">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold text-white">00000</span>
+                        </div>
+                    </div>
+
+                    <!-- CAJA DE ARENA / MADRIGUERA (ÁREA INTERACTIVA CON TAMAÑO FIJO INMUTABLE) -->
+                    <div class="p-2.5 rounded-2xl bg-[#2a170e]/80 border-4 border-[#795548] shadow-2xl my-auto w-[290px] h-[290px] min-w-[290px] min-h-[290px] flex items-center justify-center">
+                        <div id="maddieGrid" class="grid grid-cols-4 grid-rows-4 gap-2 w-full h-full">
+                            <!-- Se generará dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- PIE ILUSTRATIVO DECORATIVO (NO CLICKEABLE) -->
+                    <div class="w-full flex justify-center items-center gap-6 py-0.5 text-xs text-white/60 pointer-events-none select-none tracking-widest font-monogram">
+                        <span>🐾 TOCA A MADDIE CUANDO ASOME 🐾</span>
+                    </div>
+                </div>
+
+                <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO (FONDO GRIS OSCURO) -->
+                <div id="gameOverlay" class="absolute inset-0 bg-[#151719] flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl z-2">
+                    
+                    <!-- G A M E   O V E R  DIBUJADO CON FUENTE RETRO MONOGRAM -->
+                    <div id="gameOverTitleContainer" class="hidden mb-6 text-center select-none pointer-events-none">
+                        <h2 class="text-4xl md:text-5xl font-monogram font-bold tracking-widest text-[#e74c3c] animate-pulse">GAME OVER</h2>
+                    </div>
+
+                    <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
+                    <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/15 p-4 rounded-2xl w-64 shadow-sm text-gray-200">
+                        <p class="text-xs md:text-sm tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
+                        <p id="overlayFinalScore" class="text-6xl md:text-7xl font-extrabold text-[#a3ad73] font-monogram my-2">00000</p>
+                        <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
+                        <p id="overlayChiCoinsEarned" class="text-base md:text-lg font-bold text-amber-300 font-monogram mt-2 border-t border-white/10 pt-2">🪙 +0 ChiCoins</p>
+                    </div>
+                    
+                    <!-- Instrucciones y mensaje de fin (Soporta imágenes reales dinámicas) -->
+                    <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-8 text-gray-300 leading-relaxed font-monogram"></p>
+                    
+                    <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Corregida la desaparición del botón de texto) -->
+                    <div id="restartBtnContainer" class="flex flex-col items-center gap-4 mt-2">
+                        <!-- Icono circular original de Dino -->
+                        <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[54px] h-[48px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                        
+                        <!-- Botón de texto para iniciar y reiniciar de forma segura -->
+                        <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
+                            Jugar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Capa de líneas CRT Scanlines -->
+                <div class="crt-screen absolute inset-0 pointer-events-none z-10 rounded-2xl"></div>
+            </div>
+        </div>
+
+        <!-- Barra inferior informativa -->
+        <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center text-white text-xs font-monogram text-sm">
+            <div>
+                <p class="text-gray-400 uppercase font-semibold">Marcador Actual</p>
+                <p class="text-lg md:text-xl font-extrabold text-olivo-claro font-monogram" id="currentGameScore">00000</p>
+            </div>
+            <div class="text-center">
+                <p class="text-gray-400 uppercase font-semibold">GamerTag</p>
+                <p class="text-lg md:text-xl font-extrabold text-olivo-claro font-monogram" id="bottomGamerTag">Jugador</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400 uppercase font-semibold">Estado</p>
+                <p class="text-sm md:text-base font-bold font-monogram" id="currentGameState">Listo para iniciar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GLOBAL Y LÓGICA DE JUEGOS -->
+    <script>
+        // CONFIGURACIÓN DE METAS (Score targets)
+        const METAS = {
+            chico: 100,
+            chica: 15,
+            maddie: 20,
+            puebla: 80
+        };
+
+        let playerGamertag = "";
+        let activeGame = null;
+        let gameInterval = null;
+        let score = 0;
+        let gameRunning = false;
+
+        // SPRITES E IMÁGENES DEL JUEGO DINO
+        const sprite = new Image();
+        sprite.src = 'SpritesNecesarios/sprites.png';
+
+        // CARGA DE SPRITES EN PNG
+        const imgCalendar = new Image();
+        imgCalendar.src = 'SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png';
+
+        const imgClock = new Image();
+        imgClock.src = 'SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png';
+
+        const imgEmail = new Image();
+        imgEmail.src = 'SpritesNecesarios/Software_Email_Message_Unread_Closed.png';
+
+        const imgGamepad = new Image();
+        imgGamepad.src = 'SpritesNecesarios/Controller_Gamepad.png';
+
+        // SPRITES PARA JUEGO 2: LA CHICA
+        const imgChicaCrown = new Image();
+        imgChicaCrown.src = 'SpritesNecesarios/Hats_Crown_Queen_Tiara.png';
+
+        const imgChicaHeart = new Image();
+        imgChicaHeart.src = 'SpritesNecesarios/Boardgames_Card_Suit_Hearts.png';
+
+        const imgChicaRing = new Image();
+        imgChicaRing.src = 'ImagenesWeb/icono_anillo_compromiso.png';
+
+        const imgChicaCloud = new Image();
+        imgChicaCloud.src = 'SpritesNecesarios/Weather_Thunderstorm_Cloud_Lightning_Zap.png';
+
+        // SPRITES PARA JUEGO 3: MADDIE
+        const imgMaddiePoop = new Image();
+        imgMaddiePoop.src = 'SpritesNecesarios/Emoji_Poop_Shite_Doodoo_Poopoo_Brown_Mousse_Cream_Creme.png';
+
+        // SPRITES PARA JUEGO 4: PUEBLA
+        const imgPueblaCar = new Image();
+        imgPueblaCar.src = 'SpritesNecesarios/Travel_Veichle_Car_1.png';
+
+        const imgPueblaTraffic = new Image();
+        imgPueblaTraffic.src = 'SpritesNecesarios/Travel_Veichle_Car_2.png';
+
+        const imgPueblaHeart = new Image();
+        imgPueblaHeart.src = 'SpritesNecesarios/RPG_Stat_HP_Health_Heart_Small.png';
+
+        const imgPueblaMap = new Image();
+        imgPueblaMap.src = 'SpritesNecesarios/Map_Markers_Travel_Map_Folded.png';
+
+        const imgPueblaPothole = new Image();
+        imgPueblaPothole.src = 'SpritesNecesarios/Map_Markers_Hole_Trap.png';
+
+        const imgPueblaBarrier = new Image();
+        imgPueblaBarrier.src = 'SpritesNecesarios/Map_Markers_Building_Stone_Wall_Fortification.png';
+
+        // PAISAJE DINÁMICO PARA CAMINO A PUEBLA
+        const imgSceneryTree = new Image();
+        imgSceneryTree.src = 'SpritesNecesarios/Map_Markers_Tree_Forest_Pine.png';
+
+        const imgSceneryCactus = new Image();
+        imgSceneryCactus.src = 'SpritesNecesarios/Map_Markers_Cactus_Desert.png';
+
+        const imgSceneryLamp = new Image();
+        imgSceneryLamp.src = 'SpritesNecesarios/Map_Markers_Building_Lamp_Post_1.png';
+
+        const imgSceneryChurch = new Image();
+        imgSceneryChurch.src = 'SpritesNecesarios/Map_Markers_Building_Church_Faith_Temple.png';
+
+        // Comprobaciones de error de carga para los sprites
+        const handleImageError = (name, src) => {
+            console.error(`ERROR: No se pudo cargar el sprite '${name}' en: ${src}`);
+        };
+        sprite.onerror = () => handleImageError('sprites.png', sprite.src);
+        imgCalendar.onerror = () => handleImageError('Calendar.png', imgCalendar.src);
+        imgClock.onerror = () => handleImageError('Clock.png', imgClock.src);
+        imgEmail.onerror = () => handleImageError('Email.png', imgEmail.src);
+        imgGamepad.onerror = () => handleImageError('Gamepad.png', imgGamepad.src);
+
+        imgChicaCrown.onerror = () => handleImageError('Hats_Crown_Queen_Tiara.png', imgChicaCrown.src);
+        imgChicaHeart.onerror = () => handleImageError('Boardgames_Card_Suit_Hearts.png', imgChicaHeart.src);
+        imgChicaRing.onerror = () => handleImageError('icono_anillo_compromiso.png', imgChicaRing.src);
+        imgChicaCloud.onerror = () => handleImageError('Weather_Thunderstorm_Cloud_Lightning_Zap.png', imgChicaCloud.src);
+        imgMaddiePoop.onerror = () => handleImageError('Emoji_Poop.png', imgMaddiePoop.src);
+        imgPueblaCar.onerror = () => handleImageError('Travel_Veichle_Car_1.png', imgPueblaCar.src);
+        imgPueblaTraffic.onerror = () => handleImageError('Travel_Veichle_Car_2.png', imgPueblaTraffic.src);
+        imgPueblaHeart.onerror = () => handleImageError('RPG_Stat_HP_Health_Heart_Small.png', imgPueblaHeart.src);
+        imgPueblaMap.onerror = () => handleImageError('Map_Markers_Travel_Map_Folded.png', imgPueblaMap.src);
+        imgPueblaPothole.onerror = () => handleImageError('Map_Markers_Hole_Trap.png', imgPueblaPothole.src);
+        imgPueblaBarrier.onerror = () => handleImageError('Map_Markers_Building_Stone_Wall_Fortification.png', imgPueblaBarrier.src);
+        imgSceneryTree.onerror = () => handleImageError('Tree.png', imgSceneryTree.src);
+        imgSceneryCactus.onerror = () => handleImageError('Cactus.png', imgSceneryCactus.src);
+        imgSceneryLamp.onerror = () => handleImageError('Lamp.png', imgSceneryLamp.src);
+        imgSceneryChurch.onerror = () => handleImageError('Church.png', imgSceneryChurch.src);
+
+        // AUDIO CONTEXT NATIVO DE 8-BITS
+        let audioCtx = null;
+
+        function initAudio() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            } catch (e) {
+                console.warn("No se pudo iniciar AudioContext:", e);
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+
+                if (type === 'bark') {
+                    // Ladrido alegre y simpático de perrito ("Woof!")
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const barkGain = audioCtx.createGain();
+                    
+                    osc1.type = 'triangle';
+                    osc2.type = 'sine';
+                    
+                    osc1.frequency.setValueAtTime(460, now);
+                    osc1.frequency.exponentialRampToValueAtTime(740, now + 0.04);
+                    osc1.frequency.exponentialRampToValueAtTime(320, now + 0.12);
+                    
+                    osc2.frequency.setValueAtTime(230, now);
+                    osc2.frequency.exponentialRampToValueAtTime(370, now + 0.04);
+                    osc2.frequency.exponentialRampToValueAtTime(160, now + 0.12);
+
+                    barkGain.gain.setValueAtTime(0.18, now);
+                    barkGain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
+                    
+                    osc1.connect(barkGain);
+                    osc2.connect(barkGain);
+                    barkGain.connect(audioCtx.destination);
+                    
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.13);
+                    osc2.stop(now + 0.13);
+                    return;
+                } else if (type === 'car_rev') {
+                    // Sonido potente y auténtico de acelerón / rev de motor de auto deportivo ("VRROOOM!")
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const engineGain = audioCtx.createGain();
+                    const filter = audioCtx.createBiquadFilter();
+                    
+                    // Doble oscilador en diente de sierra con desfase para el rugido mecánico de cilindros
+                    osc1.type = 'sawtooth';
+                    osc2.type = 'sawtooth';
+                    osc2.detune.setValueAtTime(24, now);
+
+                    // Barrido de revoluciones del motor (RPM surge)
+                    osc1.frequency.setValueAtTime(75, now);
+                    osc1.frequency.exponentialRampToValueAtTime(240, now + 0.08);
+                    osc1.frequency.exponentialRampToValueAtTime(110, now + 0.22);
+
+                    osc2.frequency.setValueAtTime(76, now);
+                    osc2.frequency.exponentialRampToValueAtTime(245, now + 0.08);
+                    osc2.frequency.exponentialRampToValueAtTime(112, now + 0.22);
+
+                    // Filtro paso-banda resonante para simular el tubo de escape rugiendo
+                    filter.type = 'bandpass';
+                    filter.Q.setValueAtTime(2.2, now);
+                    filter.frequency.setValueAtTime(320, now);
+                    filter.frequency.exponentialRampToValueAtTime(1450, now + 0.08);
+                    filter.frequency.exponentialRampToValueAtTime(450, now + 0.22);
+
+                    // Envolvente de volumen (ataque rápido y corte limpio)
+                    engineGain.gain.setValueAtTime(0.01, now);
+                    engineGain.gain.linearRampToValueAtTime(0.24, now + 0.03);
+                    engineGain.gain.linearRampToValueAtTime(0.18, now + 0.12);
+                    engineGain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(engineGain);
+                    engineGain.connect(audioCtx.destination);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.22);
+                    osc2.stop(now + 0.22);
+                    return;
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'jump') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'hit') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(60, now + 0.4);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'coin') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.setValueAtTime(0.1, now + 0.08);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'score') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(987.77, now); // B5
+                    osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {
+                console.warn("Falla en sintetizador Web Audio API:", e);
+            }
+        }
+
+        // ELEMENTOS DEL DOM
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const gameOverlay = document.getElementById("gameOverlay");
+        const overlayInstructions = document.getElementById("overlayInstructions");
+        const startGameBtn = document.getElementById("startGameBtn");
+        const maddieGrid = document.getElementById("maddieGrid");
+        const overlayScoreBox = document.getElementById("overlayScoreBox");
+        const overlayFinalScore = document.getElementById("overlayFinalScore");
+        const overlayMetaCompare = document.getElementById("overlayMetaCompare");
+        const maddieScoreboard = document.getElementById("maddieScoreboard");
+        const currentGameState = document.getElementById("currentGameState");
+        const currentGameScore = document.getElementById("currentGameScore");
+
+        // ==========================================
+        // CONFIGURACIÓN E INTEGRACIÓN DE FIREBASE REALTIME DB
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB66MnDDjpH7XILpVqfh2JLFz0nrPnTcSQ",
+            authDomain: "boda-los-chicos.firebaseapp.com",
+            databaseURL: "https://boda-los-chicos-default-rtdb.firebaseio.com",
+            projectId: "boda-los-chicos",
+            storageBucket: "boda-los-chicos.firebasestorage.app",
+            messagingSenderId: "898026641890",
+            appId: "1:898026641890:web:6467dc77ffeda37d5581bb",
+            measurementId: "G-FB0N5FTMJZ"
+        };
+
+        if (typeof firebase !== "undefined" && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = (typeof firebase !== "undefined") ? firebase.database() : null;
+
+        // FÓRMULA LOGARÍTMICA DE CHI-COINS (1,000 base al cumplir la meta, +50% al 2x de la meta, curva logarítmica)
+        function calculateGameChiCoins(gameKey, scoreVal) {
+            const target = METAS[gameKey] || 100;
+            if (!scoreVal || scoreVal <= 0) return 0;
+            if (scoreVal < target) {
+                return Math.floor((scoreVal / target) * 1000);
+            }
+            const extraRatio = (scoreVal - target) / target;
+            const extraCoins = Math.floor(500 * Math.log(1 + 1.718281828459 * extraRatio));
+            return 1000 + extraCoins;
+        }
+
+        function getChiCoins(gameKey) {
+            const scoreVal = getScore(gameKey);
+            return calculateGameChiCoins(gameKey, scoreVal);
+        }
+
+        function getTotalChiCoins() {
+            let sum = 0;
+            Object.keys(METAS).forEach(g => {
+                sum += getChiCoins(g);
+            });
+            const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            return sum + bonus;
+        }
+
+        function syncPlayerToFirebase() {
+            if (!db || !playerGamertag || !playerGamertag.trim()) return;
+            const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+            
+            const scoresObj = {};
+            const coinsObj = {};
+            let total = 0;
+            
+            Object.keys(METAS).forEach(g => {
+                const s = getScore(g);
+                const c = calculateGameChiCoins(g, s);
+                scoresObj[g] = s;
+                coinsObj[g] = c;
+                total += c;
+            });
+
+            const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            total += bonus;
+
+            db.ref("players/" + keyTag).update({
+                gamerTag: playerGamertag.trim(),
+                scores: scoresObj,
+                chiCoins: coinsObj,
+                bonusCoins: bonus,
+                totalChiCoins: total,
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            }).catch(err => console.error("Error al sincronizar con Firebase:", err));
+        }
+
+        function openLeaderboardModal() {
+            document.getElementById("leaderboardModal").classList.remove("hidden");
+            listenToLeaderboard();
+        }
+
+        function closeLeaderboardModal() {
+            document.getElementById("leaderboardModal").classList.add("hidden");
+        }
+
+        function listenToLeaderboard() {
+            const tbody = document.getElementById("leaderboardTableBody");
+            if (!db) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Conectando a Firebase...</td></tr>`;
+                return;
+            }
+            db.ref("players").orderByChild("totalChiCoins").limitToLast(30).on("value", (snapshot) => {
+                const val = snapshot.val() || {};
+                const list = Object.values(val).sort((a, b) => (b.totalChiCoins || 0) - (a.totalChiCoins || 0));
+                
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Aún no hay récords registrados. ¡Sé el primero!</td></tr>`;
+                    return;
+                }
+
+                let html = "";
+                list.forEach((player, idx) => {
+                    let posBadge = `<span class="font-bold text-gray-500">${idx + 1}</span>`;
+                    if (idx === 0) posBadge = `<span class="text-xl">🥇</span>`;
+                    else if (idx === 1) posBadge = `<span class="text-xl">🥈</span>`;
+                    else if (idx === 2) posBadge = `<span class="text-xl">🥉</span>`;
+
+                    const isCurrent = player.gamerTag === playerGamertag;
+                    const rowClass = isCurrent ? "bg-amber-50 font-bold text-amber-900" : "";
+
+                    html += `
+                        <tr class="${rowClass} hover:bg-gray-50 transition">
+                            <td class="py-2.5 px-2">${posBadge}</td>
+                            <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || 'Anónimo'} ${isCurrent ? ' (Tú)' : ''}</td>
+                            <td class="py-2.5 px-2 text-right font-monogram font-bold text-amber-800 text-base">${(player.totalChiCoins || 0).toLocaleString()} 🪙</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            });
+        }
+
+        // INICIALIZACIÓN
+        document.addEventListener("DOMContentLoaded", () => {
+            checkGamertag();
+            updateScoresDashboard();
+        });
+
+        function checkGamertag() {
+            const saved = localStorage.getItem("bodachicos_gamertag");
+            if (!saved) {
+                document.getElementById("gamertagModal").classList.remove("hidden");
+            } else {
+                playerGamertag = saved;
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+                document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                syncPlayerToFirebase();
+            }
+        }
+
+        function saveGamerTag() {
+            const val = document.getElementById("gamertagInput").value.trim();
+            if (val) {
+                localStorage.setItem("bodachicos_gamertag", val);
+                playerGamertag = val;
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+                document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                document.getElementById("gamertagModal").classList.add("hidden");
+                updateScoresDashboard();
+            }
+        }
+
+        function changeGamerTagPrompt() {
+            const val = prompt("Ingresa tu nuevo GamerTag:", playerGamertag);
+            if (val && val.trim()) {
+                localStorage.setItem("bodachicos_gamertag", val.trim());
+                playerGamertag = val.trim();
+                document.getElementById("playerGamertag").innerText = playerGamertag;
+                document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                updateScoresDashboard();
+            }
+        }
+
+        function getScore(game) {
+            return parseInt(localStorage.getItem("bodachicos_score_" + game) || "0");
+        }
+
+        function saveScore(game, newScore) {
+            const current = getScore(game);
+            if (newScore > current) {
+                localStorage.setItem("bodachicos_score_" + game, newScore);
+            }
+        }
+
+        function updateScoresDashboard() {
+            let totalMetasSuperadas = 0;
+
+            Object.keys(METAS).forEach(game => {
+                const gameScore = getScore(game);
+                const target = METAS[game];
+                const coinsEarned = calculateGameChiCoins(game, gameScore);
+
+                document.getElementById("score-" + game).innerText = gameScore;
+                const coinsEl = document.getElementById("chicoins-" + game);
+                if (coinsEl) coinsEl.innerText = coinsEarned.toLocaleString();
+
+                const badge = document.getElementById("badge-" + game);
+                if (gameScore >= target) {
+                    badge.innerText = "¡Completado! ✓";
+                    badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-green-100 text-green-700 font-monogram text-sm";
+                    totalMetasSuperadas++;
+                } else {
+                    badge.innerText = "Pendiente";
+                    badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-yellow-100 text-yellow-700 font-monogram text-sm";
+                }
+            });
+
+            const grandTotalCoins = getTotalChiCoins();
+            const totalDisplay = document.getElementById("totalChiCoinsDisplay");
+            if (totalDisplay) totalDisplay.innerText = grandTotalCoins.toLocaleString() + " 🪙";
+
+            const prizeStatus = document.getElementById("prizeStatus");
+            if (totalMetasSuperadas === 4) {
+                prizeStatus.innerHTML = "🏆 ¡Premio Desbloqueado! Toma una captura y canjéala el día de la boda.";
+                prizeStatus.className = "bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md font-monogram";
+            } else {
+                prizeStatus.innerHTML = `Progreso: ${totalMetasSuperadas}/4 metas`;
+                prizeStatus.className = "bg-gray-100 text-gray-500 px-3 py-2 rounded-xl text-xs font-semibold text-center";
+            }
+
+            syncPlayerToFirebase();
+        }
+
+        // DIBUJADO DE MARCADORES RETRO EN CANVAS (FUENTES MONOGRAM)
+        function drawRetroScore(ctx, score, x, y) {
+            ctx.save();
+            ctx.font = "24px 'Monogram'";
+            ctx.fillStyle = "#ffcc00"; // Amarillo Pac-Man
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 3.5;
+            ctx.textAlign = "right";
+            
+            // Texto superior
+            ctx.strokeText("1P SCORE", x, y);
+            ctx.fillText("1P SCORE", x, y);
+            
+            // Marcador
+            const padded = score.toString().padStart(5, '0');
+            ctx.strokeText(padded, x, y + 16);
+            ctx.fillText(padded, x, y + 16);
+            ctx.restore();
+        }
+
+        function openGame(game) {
+            activeGame = game;
+            document.getElementById("gameContainer").classList.remove("hidden");
+            document.body.style.overflow = "hidden"; // Deshabilita scroll de fondo
+
+            const gameTitles = {
+                chico: "Chicosaurio",
+                chica: "Atrapa el Amor",
+                maddie: "Atrapa a Maddie",
+                puebla: "Camino a Puebla: OutRun 80s"
+            };
+            const gameIcons = { chico: "🦖", chica: "👸", maddie: "🐶", puebla: "🚗" };
+
+            document.getElementById("activeGameTitle").innerText = gameTitles[game];
+            document.getElementById("activeGameIcon").innerText = gameIcons[game];
+            
+            resetGameUI();
+        }
+
+        function resetGameUI() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            score = 0;
+            
+            currentGameState.innerText = "Esperando inicio";
+            currentGameScore.innerText = "00000";
+
+            canvas.classList.add("hidden");
+            document.getElementById("maddieContainer").classList.add("hidden");
+            gameOverlay.classList.remove("hidden");
+            overlayScoreBox.classList.add("hidden"); 
+            
+            // Escondemos los elementos gráficos de Game Over
+            document.getElementById("gameOverTitleContainer").classList.add("hidden");
+            document.getElementById("restartSpriteCanvas").classList.add("hidden");
+            
+            // Restauramos el botón estándar con el texto original
+            const startBtn = document.getElementById("startGameBtn");
+            startBtn.innerText = "Jugar";
+            startBtn.classList.remove("hidden");
+            startBtn.onclick = startActiveGame;
+
+            const targetScore = METAS[activeGame];
+            let inst = "";
+            if (activeGame === 'chico') {
+                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
+            } else if (activeGame === 'chica') {
+                inst = `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos de compromiso (💍). ¡Esquiva las tormentas eléctricas (🌩️)!<br>Meta: ${targetScore} pts.`;
+            } else if (activeGame === 'maddie') {
+                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los hoyos de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
+            } else if (activeGame === 'puebla') {
+                inst = `Usa las flechas ⬅️ / ➡️ o toca la pantalla para conducir a Puebla. Esquiva baches (🕳️), obras (🚧) y tráfico (🚙/🚕). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
+            }
+            
+            overlayInstructions.innerHTML = inst; 
+        }
+
+        function closeActiveGame() {
+            clearInterval(gameInterval);
+            gameRunning = false;
+
+            canvas.onclick = null;
+            canvas.ontouchstart = null;
+            canvas.onmousemove = null;
+            canvas.ontouchmove = null;
+
+            if (chicoKeyDownHandler) {
+                window.removeEventListener("keydown", chicoKeyDownHandler);
+                chicoKeyDownHandler = null;
+            }
+            if (chicoKeyUpHandler) {
+                window.removeEventListener("keyup", chicoKeyUpHandler);
+                chicoKeyUpHandler = null;
+            }
+            if (pueblaKeyDownHandler) {
+                window.removeEventListener("keydown", pueblaKeyDownHandler);
+                pueblaKeyDownHandler = null;
+            }
+            if (maddieTimer) {
+                clearTimeout(maddieTimer);
+                maddieTimer = null;
+            }
+
+            document.getElementById("gameContainer").classList.add("hidden");
+            document.body.style.overflow = ""; 
+            updateScoresDashboard();
+        }
+
+        function startActiveGame() {
+            initAudio(); 
+            gameOverlay.classList.add("hidden");
+            gameRunning = true;
+            score = 0;
+            currentGameState.innerText = "Jugando";
+
+            if (activeGame === 'chico') {
+                canvas.classList.remove("hidden");
+                initChicoGame();
+            } else if (activeGame === 'chica') {
+                canvas.classList.remove("hidden");
+                initChicaGame();
+            } else if (activeGame === 'maddie') {
+                document.getElementById("maddieContainer").classList.remove("hidden");
+                initMaddieGame();
+            } else if (activeGame === 'puebla') {
+                canvas.classList.remove("hidden");
+                initPueblaGame();
+            }
+        }
+
+        // RECORTE DE RESTART EN CANVASES
+        function drawGameOverOverlaySprites() {
+            const restartCanvas = document.getElementById("restartSpriteCanvas");
+            if (!restartCanvas) return;
+            const rCtx = restartCanvas.getContext("2d");
+            rCtx.clearRect(0, 0, restartCanvas.width, restartCanvas.height);
+
+            if (sprite.complete && sprite.naturalWidth !== 0) {
+                rCtx.drawImage(sprite, 2, 2, 72, 64, 0, 0, 72, 64);
+            } else {
+                rCtx.fillStyle = "#ffffff";
+                rCtx.font = "bold 24px sans-serif";
+                rCtx.textAlign = "center";
+                rCtx.fillText("🔄", 36, 40);
+            }
+        }
+
+        function gameOver(finalScore) {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            saveScore(activeGame, finalScore);
+            playSound('hit'); 
+
+            if (chicoKeyDownHandler) {
+                window.removeEventListener("keydown", chicoKeyDownHandler);
+                chicoKeyDownHandler = null;
+            }
+            if (chicoKeyUpHandler) {
+                window.removeEventListener("keyup", chicoKeyUpHandler);
+                chicoKeyUpHandler = null;
+            }
+            if (pueblaKeyDownHandler) {
+                window.removeEventListener("keydown", pueblaKeyDownHandler);
+                pueblaKeyDownHandler = null;
+            }
+            if (maddieTimer) {
+                clearTimeout(maddieTimer);
+                maddieTimer = null;
+            }
+            
+            const meta = METAS[activeGame];
+            const coinsEarned = calculateGameChiCoins(activeGame, finalScore);
+            
+            // Mostrar los contenedores gráficos del Game Over clásico
+            document.getElementById("gameOverTitleContainer").classList.remove("hidden");
+            overlayScoreBox.classList.remove("hidden");
+            overlayFinalScore.innerText = finalScore.toString().padStart(5, '0');
+            overlayMetaCompare.innerText = `Meta requerida: ${meta} ${activeGame === 'maddie' ? 'clics' : 'pts'}`;
+            
+            const coinsEarnedEl = document.getElementById("overlayChiCoinsEarned");
+            if (coinsEarnedEl) {
+                coinsEarnedEl.innerText = `🪙 +${coinsEarned.toLocaleString()} ChiCoins`;
+            }
+            
+            // Dibujar sobre los lienzos usando sprites.png (con coordenadas corregidas)
+            drawGameOverOverlaySprites();
+
+            // SOLUCIÓN: El botón de texto para reiniciar cambia de texto y se MANTIENE visible debajo del icono
+            const startBtn = document.getElementById("startGameBtn");
+            startBtn.innerText = "Jugar de nuevo";
+            startBtn.classList.remove("hidden");
+            startBtn.onclick = startActiveGame;
+            
+            // También hacemos clickeable el icono circular de reinicio
+            const restartCanvas = document.getElementById("restartSpriteCanvas");
+            restartCanvas.classList.remove("hidden");
+            restartCanvas.onclick = startActiveGame;
+            
+            let resultMessage = "";
+            if (finalScore >= meta) {
+                resultMessage = `🎉 ¡Reto superado con éxito! Lograste sobrepasar el objetivo.`;
+                currentGameState.innerText = "¡Meta lograda!";
+            } else {
+                const diff = meta - finalScore;
+                resultMessage = `Te quedaste a ${diff} ${activeGame === 'maddie' ? 'clics' : 'puntos'} de alcanzar la meta. ¡No te rindas!`;
+                currentGameState.innerText = "Buen intento";
+            }
+
+            overlayInstructions.innerHTML = resultMessage;
+            gameOverlay.classList.remove("hidden");
+            
+            updateScoresDashboard();
+        }
+
+        // ==========================================
+        // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial HDPI 2x)
+        let memo, obstacles, items, clouds, chicoFrame, chicoSpeed, groundX, lastScoreMilestone, scorePopups;
+        let chicoKeyDownHandler = null;
+        let chicoKeyUpHandler = null;
+        
+        function drawDinoScore(ctx, score, highscore, x, y) {
+            ctx.save();
+            ctx.font = "24px 'Monogram'";
+            ctx.fillStyle = "#535353"; // Gris del dinosaurio de Chrome
+            ctx.textAlign = "right";
+            const scoreStr = score.toString().padStart(5, '0');
+            const hiStr = highscore.toString().padStart(5, '0');
+            ctx.fillText(`HI ${hiStr}  ${scoreStr}`, x, y);
+            ctx.restore();
+        }
+
+        function initChicoGame() {
+            memo = {
+                x: 45,
+                y: 303,
+                width: 44,
+                height: 47,
+                vy: 0,
+                gravity: 1.6,
+                jumpHeight: -17,
+                isGrounded: true
+            };
+            obstacles = [];
+            items = [];
+            clouds = [
+                {x: 120, y: 60, speed: 0.6},
+                {x: 320, y: 90, speed: 0.4}
+            ];
+            chicoFrame = 0;
+            chicoSpeed = 6.0; 
+            groundX = 0;
+            lastScoreMilestone = 0;
+            scorePopups = []; 
+
+            const triggerJump = () => {
+                if (memo.isGrounded) {
+                    memo.vy = memo.jumpHeight;
+                    memo.isGrounded = false;
+                    playSound('jump'); 
+                }
+            };
+
+            const endJump = () => {
+                if (!memo.isGrounded && memo.vy < -7.5) {
+                    memo.vy = -7.5; 
+                }
+            };
+
+            canvas.onmousedown = (e) => {
+                triggerJump();
+            };
+            canvas.onmouseup = () => {
+                endJump();
+            };
+
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                triggerJump();
+            };
+            canvas.ontouchend = (e) => {
+                e.preventDefault();
+                endJump();
+            };
+
+            chicoKeyDownHandler = (e) => {
+                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp") {
+                    e.preventDefault(); 
+                    triggerJump();
+                }
+            };
+            chicoKeyUpHandler = (e) => {
+                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp") {
+                    endJump();
+                }
+            };
+
+            window.addEventListener("keydown", chicoKeyDownHandler);
+            window.addEventListener("keyup", chicoKeyUpHandler);
+
+            gameInterval = setInterval(updateChico, 1000 / 30);
+        }
+
+        function updateChico() {
+            chicoFrame++;
+            
+            // Incremento acelerado más veloz y nuevo tope de velocidad (15.0)
+            if (chicoSpeed < 15.0) {
+                chicoSpeed += 0.004; 
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // CONFIGURACIÓN INICIAL DEL FRAME: El T-rex, el fondo y las nubes requieren pixel art (smoothing = false)
+            ctx.imageSmoothingEnabled = false;
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.msImageSmoothingEnabled = false;
+
+            ctx.fillStyle = "#f7f7f7";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (sprite.complete && sprite.naturalWidth !== 0) {
+                for (let cl of clouds) {
+                    cl.x -= cl.speed;
+                    // Alineación a pixel entero (Math.round) para evitar temblor
+                    ctx.drawImage(sprite, 166, 2, 92, 28, Math.round(cl.x), Math.round(cl.y), 46, 14);
+                    if (cl.x < -50) cl.x = canvas.width + 20;
+                }
+
+                groundX = (groundX + chicoSpeed) % 1200;
+                let roundedGroundX = Math.round(groundX);
+                ctx.drawImage(sprite, 2 + roundedGroundX, 104, 360, 24, 0, 345, 360, 12);
+                if (groundX > 1200 - 360) {
+                    let roundedRest = Math.round(360 - (1200 - groundX));
+                    ctx.drawImage(sprite, 2, 104, roundedRest, 24, 360 - roundedRest, 345, roundedRest, 12);
+                }
+
+                let frameOffset = 1; 
+                if (gameRunning) {
+                    if (memo.isGrounded) {
+                        frameOffset = (Math.floor(chicoFrame / 3) % 2) === 0 ? 2 : 3;
+                    } else {
+                        frameOffset = 0; 
+                    }
+                } else {
+                    frameOffset = 4; 
+                }
+                
+                ctx.drawImage(
+                    sprite, 
+                    1678 + (88 * frameOffset), 2, 
+                    88, 94, 
+                    Math.round(memo.x), Math.round(memo.y), 
+                    memo.width, memo.height
+                );
+            } else {
+                ctx.font = "20px sans-serif";
+                for (let cl of clouds) {
+                    cl.x -= cl.speed;
+                    ctx.fillText("☁️", Math.round(cl.x), Math.round(cl.y));
+                    if (cl.x < -50) cl.x = canvas.width + 20;
+                }
+
+                groundX = (groundX + chicoSpeed) % 360;
+                ctx.strokeStyle = "#535353";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 350);
+                ctx.lineTo(canvas.width, 350);
+                ctx.stroke();
+
+                ctx.font = "32px sans-serif";
+                ctx.fillText("🦖", Math.round(memo.x), Math.round(memo.y) + 35);
+            }
+
+            memo.vy += memo.gravity;
+            memo.y += memo.vy;
+            if (memo.y >= 303) {
+                memo.y = 303;
+                memo.vy = 0;
+                memo.isGrounded = true;
+            }
+
+            let spawnInterval = Math.max(45, 75 - Math.floor(chicoSpeed * 2));
+            
+            // Generar Obstáculos usando los sprites PNG pre-cargados
+            if (chicoFrame % spawnInterval === 0) {
+                let obsTypes = [
+                    { img: imgCalendar, fallback: "📅" },
+                    { img: imgClock, fallback: "⏰" },
+                    { img: imgEmail, fallback: "📩" }
+                ];
+                let randObs = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+                obstacles.push({
+                    x: canvas.width,
+                    y: 312, 
+                    width: 32,
+                    height: 32,
+                    img: randObs.img,
+                    fallback: randObs.fallback
+                });
+            }
+
+            // Generar Controles con menor frecuencia (cada 200 fotogramas)
+            if (chicoFrame % 200 === 0) {
+                items.push({
+                    x: canvas.width,
+                    y: 215 + Math.random() * 60,
+                    width: 30,
+                    height: 30,
+                    img: imgGamepad,
+                    fallback: "🎮"
+                });
+            }
+
+            // Dibujar y procesar Obstáculos ( PNG de Alta Resolución )
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.x -= chicoSpeed;
+                
+                if (obs.img.complete && obs.img.naturalWidth !== 0) {
+                    // Encendemos la interpolación bilineal suave de forma temporal antes de dibujar este sprite de alta resolución
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.drawImage(obs.img, Math.round(obs.x), Math.round(obs.y), obs.width, obs.height);
+                    ctx.imageSmoothingEnabled = false; // Lo apagamos inmediatamente después
+                } else {
+                    ctx.font = "30px sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText(obs.fallback, Math.round(obs.x), Math.round(obs.y) + 26);
+                }
+
+                // Detección de colisión estrecha (AABB)
+                if (obs.x < memo.x + memo.width - 6 &&
+                    obs.x + obs.width > memo.x + 6 &&
+                    obs.y < memo.y + memo.height - 6 &&
+                    obs.y + obs.height > memo.y + 6) {
+                    gameOver(score);
+                    return;
+                }
+                if (obs.x < -40) obstacles.splice(i, 1);
+            }
+
+            // Dibujar y procesar Controles Recolectables
+            for (let i = items.length - 1; i >= 0; i--) {
+                let it = items[i];
+                it.x -= chicoSpeed;
+                
+                if (it.img.complete && it.img.naturalWidth !== 0) {
+                    // Suavizado temporal para encoger el gamepad limpio sin deformaciones
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.drawImage(it.img, Math.round(it.x), Math.round(it.y), it.width, it.height);
+                    ctx.imageSmoothingEnabled = false; 
+                } else {
+                    ctx.font = "26px sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText(it.fallback, Math.round(it.x), Math.round(it.y) + 22);
+                }
+
+                // Detección de recolección de gamepad estrecha
+                if (it.x < memo.x + memo.width - 4 &&
+                    it.x + it.width > memo.x + 4 &&
+                    it.y < memo.y + memo.height - 4 &&
+                    it.y + it.height > memo.y + 4) {
+                    score += 15;
+                    playSound('coin');
+                    
+                    scorePopups.push({
+                        x: it.x + it.width / 2,
+                        y: it.y,
+                        text: "+15",
+                        life: 25 
+                    });
+
+                    items.splice(i, 1);
+                    continue;
+                }
+                if (it.x < -40) items.splice(i, 1);
+            }
+
+            for (let i = scorePopups.length - 1; i >= 0; i--) {
+                let p = scorePopups[i];
+                p.y -= 1.5; 
+                p.life--;
+
+                ctx.save();
+                ctx.font = "20px 'Monogram'";
+                ctx.fillStyle = `rgba(83, 83, 83, ${p.life / 25})`; 
+                ctx.textAlign = "center";
+                ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
+                ctx.restore();
+
+                if (p.life <= 0) {
+                    scorePopups.splice(i, 1);
+                }
+            }
+
+            if (chicoFrame % 5 === 0) {
+                score += 1;
+            }
+
+            if (score > 0 && score % 100 === 0 && score !== lastScoreMilestone) {
+                lastScoreMilestone = score;
+                playSound('score');
+            }
+
+            drawDinoScore(ctx, score, getScore('chico'), canvas.width - 20, 30);
+            currentGameScore.innerText = score.toString().padStart(5, '0');
+        }
+
+        // ==========================================
+        // JUEGO 2: LA CHICA (Atrapa el Amor)
+        let basketX, fallObjects, lives, chicaFrame;
+        const CHICA_LANES = [45, 135, 225, 315]; 
+
+        function drawChurchBackdrop(ctx, w, h) {
+            ctx.save();
+            ctx.strokeStyle = "rgba(180, 100, 125, 0.42)";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            const cx = w / 2;
+            const groundY = 445;
+
+            // Cuerpo principal de la parroquia
+            ctx.fillRect(cx - 75, groundY - 170, 150, 170);
+            ctx.strokeRect(cx - 75, groundY - 170, 150, 170);
+
+            // Puerta con arco
+            ctx.beginPath();
+            ctx.moveTo(cx - 22, groundY);
+            ctx.lineTo(cx - 22, groundY - 55);
+            ctx.arc(cx, groundY - 55, 22, Math.PI, 0);
+            ctx.lineTo(cx + 22, groundY);
+            ctx.stroke();
+
+            // Ventana circular central (Rosetón)
+            ctx.beginPath();
+            ctx.arc(cx, groundY - 120, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(cx, groundY - 120, 7, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Frontón triangular
+            ctx.beginPath();
+            ctx.moveTo(cx - 80, groundY - 170);
+            ctx.lineTo(cx, groundY - 225);
+            ctx.lineTo(cx + 80, groundY - 170);
+            ctx.stroke();
+
+            // Cúpula central
+            ctx.beginPath();
+            ctx.arc(cx, groundY - 180, 42, Math.PI, 0);
+            ctx.stroke();
+
+            // Cruz central
+            ctx.beginPath();
+            ctx.moveTo(cx, groundY - 225);
+            ctx.lineTo(cx, groundY - 250);
+            ctx.moveTo(cx - 8, groundY - 240);
+            ctx.lineTo(cx + 8, groundY - 240);
+            ctx.stroke();
+
+            // Campanario Izquierdo
+            ctx.fillRect(cx - 125, groundY - 215, 42, 215);
+            ctx.strokeRect(cx - 125, groundY - 215, 42, 215);
+            ctx.strokeRect(cx - 115, groundY - 190, 22, 40);
+            ctx.beginPath();
+            ctx.arc(cx - 104, groundY - 172, 6, 0, Math.PI * 2);
+            ctx.stroke();
+            // Techo torre izquierda
+            ctx.beginPath();
+            ctx.moveTo(cx - 130, groundY - 215);
+            ctx.lineTo(cx - 104, groundY - 262);
+            ctx.lineTo(cx - 78, groundY - 215);
+            ctx.closePath();
+            ctx.stroke();
+            // Cruz izquierda
+            ctx.beginPath();
+            ctx.moveTo(cx - 104, groundY - 262);
+            ctx.lineTo(cx - 104, groundY - 278);
+            ctx.moveTo(cx - 110, groundY - 271);
+            ctx.lineTo(cx - 98, groundY - 271);
+            ctx.stroke();
+
+            // Campanario Derecho
+            ctx.fillRect(cx + 83, groundY - 215, 42, 215);
+            ctx.strokeRect(cx + 83, groundY - 215, 42, 215);
+            ctx.strokeRect(cx + 93, groundY - 190, 22, 40);
+            ctx.beginPath();
+            ctx.arc(cx + 104, groundY - 172, 6, 0, Math.PI * 2);
+            ctx.stroke();
+            // Techo torre derecha
+            ctx.beginPath();
+            ctx.moveTo(cx + 78, groundY - 215);
+            ctx.lineTo(cx + 104, groundY - 262);
+            ctx.lineTo(cx + 130, groundY - 215);
+            ctx.closePath();
+            ctx.stroke();
+            // Cruz derecha
+            ctx.beginPath();
+            ctx.moveTo(cx + 104, groundY - 262);
+            ctx.lineTo(cx + 104, groundY - 278);
+            ctx.moveTo(cx + 98, groundY - 271);
+            ctx.lineTo(cx + 110, groundY - 271);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function initChicaGame() {
+            basketX = canvas.width / 2 - 25;
+            fallObjects = [];
+            lives = 3;
+            chicaFrame = 0;
+
+            // Desactivar cualquier listener de clic o salto previo para que el mouse no haga sonido al hacer clic
+            canvas.onclick = null;
+            canvas.ontouchstart = null;
+
+            const moveBasket = (clientX) => {
+                const rect = canvas.getBoundingClientRect();
+                const relativeX = (clientX - rect.left) * (canvas.width / rect.width);
+                basketX = Math.max(0, Math.min(canvas.width - 50, relativeX - 25));
+            };
+
+            canvas.onmousemove = (e) => moveBasket(e.clientX);
+            canvas.ontouchmove = (e) => {
+                e.preventDefault();
+                moveBasket(e.touches[0].clientX);
+            };
+
+            gameInterval = setInterval(updateChica, 1000 / 30);
+        }
+
+        function updateChica() {
+            chicaFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. FONDO LIMPIO ROSA NUPCIAL SIN GRANULADO
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGrad.addColorStop(0, "#fdeeed"); // Crema rosado suave
+            bgGrad.addColorStop(0.55, "#fce4ec"); // Rosa pastel limpio
+            bgGrad.addColorStop(1, "#f8bbd0"); // Tono romántico cálido
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. DIBUJO ILUSTRATIVO DE LA PARROQUIA DE FONDO
+            drawChurchBackdrop(ctx, canvas.width, canvas.height);
+
+            // Suelo / Base limpia
+            ctx.fillStyle = "#f48fb1";
+            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+            ctx.strokeStyle = "#ad1457";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 20);
+            ctx.lineTo(canvas.width, canvas.height - 20);
+            ctx.stroke();
+
+            // 3. GENERAR ÍTEMS QUE CAEN (Corazón 💖, Anillo 💍, Tormenta 🌩️)
+            if (chicaFrame % 24 === 0) {
+                const laneIdx = Math.floor(Math.random() * 4);
+                const spawnX = CHICA_LANES[laneIdx];
+                const randType = Math.random();
+                let typeEmoji = "💖";
+                let isDanger = false;
+                let pts = 1;
+
+                if (randType > 0.7) {
+                    typeEmoji = "🌩️"; 
+                    isDanger = true;
+                } else if (randType > 0.4) {
+                    typeEmoji = "💍";
+                    pts = 2;
+                }
+
+                fallObjects.push({
+                    x: spawnX + (Math.random() * 12 - 6), 
+                    y: -30,
+                    emoji: typeEmoji,
+                    isDanger: isDanger,
+                    pts: pts,
+                    speed: 4.5 + Math.random() * 3.5
+                });
+            }
+
+            // 4. DIBUJAR A LA NOVIA (100% OPACA Y NÍTIDA)
+            ctx.save();
+            ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 3;
+            ctx.font = "48px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("👰🏻", Math.round(basketX + 25), 450);
+            ctx.restore();
+
+            // 5. VIDAS EN PANTALLA
+            let heartUI = "";
+            for (let h = 0; h < 3; h++) {
+                heartUI += h < lives ? "💖 " : "🤍 ";
+            }
+            ctx.font = "18px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(heartUI, 16, 32);
+
+            // 6. ANIMAR Y DIBUJAR ÍTEMS (TOTALMENTE NÍTIOS Y OPACOS)
+            for (let i = fallObjects.length - 1; i >= 0; i--) {
+                let obj = fallObjects[i];
+                obj.y += obj.speed;
+                
+                ctx.save();
+                ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
+                ctx.font = "36px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(obj.emoji, Math.round(obj.x), Math.round(obj.y));
+                ctx.restore();
+
+                // DETECCIÓN DE COLISIÓN
+                if (obj.y >= 405 && obj.y <= 460 && obj.x >= basketX - 12 && obj.x <= basketX + 62) {
+                    if (obj.isDanger) {
+                        lives--;
+                        playSound('hit');
+                    } else {
+                        score += obj.pts;
+                        playSound('coin'); 
+                    }
+                    fallObjects.splice(i, 1);
+
+                    if (lives <= 0) {
+                        gameOver(score);
+                        return;
+                    }
+                    continue;
+                }
+
+                if (obj.y > canvas.height + 20) {
+                    if (!obj.isDanger) {
+                        lives--;
+                        playSound('hit');
+                    }
+                    fallObjects.splice(i, 1);
+
+                    if (lives <= 0) {
+                        gameOver(score);
+                        return;
+                    }
+                }
+            }
+
+            drawRetroScore(ctx, score, canvas.width - 20, 20);
+            currentGameScore.innerText = score.toString().padStart(5, '0');
+        }
+
+        // ==========================================
+        // JUEGO 3: MADDIE (¡Atrapa a la perrita! Obstáculo: Popós 💩)
+        let maddieTimer, activeHole, activeDistractorHole, lastActiveHole, timeRemaining;
+        
+        function initMaddieGame() {
+            maddieGrid.innerHTML = "";
+            timeRemaining = 30;
+            currentGameState.innerText = "Tiempo: 30s";
+            lastActiveHole = -1;
+            activeDistractorHole = -1;
+            
+            updateMaddieRetroScore();
+
+            for (let i = 0; i < 16; i++) {
+                const hole = document.createElement("button");
+                // Usamos la nueva clase de hoyo de tierra de alta calidad
+                hole.className = "maddie-hole";
+                hole.id = "hole-" + i;
+                hole.onclick = () => handleHoleClick(i);
+                maddieGrid.appendChild(hole);
+            }
+
+            gameInterval = setInterval(() => {
+                timeRemaining--;
+                currentGameState.innerText = `Tiempo: ${timeRemaining}s`;
+                if (timeRemaining <= 0) {
+                    gameOver(score);
+                }
+            }, 1000);
+
+            maddiePop();
+        }
+
+        function updateMaddieRetroScore() {
+            const curStr = score.toString().padStart(5, '0');
+            const hiStr = getScore('maddie').toString().padStart(5, '0');
+            document.getElementById("maddieCurrentScore").innerText = curStr;
+            document.getElementById("maddieHighScore").innerText = hiStr;
+        }
+
+        function maddiePop() {
+            if (!gameRunning) return;
+            
+            if (activeHole !== undefined && activeHole !== -1) {
+                const prev = document.getElementById("hole-" + activeHole);
+                if (prev) prev.innerHTML = "";
+            }
+            if (activeDistractorHole !== undefined && activeDistractorHole !== -1) {
+                const prevDist = document.getElementById("hole-" + activeDistractorHole);
+                if (prevDist) prevDist.innerHTML = "";
+            }
+
+            activeHole = -1;
+            activeDistractorHole = -1;
+
+            const isDecoyOnly = Math.random() < 0.25; // 25% de las veces sale ÚNICAMENTE una popó para destantear al jugador
+
+            if (isDecoyOnly) {
+                let distHole;
+                do {
+                    distHole = Math.floor(Math.random() * 16);
+                } while (distHole === lastActiveHole);
+                
+                activeDistractorHole = distHole;
+                lastActiveHole = activeDistractorHole;
+                const distEl = document.getElementById("hole-" + activeDistractorHole);
+                if (distEl) {
+                    distEl.innerHTML = "<span class='select-none pointer-events-none text-4xl animate-pop-up inline-block'>💩</span>";
+                }
+            } else {
+                let nextHole;
+                do {
+                    nextHole = Math.floor(Math.random() * 16);
+                } while (nextHole === lastActiveHole);
+                
+                activeHole = nextHole;
+                lastActiveHole = activeHole;
+
+                const next = document.getElementById("hole-" + activeHole);
+                if (next) {
+                    next.innerHTML = "<span class='select-none pointer-events-none text-4xl md:text-5xl animate-pop-up inline-block'>🐶</span>";
+                }
+
+                // 25% Probabilidad de distractor popó en otro hoyo simultáneo
+                if (Math.random() < 0.25) {
+                    let distHole;
+                    do {
+                        distHole = Math.floor(Math.random() * 16);
+                    } while (distHole === activeHole);
+                    
+                    activeDistractorHole = distHole;
+                    const distEl = document.getElementById("hole-" + activeDistractorHole);
+                    if (distEl) {
+                        distEl.innerHTML = "<span class='select-none pointer-events-none text-4xl animate-pop-up inline-block'>💩</span>";
+                    }
+                }
+            }
+
+            // Dificultad balanceada y accesible vinculada a la puntuación
+            let popDelay = Math.max(550, 1100 - (score * 18));
+            maddieTimer = setTimeout(maddiePop, popDelay);
+        }
+
+        function handleHoleClick(index) {
+            if (!gameRunning) return;
+
+            if (index === activeHole) {
+                // ACIERTO: Captura a Maddie con ladrido tierno
+                score++;
+                playSound('bark'); 
+                
+                document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
+                updateMaddieRetroScore();
+                
+                const hitHole = document.getElementById("hole-" + index);
+                hitHole.innerHTML = "";
+                activeHole = -1;
+
+                clearTimeout(maddieTimer);
+                maddiePop();
+                
+            } else if (index === activeDistractorHole) {
+                // ERROR: Tocaste la popó
+                score = Math.max(0, score - 2); // Penalización moderada de -2 puntos
+                playSound('hit'); 
+                
+                document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
+                updateMaddieRetroScore();
+
+                const distHole = document.getElementById("hole-" + index);
+                if (distHole) distHole.innerHTML = "";
+                activeDistractorHole = -1;
+            }
+        }
+
+        // ==========================================
+        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro con Letreros SCT de México)
+        let playerX, targetLane, roadObjects, sceneryObjects, roadFrame, roadSpeed;
+        let pueblaKeyDownHandler = null;
+
+        const PUEBLA_SIGNS = [
+            { text: "CHOLULA", arrow: "↑", dist: "15 km" },
+            { text: "CHALUPAS", arrow: "➔", dist: "500 m" },
+            { text: "PUEBLA CENTRO", arrow: "↑", dist: "22 km" },
+            { text: "MOLE POBLANO", arrow: "➔", dist: "1 km" },
+            { text: "VAL'QUIRICO", arrow: "➔", dist: "8 km" },
+            { text: "ATLIXCO", arrow: "↑", dist: "30 km" },
+            { text: "CEMITAS", arrow: "➔", dist: "300 m" },
+            { text: "CATEDRAL", arrow: "➔", dist: "20 km" }
+        ];
+        
+        function getPueblaLaneX(lane, y) {
+            const horizonY = 180;
+            const roadHeight = canvas.height - horizonY;
+            const depthPct = Math.max(0, Math.min(1, (y - horizonY) / roadHeight));
+            const currentRoadWidth = 40 + depthPct * 260;
+            return 180 - currentRoadWidth / 2 + (lane * currentRoadWidth) / 3 + currentRoadWidth / 6;
+        }
+
+        function initPueblaGame() {
+            playerX = 180; 
+            targetLane = 1; 
+            roadObjects = [];
+            sceneryObjects = [];
+            roadFrame = 0;
+            roadSpeed = 8.5;
+            currentGameState.innerText = "Manejando";
+
+            const changeLane = (dir) => {
+                if (!gameRunning) return;
+                if (dir < 0 && targetLane > 0) {
+                    targetLane--;
+                    playSound('car_rev');
+                } else if (dir > 0 && targetLane < 2) {
+                    targetLane++;
+                    playSound('car_rev');
+                }
+            };
+
+            const handleSideTouch = (clientX) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = clientX - rect.left;
+                if (clickX < rect.width / 2) {
+                    changeLane(-1);
+                } else {
+                    changeLane(1);
+                }
+            };
+
+            canvas.onclick = (e) => handleSideTouch(e.clientX);
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                handleSideTouch(e.touches[0].clientX);
+            };
+
+            pueblaKeyDownHandler = (e) => {
+                if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+                    changeLane(-1);
+                } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+                    changeLane(1);
+                }
+            };
+            window.addEventListener("keydown", pueblaKeyDownHandler);
+
+            gameInterval = setInterval(updatePuebla, 1000 / 30);
+        }
+
+        // DIBUJO DEL AUTO DEPORTIVO RETRO VISTO DESDE ATRÁS (OUTRUN REAR-VIEW CAR)
+        function drawRearViewCar(ctx, x, y, width, height) {
+            ctx.save();
+            
+            // Sombra en el asfalto
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.beginPath();
+            ctx.ellipse(x, y + height / 2 - 1, width / 2 + 4, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Neumáticos anchos deportivos
+            ctx.fillStyle = "#151515";
+            ctx.fillRect(Math.round(x - width / 2 - 1), Math.round(y + height / 2 - 13), 8, 13);
+            ctx.fillRect(Math.round(x + width / 2 - 7), Math.round(y + height / 2 - 13), 8, 13);
+
+            // Chasis principal rojo deportivo
+            ctx.fillStyle = "#e53935";
+            ctx.beginPath();
+            ctx.moveTo(x - width / 2, y + height / 2 - 3);
+            ctx.lineTo(x - width / 2 + 3, y - 2);
+            ctx.lineTo(x - width / 4, y - height / 2 + 8);
+            ctx.lineTo(x + width / 4, y - height / 2 + 8);
+            ctx.lineTo(x + width / 2 - 3, y - 2);
+            ctx.lineTo(x + width / 2, y + height / 2 - 3);
+            ctx.closePath();
+            ctx.fill();
+
+            // Parabrisas / Ventana trasera polarizada
+            ctx.fillStyle = "#1e272e";
+            ctx.beginPath();
+            ctx.moveTo(x - width / 4 + 2, y - height / 2 + 10);
+            ctx.lineTo(x + width / 4 - 2, y - height / 2 + 10);
+            ctx.lineTo(x + width / 3 - 2, y - 2);
+            ctx.lineTo(x - width / 3 + 2, y - 2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Reflejo en el cristal
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x - 8, y - height / 2 + 12);
+            ctx.lineTo(x + 8, y - 4);
+            ctx.stroke();
+
+            // Alerón trasero (Spoiler)
+            ctx.fillStyle = "#b71c1c";
+            ctx.fillRect(Math.round(x - width / 2 - 1), Math.round(y - 4), width + 2, 4);
+            ctx.fillStyle = "#212121";
+            ctx.fillRect(Math.round(x - width / 2 - 2), Math.round(y - 6), 4, 6);
+            ctx.fillRect(Math.round(x + width / 2 - 2), Math.round(y - 6), 4, 6);
+
+            // Difusor trasero
+            ctx.fillStyle = "#212121";
+            ctx.fillRect(Math.round(x - width / 2 + 4), Math.round(y + height / 2 - 9), width - 8, 8);
+
+            // Calaveras / Luces traseras LED rojas brillantes
+            ctx.fillStyle = "#ff1744";
+            ctx.shadowColor = "#ff1744";
+            ctx.shadowBlur = 8;
+            ctx.fillRect(Math.round(x - width / 2 + 5), Math.round(y + height / 2 - 8), 11, 5);
+            ctx.fillRect(Math.round(x + width / 2 - 16), Math.round(y + height / 2 - 8), 11, 5);
+
+            // Placa de matrícula "BODA"
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(Math.round(x - 9), Math.round(y + height / 2 - 7), 18, 5);
+            ctx.fillStyle = "#111111";
+            ctx.font = "bold 5px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("BODA", Math.round(x), Math.round(y + height / 2 - 3));
+
+            // Tubos de escape metálicos
+            ctx.fillStyle = "#cfd8dc";
+            ctx.beginPath();
+            ctx.arc(Math.round(x - 14), Math.round(y + height / 2 - 2), 2, 0, Math.PI * 2);
+            ctx.arc(Math.round(x + 14), Math.round(y + height / 2 - 2), 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function updatePuebla() {
+            roadFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const horizonY = 180;
+            const roadHeight = canvas.height - horizonY;
+
+            // 1. CIELO RETRO CON DEGRADADO
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+            skyGrad.addColorStop(0, "#1a5276");
+            skyGrad.addColorStop(0.65, "#2980b9");
+            skyGrad.addColorStop(1, "#85c1e9");
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, horizonY);
+
+            // SOL / RESPLANDOR
+            ctx.fillStyle = "rgba(255, 241, 118, 0.4)";
+            ctx.beginPath();
+            ctx.arc(280, 65, 28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#fff9c4";
+            ctx.beginPath();
+            ctx.arc(280, 65, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // CORDILLERA DE MONTAÑAS Y VOLCÁN POPOCATÉPETL
+            ctx.fillStyle = "#2c3e50";
+            ctx.beginPath();
+            ctx.moveTo(0, horizonY);
+            ctx.lineTo(40, 140);
+            ctx.lineTo(95, horizonY);
+            ctx.lineTo(130, 150);
+            ctx.lineTo(170, horizonY);
+            ctx.fill();
+
+            // Volcán Popocatépetl
+            ctx.fillStyle = "#1e272e";
+            ctx.beginPath();
+            ctx.moveTo(210, horizonY);
+            ctx.lineTo(275, 110);
+            ctx.lineTo(345, horizonY);
+            ctx.fill();
+
+            // Nieve en el cráter del Popocatépetl
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(263, 122);
+            ctx.lineTo(275, 110);
+            ctx.lineTo(287, 122);
+            ctx.closePath();
+            ctx.fill();
+
+            // Nubes flotando
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "24px sans-serif";
+            const cloud1X = (roadFrame * 0.45) % (canvas.width + 60) - 30;
+            const cloud2X = ((roadFrame * 0.25) + 190) % (canvas.width + 60) - 30;
+            ctx.fillText("☁️", cloud1X, 55);
+            ctx.fillText("☁️", cloud2X, 95);
+
+            // 2. PASTO VERDE DE FONDO
+            ctx.fillStyle = "#27ae60"; 
+            ctx.fillRect(0, horizonY, canvas.width, roadHeight);
+
+            // 3. GENERAR LETREROS MEXICANOS VERDES DE CARRETERA
+            if (roadFrame % 75 === 0) {
+                const signData = PUEBLA_SIGNS[Math.floor(Math.random() * PUEBLA_SIGNS.length)];
+                sceneryObjects.push({
+                    y: horizonY,
+                    text: signData.text,
+                    arrow: signData.arrow,
+                    dist: signData.dist
+                });
+            }
+
+            // DIBUJAR RAYAS Y CARRETERA EN PERSPECTIVA
+            const totalStripeSegments = 12;
+            for (let i = totalStripeSegments; i >= 1; i--) {
+                const y1 = horizonY + Math.pow((i - 1) / totalStripeSegments, 2) * roadHeight;
+                const y2 = horizonY + Math.pow(i / totalStripeSegments, 2) * roadHeight;
+                
+                const stripeActive = (i + Math.floor(roadFrame / 2.5)) % 2 === 0;
+
+                const roadWidth1 = 40 + ((y1 - horizonY) / roadHeight) * 260;
+                const roadWidth2 = 40 + ((y2 - horizonY) / roadHeight) * 260;
+
+                const xl1 = 180 - roadWidth1 / 2;
+                const xl2 = 180 - roadWidth2 / 2;
+                const xr1 = 180 + roadWidth1 / 2;
+                const xr2 = 180 + roadWidth2 / 2;
+
+                // Cordón lateral (blanco / rojo)
+                ctx.fillStyle = stripeActive ? "#e74c3c" : "#ffffff";
+                ctx.beginPath();
+                ctx.moveTo(xl1 - 7, y1); ctx.lineTo(xl2 - 11, y2);
+                ctx.lineTo(xl2, y2); ctx.lineTo(xl1, y1);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(xr1, y1); ctx.lineTo(xr2, y2);
+                ctx.lineTo(xr2 + 11, y2); ctx.lineTo(xr1 + 7, y1);
+                ctx.fill();
+
+                // Asfalto
+                ctx.fillStyle = "#2c3e50";
+                ctx.beginPath();
+                ctx.moveTo(xl1, y1); ctx.lineTo(xl2, y2);
+                ctx.lineTo(xr2, y2); ctx.lineTo(xr1, y1);
+                ctx.fill();
+
+                // Líneas divisorias amarillas
+                if (stripeActive) {
+                    ctx.strokeStyle = "#f1c40f";
+                    ctx.lineWidth = 1.5 + (i / totalStripeSegments) * 3;
+
+                    const lineL1 = xl1 + roadWidth1 / 3;
+                    const lineL2 = xl2 + roadWidth2 / 3;
+                    ctx.beginPath();
+                    ctx.moveTo(lineL1, y1); ctx.lineTo(lineL2, y2);
+                    ctx.stroke();
+
+                    const lineR1 = xl1 + (2 * roadWidth1) / 3;
+                    const lineR2 = xl2 + (2 * roadWidth2) / 3;
+                    ctx.beginPath();
+                    ctx.moveTo(lineR1, y1); ctx.lineTo(lineR2, y2);
+                    ctx.stroke();
+                }
+            }
+
+            // 4. ANIMAR Y DIBUJAR LETREROS VERDES SCT (VELOCIDAD SUAVE PARA FÁCIL LECTURA)
+            for (let i = sceneryObjects.length - 1; i >= 0; i--) {
+                let sc = sceneryObjects[i];
+                // Pasan a velocidad moderada para permitir leer con calma
+                sc.y += roadSpeed * 0.42;
+                const depthPct = Math.max(0, Math.min(1, (sc.y - horizonY) / roadHeight));
+                const currentRoadWidth = 40 + depthPct * 260;
+                
+                // Ubicado en la orilla derecha de la carretera
+                const roadEdgeX = 180 + currentRoadWidth / 2;
+                const scX = roadEdgeX + 26 + depthPct * 65;
+                
+                const scale = 0.32 + depthPct * 0.95;
+                const signW = Math.round(112 * scale);
+                const signH = Math.round(58 * scale);
+                const postH = Math.round(38 * scale);
+                const signBottomY = sc.y;
+                const signTopY = signBottomY - signH - postH;
+
+                ctx.save();
+                // Poste metálico
+                ctx.fillStyle = "#95a5a6";
+                const poleW = Math.max(2, Math.round(4 * scale));
+                ctx.fillRect(Math.round(scX - poleW / 2), Math.round(signBottomY - postH), poleW, postH);
+
+                // Letrero Verde SCT Oficial
+                ctx.fillStyle = "#1b5e20"; 
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = Math.max(1.5, Math.round(2.5 * scale));
+                
+                ctx.fillRect(Math.round(scX - signW / 2), Math.round(signTopY), signW, signH);
+                ctx.strokeRect(Math.round(scX - signW / 2), Math.round(signTopY), signW, signH);
+
+                // Borde interior blanco fino
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+                ctx.lineWidth = Math.max(0.8, scale);
+                ctx.strokeRect(Math.round(scX - signW / 2 + 2.5 * scale), Math.round(signTopY + 2.5 * scale), signW - 5 * scale, signH - 5 * scale);
+
+                // Texto del destino en mayúsculas
+                ctx.fillStyle = "#ffffff";
+                const fontSize = Math.max(7, Math.round(12 * scale));
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(sc.text, Math.round(scX), Math.round(signTopY + 18 * scale));
+
+                // Flecha direccional y distancia
+                const arrowFontSize = Math.max(8, Math.round(14 * scale));
+                ctx.font = `bold ${arrowFontSize}px sans-serif`;
+                ctx.fillText(`${sc.arrow}  ${sc.dist}`, Math.round(scX), Math.round(signTopY + 40 * scale));
+                ctx.restore();
+
+                if (sc.y > canvas.height + 90) {
+                    sceneryObjects.splice(i, 1);
+                }
+            }
+
+            // 5. GENERAR OBSTÁCULOS E ÍTEMS EN LOS CARRILES
+            if (roadFrame % 28 === 0) {
+                const laneIdx = Math.floor(Math.random() * 3);
+                const rollType = Math.random();
+                let typeEmoji = "🚧";
+                let isItem = false;
+                let isTrafficCar = false;
+                let pts = 0;
+
+                if (rollType > 0.7) {
+                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡)
+                    const isTaco = Math.random() > 0.5;
+                    typeEmoji = isTaco ? "🌮" : "⚡";
+                    isItem = true;
+                    pts = 10;
+                } else if (rollType > 0.35) {
+                    // Carros de tráfico (Azul, Taxi, Camión)
+                    const carTypes = ["🚙", "🚕", "🚚"];
+                    typeEmoji = carTypes[Math.floor(Math.random() * carTypes.length)];
+                    isTrafficCar = true;
+                } else {
+                    // Baches u obras
+                    typeEmoji = Math.random() > 0.5 ? "🚧" : "🕳️";
+                }
+
+                roadObjects.push({
+                    lane: laneIdx,
+                    y: horizonY,
+                    emoji: typeEmoji,
+                    isItem: isItem,
+                    isCar: isTrafficCar,
+                    pts: pts,
+                    speed: isTrafficCar ? 4.5 : 0 
+                });
+            }
+
+            // 6. ANIMAR Y DIBUJAR OBJETOS EN LOS CARRILES
+            for (let i = roadObjects.length - 1; i >= 0; i--) {
+                let obj = roadObjects[i];
+                
+                if (obj.isCar) {
+                    obj.y += roadSpeed - obj.speed; 
+                } else {
+                    obj.y += roadSpeed; 
+                }
+
+                const currentLaneX = getPueblaLaneX(obj.lane, obj.y);
+                const depthPct = Math.max(0, Math.min(1, (obj.y - horizonY) / roadHeight));
+                const currentScale = Math.max(18, Math.floor(16 + depthPct * 34));
+
+                // Dibujar objeto con sombra limpia y nítida (sin auras verdes que ensucien)
+                ctx.save();
+                ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
+                ctx.font = `${currentScale}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(obj.emoji, Math.round(currentLaneX), Math.round(obj.y));
+                ctx.restore();
+
+                // COLISIÓN CON EL JUGADOR
+                if (obj.y >= 395 && obj.y <= 445 && obj.lane === targetLane) {
+                    if (obj.isItem) {
+                        score += obj.pts;
+                        playSound('coin'); 
+                        roadObjects.splice(i, 1);
+                        continue;
+                    } else {
+                        gameOver(score);
+                        return;
+                    }
+                }
+
+                if (obj.y > canvas.height + 40) {
+                    if (obj.isCar) {
+                        score += 5; 
+                    }
+                    roadObjects.splice(i, 1);
+                }
+            }
+
+            // 7. JUGADOR (Auto Deportivo Rojo Retro Visto Desde Atrás 🚗)
+            const playerTargetX = getPueblaLaneX(targetLane, 440);
+            playerX += (playerTargetX - playerX) * 0.45; 
+
+            drawRearViewCar(ctx, playerX, 440, 62, 38);
+
+            if (roadFrame % 8 === 0) {
+                score += 1;
+                if (score % 40 === 0) roadSpeed += 0.7; 
+            }
+
+            drawRetroScore(ctx, score, canvas.width - 20, 20);
+            currentGameScore.innerText = score.toString().padStart(5, '0');
+        }
+    </script>
+</body>
+</html>
