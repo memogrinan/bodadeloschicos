@@ -542,10 +542,37 @@
             text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
         }
 
-        /* ADAPTACIÓN MÓVIL */
+        /* OPTIMIZACIÓN EXTREMA DE SCROLL PARA MÓVILES (S23 Ultra / iOS / Android 120Hz) */
         @media (max-width: 768px) {
             .nav-links { display: none; }
             .menu-toggle { display: block; }
+
+            /* 1. Desactivar animación continua KenBurns en móvil para liberar ciclos de GPU */
+            .header-bg {
+                animation: none !important;
+                transform: scale(1) !important;
+            }
+
+            /* 2. Optimizar capas fijas en móvil reemplazando fixed por scroll suave nativo */
+            .bg-fixed {
+                position: absolute !important;
+                top: 0 !important;
+                height: 100% !important;
+                will-change: auto;
+            }
+
+            /* 3. Reemplazar filtros de cristal borroso (backdrop-filter) en celular por fondos sólidos de alta velocidad */
+            .glass-card {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background-color: rgba(255, 255, 255, 0.96) !important;
+            }
+
+            /* 4. Aceleración por hardware para secciones con desplazamiento */
+            .fade-in-section, .parallax-section {
+                transform: translateZ(0);
+                backface-visibility: hidden;
+            }
         }
 
         @media (max-width: 600px) {
@@ -1006,7 +1033,7 @@
                     <!-- SECCIÓN: CELEBRACIÓN ESPECIAL -->
                     <div style="margin-bottom: 20px; background: #f9faf7; padding: clamp(12px, 3vw, 16px); border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
                         <label style="display: block; font-size: 0.88rem; font-weight: 600; color: var(--olivo-base); margin-bottom: 6px;">🎉 ¿Celebras algo especial cerca de la fecha? (Cumpleaños, aniversario, etc.):</label>
-                        <textarea id="rsvpCelebracionInput" rows="2" placeholder="Ej. Cumpleaños de Mariana (14 de Feb), Aniversario..." style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; outline: none; box-sizing: border-box; font-family: inherit; background: white; resize: vertical;"></textarea>
+                        <textarea id="rsvpCelebracionInput" rows="2" placeholder="Ej. Cumpleaños de Mariana, aniversario..." style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; outline: none; box-sizing: border-box; font-family: inherit; background: white; resize: vertical;"></textarea>
                     </div>
 
                     <button type="submit" id="rsvpSubmitBtn" class="btn btn-rsvp" style="width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 14px; box-sizing: border-box;">Confirmar Asistencia 💌</button>
@@ -1401,7 +1428,7 @@
                         </div>
                     </div>
                     <div>
-                        <textarea id="alergia_${idx}" rows="2" placeholder="Restricciones alimenticias o menú de ${member} (opcional)" style="width: 100%; padding: 9px 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box; background: #fafafa; font-family: inherit; resize: vertical;"></textarea>
+                        <textarea id="alergia_${idx}" rows="2" placeholder="Restricciones alimenticias de ${member} (ej. vegetariano, alergia a mariscos...)" style="width: 100%; padding: 9px 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box; background: #fafafa; font-family: inherit; resize: vertical;"></textarea>
                     </div>
                 `;
                 saturdayMembers.appendChild(div);
