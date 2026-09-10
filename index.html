@@ -947,10 +947,78 @@
         </div>
     </section>
 
+    <!-- SECCIÓN: CONFIRMACIÓN RSVP PERSONALIZADA (CONECTADA A GOOGLE SHEETS) -->
     <div id="confirmacion" style="background-color: #eef2e6; padding: 80px 20px; text-align: center;" class="fade-in-section">
-        <h2>RSVP</h2>
-        <p>Por favor confirma tu asistencia antes del 13 de enero.</p>
-        <a href="https://withjoy.com/mariana-y-memo/rsvp" target="_blank" class="btn btn-rsvp">Confirmar Asistencia</a>
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 35px 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(82, 88, 47, 0.08); border: 1px solid rgba(82, 88, 47, 0.12);">
+            
+            <h2 style="font-family: 'Alex Brush', cursive; font-size: clamp(2.6rem, 7vw, 3.8rem); color: var(--olivo-base); margin: 0 0 10px 0;">RSVP</h2>
+
+            <!-- ESTADO 1: BÚSQUEDA / INGRESO DE ID (SI NO HAY PARÁMETRO EN LA URL) -->
+            <div id="rsvpSearchContainer">
+                <p style="color: #555; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
+                    Por favor confirma tu asistencia antes del 13 de Enero de 2027.<br>
+                    <span style="font-size: 0.85rem; color: #777; font-style: italic;">Ingresa la clave o apellido de tu tarjeta de invitación:</span>
+                </p>
+                
+                <div style="display: flex; gap: 10px; max-width: 420px; margin: 0 auto; justify-content: center;">
+                    <input type="text" id="rsvpSearchInput" placeholder="Ej. familia-perez" onkeypress="if(event.key==='Enter') searchRSVPInvitation()" style="flex: 1; padding: 12px 16px; border: 1.5px solid #ccc; border-radius: 14px; outline: none; font-size: 0.95rem; font-family: inherit;">
+                    <button onclick="searchRSVPInvitation()" class="btn btn-rsvp" style="padding: 12px 22px; white-space: nowrap; font-size: 0.9rem;">Buscar 🔍</button>
+                </div>
+                <p id="rsvpSearchError" style="color: #e74c3c; font-size: 0.85rem; margin-top: 12px; display: none; font-weight: 600;"></p>
+            </div>
+
+            <!-- ESTADO 2: CARGANDO -->
+            <div id="rsvpLoadingContainer" style="display: none; padding: 30px 0;">
+                <span style="font-size: 2.5rem; display: inline-block;" class="animate-bounce">💌</span>
+                <p style="color: var(--olivo-base); font-weight: 600; font-size: 1.05rem; margin-top: 10px;">Buscando tu invitación en la lista de los chicos...</p>
+            </div>
+
+            <!-- ESTADO 3: FORMULARIO PERSONALIZADO (VIERNES / SÁBADO) -->
+            <div id="rsvpFormContainer" style="display: none; text-align: left;">
+                <div style="text-align: center; margin-bottom: 25px; border-bottom: 1px dashed rgba(82, 88, 47, 0.2); padding-bottom: 18px;">
+                    <h3 id="rsvpGuestTitle" style="color: var(--olivo-base); font-size: 1.6rem; font-weight: 600; margin: 0;">¡Hola Familia!</h3>
+                    <p id="rsvpPassesText" style="color: #666; font-size: 0.92rem; margin-top: 4px;">Tienen 2 pases reservados para nuestra boda.</p>
+                </div>
+
+                <form id="rsvpCustomForm" onsubmit="submitRSVPForm(event)">
+                    
+                    <!-- SECCIÓN OPTATIVA: BODA CIVIL (VIERNES) -->
+                    <div id="rsvpFridaySection" style="display: none; background: #f9faf7; padding: 18px; border-radius: 18px; margin-bottom: 20px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                        <h4 style="color: var(--olivo-base); font-size: 1.05rem; font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                            <span>🥂</span> Boda Civil (Viernes 12 de Feb - 6:00 PM)
+                        </h4>
+                        <p style="font-size: 0.8rem; color: #777; margin: 0 0 14px 0;">¡Están invitados a nuestra ceremonia íntima!</p>
+                        <div id="rsvpFridayMembers" style="display: flex; flex-col; gap: 10px;"></div>
+                    </div>
+
+                    <!-- SECCIÓN OBLIGATORIA: BODA Y FIESTA (SÁBADO) -->
+                    <div id="rsvpSaturdaySection" style="background: #f9faf7; padding: 18px; border-radius: 18px; margin-bottom: 20px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                        <h4 style="color: var(--olivo-base); font-size: 1.05rem; font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                            <span>💒</span> Boda & Fiesta (Sábado 13 de Feb - 4:00 PM)
+                        </h4>
+                        <p style="font-size: 0.8rem; color: #777; margin: 0 0 14px 0;">Hacienda San José Actipan, Cholula</p>
+                        <div id="rsvpSaturdayMembers" style="display: flex; flex-col; gap: 10px;"></div>
+                    </div>
+
+                    <!-- SECCIÓN: ALERGIAS / MENÚ ESPECIAL -->
+                    <div style="margin-bottom: 22px;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">🥗 Restricciones alimenticias o mensaje especial:</label>
+                        <input type="text" id="rsvpAlergiasInput" placeholder="Ej. Juan es vegetariano, María es alérgica a los mariscos..." style="width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 0.9rem; outline: none; box-sizing: border-box; font-family: inherit;">
+                    </div>
+
+                    <button type="submit" id="rsvpSubmitBtn" class="btn btn-rsvp" style="width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 14px;">Confirmar Asistencia 💌</button>
+                </form>
+            </div>
+
+            <!-- ESTADO 4: ÉXITO POST-ENVÍO -->
+            <div id="rsvpSuccessContainer" style="display: none; padding: 25px 0;">
+                <span style="font-size: 3.5rem;">🎉</span>
+                <h3 style="color: var(--olivo-base); font-size: 1.6rem; margin: 12px 0 6px 0;">¡Confirmación Guardada!</h3>
+                <p style="color: #555; font-size: 0.95rem; line-height: 1.6;">Gracias por confirmar tu asistencia. Tu respuesta ha sido guardada en la lista oficial de los chicos.</p>
+                <button onclick="resetRSVPView()" style="margin-top: 18px; font-size: 0.85rem; color: var(--olivo-base); text-decoration: underline; background: none; border: none; cursor: pointer; font-weight: 600;">Editar o modificar respuesta</button>
+            </div>
+
+        </div>
     </div>
 
     <footer>
@@ -1210,6 +1278,171 @@
         }
         
         document.addEventListener("DOMContentLoaded", loadGithubGallery);
+
+        // ==========================================
+        // SISTEMA DE CONFIRMACIÓN RSVP DIVERSIFICADO (GOOGLE SHEETS)
+        // ==========================================
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
+        let currentRSVPData = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const partyId = urlParams.get("id") || urlParams.get("p") || urlParams.get("invitado");
+            if (partyId) {
+                fetchRSVPData(partyId);
+            }
+        });
+
+        function searchRSVPInvitation() {
+            const val = document.getElementById("rsvpSearchInput").value.trim().toLowerCase().replace(/\s+/g, "-");
+            if (!val) return;
+            fetchRSVPData(val);
+        }
+
+        async function fetchRSVPData(id) {
+            document.getElementById("rsvpSearchContainer").style.display = "none";
+            document.getElementById("rsvpFormContainer").style.display = "none";
+            document.getElementById("rsvpSuccessContainer").style.display = "none";
+            document.getElementById("rsvpLoadingContainer").style.display = "block";
+            document.getElementById("rsvpSearchError").style.display = "none";
+
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(id)}`);
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    currentRSVPData = data;
+                    renderRSVPForm(data);
+                } else {
+                    document.getElementById("rsvpLoadingContainer").style.display = "none";
+                    document.getElementById("rsvpSearchContainer").style.display = "block";
+                    const errEl = document.getElementById("rsvpSearchError");
+                    errEl.innerText = `No encontramos una invitación con la clave '${id}'. Por favor verifica e intenta de nuevo.`;
+                    errEl.style.display = "block";
+                }
+            } catch (err) {
+                console.error("Error al obtener RSVP:", err);
+                document.getElementById("rsvpLoadingContainer").style.display = "none";
+                document.getElementById("rsvpSearchContainer").style.display = "block";
+                const errEl = document.getElementById("rsvpSearchError");
+                errEl.innerText = "Ocurrió un error al conectar con la lista de invitados. Intenta de nuevo.";
+                errEl.style.display = "block";
+            }
+        }
+
+        function renderRSVPForm(data) {
+            document.getElementById("rsvpLoadingContainer").style.display = "none";
+            document.getElementById("rsvpFormContainer").style.display = "block";
+
+            document.getElementById("rsvpGuestTitle").innerText = `¡Hola ${data.nombre}!`;
+            document.getElementById("rsvpPassesText").innerText = `Tienen ${data.pasesSabado} pase(s) reservado(s) para nuestra boda.`;
+
+            const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
+            const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
+
+            // SECCIÓN FRIDAY (CIVIL)
+            const fridaySection = document.getElementById("rsvpFridaySection");
+            const fridayMembers = document.getElementById("rsvpFridayMembers");
+            if (isCivil) {
+                fridaySection.style.display = "block";
+                fridayMembers.innerHTML = "";
+                integrantes.forEach((member, idx) => {
+                    const div = document.createElement("div");
+                    div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 12px; border: 1px solid #eaefe0;";
+                    div.innerHTML = `
+                        <span style="font-size: 0.9rem; font-weight: 600; color: #333;">👤 ${member}</span>
+                        <div style="display: flex; gap: 14px; font-size: 0.85rem;">
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="civil_${idx}" value="SI" checked> Sí asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="civil_${idx}" value="NO"> No asistirá</label>
+                        </div>
+                    `;
+                    fridayMembers.appendChild(div);
+                });
+            } else {
+                fridaySection.style.display = "none";
+            }
+
+            // SECCIÓN SATURDAY (BODA Y FIESTA)
+            const saturdayMembers = document.getElementById("rsvpSaturdayMembers");
+            saturdayMembers.innerHTML = "";
+            integrantes.forEach((member, idx) => {
+                const div = document.createElement("div");
+                div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 12px; border: 1px solid #eaefe0;";
+                div.innerHTML = `
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #333;">👤 ${member}</span>
+                    <div style="display: flex; gap: 14px; font-size: 0.85rem;">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="SI" checked> Sí asistirá</label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="NO"> No asistirá</label>
+                    </div>
+                `;
+                saturdayMembers.appendChild(div);
+            });
+
+            if (data.alergias) {
+                document.getElementById("rsvpAlergiasInput").value = data.alergias;
+            }
+        }
+
+        async function submitRSVPForm(e) {
+            e.preventDefault();
+            if (!currentRSVPData) return;
+
+            const submitBtn = document.getElementById("rsvpSubmitBtn");
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Guardando confirmación... 💌";
+
+            const integrantes = currentRSVPData.integrantes ? currentRSVPData.integrantes.toString().split(",").map(s => s.trim()) : [currentRSVPData.nombre];
+            const isCivil = (currentRSVPData.invitaCivil && currentRSVPData.invitaCivil.toString().trim().toUpperCase() === "SI");
+
+            const estadoSabadoList = [];
+            const estadoCivilList = [];
+
+            integrantes.forEach((member, idx) => {
+                const sabVal = document.querySelector(`input[name="sabado_${idx}"]:checked`)?.value || "SI";
+                estadoSabadoList.push(`${member}: ${sabVal}`);
+
+                if (isCivil) {
+                    const civVal = document.querySelector(`input[name="civil_${idx}"]:checked`)?.value || "SI";
+                    estadoCivilList.push(`${member}: ${civVal}`);
+                }
+            });
+
+            const alergias = document.getElementById("rsvpAlergiasInput").value.trim();
+
+            const payload = {
+                id: currentRSVPData.id,
+                estadoSabado: estadoSabadoList.join(", "),
+                estadoCivil: isCivil ? estadoCivilList.join(", ") : "N/A",
+                alergias: alergias
+            };
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                document.getElementById("rsvpFormContainer").style.display = "none";
+                document.getElementById("rsvpSuccessContainer").style.display = "block";
+            } catch (err) {
+                console.error("Error al enviar RSVP:", err);
+                alert("Ocurrió un inconveniente al guardar. Por favor intenta de nuevo.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Confirmar Asistencia 💌";
+            }
+        }
+
+        function resetRSVPView() {
+            document.getElementById("rsvpSuccessContainer").style.display = "none";
+            if (currentRSVPData) {
+                document.getElementById("rsvpFormContainer").style.display = "block";
+            } else {
+                document.getElementById("rsvpSearchContainer").style.display = "block";
+            }
+        }
     </script>
 </body>
 </html>

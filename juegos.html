@@ -9,6 +9,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
     
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -125,8 +129,8 @@
     <!-- PANEL DEL USUARIO -->
     <div class="max-w-4xl mx-auto mt-6 px-4">
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">🎮</span>
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎮</span>
                 <div>
                     <p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p>
                     <div class="flex items-center gap-2">
@@ -135,10 +139,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- CONTADOR CHI-COINS -->
+            <div class="bg-amber-50 border border-amber-200/80 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-xs">
+                <span class="text-2xl">🪙</span>
+                <div>
+                    <p class="text-[10px] text-amber-700 font-bold uppercase tracking-wider">Tus ChiCoins</p>
+                    <p id="totalChiCoinsDisplay" class="text-xl md:text-2xl font-extrabold text-amber-900 font-monogram">0 🪙</p>
+                </div>
+            </div>
             
-            <!-- INDICADOR DE PREMIO GENERAL -->
-            <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-semibold text-center transition-all duration-300">
-                Cargando estado del premio...
+            <div class="flex items-center gap-2">
+                <button onclick="openLeaderboardModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm">
+                    <span>🏆</span> Tabla de Líderes
+                </button>
+                <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-3 py-2 rounded-xl text-xs font-semibold text-center transition-all duration-300">
+                    Cargando...
+                </div>
             </div>
         </div>
 
@@ -169,6 +186,7 @@
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
                         <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chico">0</span> pts / <span class="text-olivo-base font-bold">100 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-chico">0</span> ChiCoins</p>
                     </div>
                     <button onclick="openGame('chico')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -188,6 +206,7 @@
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
                         <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chica">0</span> pts / <span class="text-olivo-base font-bold">15 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-chica">0</span> ChiCoins</p>
                     </div>
                     <button onclick="openGame('chica')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -207,6 +226,7 @@
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
                         <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-maddie">0</span> clics / <span class="text-olivo-base font-bold">20 clics</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-maddie">0</span> ChiCoins</p>
                     </div>
                     <button onclick="openGame('maddie')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -226,6 +246,7 @@
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
                         <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-puebla">0</span> pts / <span class="text-olivo-base font-bold">80 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-puebla">0</span> ChiCoins</p>
                     </div>
                     <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -243,6 +264,45 @@
             <p class="text-gray-500 text-xs mt-2">Para poder registrar tus récords locales en el navegador, por favor ingresa un nombre o apodo único.</p>
             <input type="text" id="gamertagInput" maxlength="15" placeholder="Tu Apodo / Nombre" class="w-full mt-4 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition">
             <button onclick="saveGamerTag()" class="w-full mt-4 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition">Comenzar a Jugar</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE TABLA DE LÍDERES EN VIVO -->
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl">🏆</span>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-olivo-base">Tabla de Líderes Nupcial</h2>
+                        <p class="text-xs text-gray-400 font-semibold">Ranking de ChiCoins 🪙 en tiempo real</p>
+                    </div>
+                </div>
+                <button onclick="closeLeaderboardModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold p-1">✕</button>
+            </div>
+
+            <div class="overflow-y-auto my-4 flex-1 pr-1">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-xs text-gray-400 uppercase border-b border-gray-100 pb-2">
+                            <th class="py-2">Pos</th>
+                            <th class="py-2">Jugador</th>
+                            <th class="py-2 text-right">ChiCoins 🪙</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody" class="divide-y divide-gray-50">
+                        <tr>
+                            <td colspan="3" class="py-6 text-center text-gray-400 italic">Cargando la tabla de posiciones...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+                <span>🟢 Actualización en vivo</span>
+                <button onclick="closeLeaderboardModal()" class="bg-[#52582f] text-white px-5 py-2 rounded-xl font-bold hover:bg-opacity-90 transition">Cerrar</button>
+            </div>
         </div>
     </div>
 
@@ -304,6 +364,7 @@
                         <p class="text-xs md:text-sm tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
                         <p id="overlayFinalScore" class="text-6xl md:text-7xl font-extrabold text-[#a3ad73] font-monogram my-2">00000</p>
                         <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
+                        <p id="overlayChiCoinsEarned" class="text-base md:text-lg font-bold text-amber-300 font-monogram mt-2 border-t border-white/10 pt-2">🪙 +0 ChiCoins</p>
                     </div>
                     
                     <!-- Instrucciones y mensaje de fin (Soporta imágenes reales dinámicas) -->
@@ -605,6 +666,126 @@
         const currentGameState = document.getElementById("currentGameState");
         const currentGameScore = document.getElementById("currentGameScore");
 
+        // ==========================================
+        // CONFIGURACIÓN E INTEGRACIÓN DE FIREBASE REALTIME DB
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB66MnDDjpH7XILpVqfh2JLFz0nrPnTcSQ",
+            authDomain: "boda-los-chicos.firebaseapp.com",
+            databaseURL: "https://boda-los-chicos-default-rtdb.firebaseio.com",
+            projectId: "boda-los-chicos",
+            storageBucket: "boda-los-chicos.firebasestorage.app",
+            messagingSenderId: "898026641890",
+            appId: "1:898026641890:web:6467dc77ffeda37d5581bb",
+            measurementId: "G-FB0N5FTMJZ"
+        };
+
+        if (typeof firebase !== "undefined" && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = (typeof firebase !== "undefined") ? firebase.database() : null;
+
+        // FÓRMULA LOGARÍTMICA DE CHI-COINS (1,000 base al cumplir la meta, +50% al 2x de la meta, curva logarítmica)
+        function calculateGameChiCoins(gameKey, scoreVal) {
+            const target = METAS[gameKey] || 100;
+            if (!scoreVal || scoreVal <= 0) return 0;
+            if (scoreVal < target) {
+                return Math.floor((scoreVal / target) * 1000);
+            }
+            const extraRatio = (scoreVal - target) / target;
+            const extraCoins = Math.floor(500 * Math.log(1 + 1.718281828459 * extraRatio));
+            return 1000 + extraCoins;
+        }
+
+        function getChiCoins(gameKey) {
+            const scoreVal = getScore(gameKey);
+            return calculateGameChiCoins(gameKey, scoreVal);
+        }
+
+        function getTotalChiCoins() {
+            let sum = 0;
+            Object.keys(METAS).forEach(g => {
+                sum += getChiCoins(g);
+            });
+            const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            return sum + bonus;
+        }
+
+        function syncPlayerToFirebase() {
+            if (!db || !playerGamertag || !playerGamertag.trim()) return;
+            const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+            
+            const scoresObj = {};
+            const coinsObj = {};
+            let total = 0;
+            
+            Object.keys(METAS).forEach(g => {
+                const s = getScore(g);
+                const c = calculateGameChiCoins(g, s);
+                scoresObj[g] = s;
+                coinsObj[g] = c;
+                total += c;
+            });
+
+            const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            total += bonus;
+
+            db.ref("players/" + keyTag).update({
+                gamerTag: playerGamertag.trim(),
+                scores: scoresObj,
+                chiCoins: coinsObj,
+                bonusCoins: bonus,
+                totalChiCoins: total,
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            }).catch(err => console.error("Error al sincronizar con Firebase:", err));
+        }
+
+        function openLeaderboardModal() {
+            document.getElementById("leaderboardModal").classList.remove("hidden");
+            listenToLeaderboard();
+        }
+
+        function closeLeaderboardModal() {
+            document.getElementById("leaderboardModal").classList.add("hidden");
+        }
+
+        function listenToLeaderboard() {
+            const tbody = document.getElementById("leaderboardTableBody");
+            if (!db) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Conectando a Firebase...</td></tr>`;
+                return;
+            }
+            db.ref("players").orderByChild("totalChiCoins").limitToLast(30).on("value", (snapshot) => {
+                const val = snapshot.val() || {};
+                const list = Object.values(val).sort((a, b) => (b.totalChiCoins || 0) - (a.totalChiCoins || 0));
+                
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Aún no hay récords registrados. ¡Sé el primero!</td></tr>`;
+                    return;
+                }
+
+                let html = "";
+                list.forEach((player, idx) => {
+                    let posBadge = `<span class="font-bold text-gray-500">${idx + 1}</span>`;
+                    if (idx === 0) posBadge = `<span class="text-xl">🥇</span>`;
+                    else if (idx === 1) posBadge = `<span class="text-xl">🥈</span>`;
+                    else if (idx === 2) posBadge = `<span class="text-xl">🥉</span>`;
+
+                    const isCurrent = player.gamerTag === playerGamertag;
+                    const rowClass = isCurrent ? "bg-amber-50 font-bold text-amber-900" : "";
+
+                    html += `
+                        <tr class="${rowClass} hover:bg-gray-50 transition">
+                            <td class="py-2.5 px-2">${posBadge}</td>
+                            <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || 'Anónimo'} ${isCurrent ? ' (Tú)' : ''}</td>
+                            <td class="py-2.5 px-2 text-right font-monogram font-bold text-amber-800 text-base">${(player.totalChiCoins || 0).toLocaleString()} 🪙</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            });
+        }
+
         // INICIALIZACIÓN
         document.addEventListener("DOMContentLoaded", () => {
             checkGamertag();
@@ -619,6 +800,7 @@
                 playerGamertag = saved;
                 document.getElementById("playerGamertag").innerText = playerGamertag;
                 document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                syncPlayerToFirebase();
             }
         }
 
@@ -641,6 +823,7 @@
                 playerGamertag = val.trim();
                 document.getElementById("playerGamertag").innerText = playerGamertag;
                 document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                updateScoresDashboard();
             }
         }
 
@@ -661,7 +844,11 @@
             Object.keys(METAS).forEach(game => {
                 const gameScore = getScore(game);
                 const target = METAS[game];
+                const coinsEarned = calculateGameChiCoins(game, gameScore);
+
                 document.getElementById("score-" + game).innerText = gameScore;
+                const coinsEl = document.getElementById("chicoins-" + game);
+                if (coinsEl) coinsEl.innerText = coinsEarned.toLocaleString();
 
                 const badge = document.getElementById("badge-" + game);
                 if (gameScore >= target) {
@@ -674,14 +861,20 @@
                 }
             });
 
+            const grandTotalCoins = getTotalChiCoins();
+            const totalDisplay = document.getElementById("totalChiCoinsDisplay");
+            if (totalDisplay) totalDisplay.innerText = grandTotalCoins.toLocaleString() + " 🪙";
+
             const prizeStatus = document.getElementById("prizeStatus");
             if (totalMetasSuperadas === 4) {
                 prizeStatus.innerHTML = "🏆 ¡Premio Desbloqueado! Toma una captura y canjéala el día de la boda.";
-                prizeStatus.className = "bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md font-monogram text-sm";
+                prizeStatus.className = "bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md font-monogram";
             } else {
-                prizeStatus.innerHTML = `Progreso: ${totalMetasSuperadas}/4 metas superadas.`;
-                prizeStatus.className = "bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-semibold text-center";
+                prizeStatus.innerHTML = `Progreso: ${totalMetasSuperadas}/4 metas`;
+                prizeStatus.className = "bg-gray-100 text-gray-500 px-3 py-2 rounded-xl text-xs font-semibold text-center";
             }
+
+            syncPlayerToFirebase();
         }
 
         // DIBUJADO DE MARCADORES RETRO EN CANVAS (FUENTES MONOGRAM)
@@ -855,12 +1048,18 @@
             }
             
             const meta = METAS[activeGame];
+            const coinsEarned = calculateGameChiCoins(activeGame, finalScore);
             
             // Mostrar los contenedores gráficos del Game Over clásico
             document.getElementById("gameOverTitleContainer").classList.remove("hidden");
             overlayScoreBox.classList.remove("hidden");
             overlayFinalScore.innerText = finalScore.toString().padStart(5, '0');
             overlayMetaCompare.innerText = `Meta requerida: ${meta} ${activeGame === 'maddie' ? 'clics' : 'pts'}`;
+            
+            const coinsEarnedEl = document.getElementById("overlayChiCoinsEarned");
+            if (coinsEarnedEl) {
+                coinsEarnedEl.innerText = `🪙 +${coinsEarned.toLocaleString()} ChiCoins`;
+            }
             
             // Dibujar sobre los lienzos usando sprites.png (con coordenadas corregidas)
             drawGameOverOverlaySprites();
