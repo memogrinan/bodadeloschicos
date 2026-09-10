@@ -253,6 +253,13 @@
             </div>
 
         </main>
+
+        <!-- PIE DE PÁGINA CON BOTÓN DE ADMIN -->
+        <footer class="mt-8 mb-6 text-center">
+            <button onclick="openAdminAuthModal()" class="text-xs text-gray-400 hover:text-gray-600 transition inline-flex items-center gap-1.5 opacity-60 hover:opacity-100 font-semibold bg-white/60 px-3 py-1.5 rounded-full shadow-xs border border-gray-200/50">
+                <span>🔐</span> Panel de Administración
+            </button>
+        </footer>
     </div>
 
     <!-- ========================================== -->
@@ -271,24 +278,33 @@
     <!-- MODAL DE TABLA DE LÍDERES EN VIVO -->
     <div id="leaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
                 <div class="flex items-center gap-2">
                     <span class="text-3xl">🏆</span>
                     <div>
                         <h2 class="text-xl font-extrabold text-olivo-base">Tabla de Líderes Nupcial</h2>
-                        <p class="text-xs text-gray-400 font-semibold">Ranking de ChiCoins 🪙 en tiempo real</p>
+                        <p class="text-xs text-gray-400 font-semibold" id="leaderboardSubtitle">Ranking general de puntajes en tiempo real</p>
                     </div>
                 </div>
                 <button onclick="closeLeaderboardModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold p-1">✕</button>
             </div>
 
-            <div class="overflow-y-auto my-4 flex-1 pr-1">
+            <!-- PESTAÑAS DE NAVEGACIÓN DE LÍDERES -->
+            <div class="flex gap-1.5 overflow-x-auto py-2.5 my-1 border-b border-gray-100 no-scrollbar text-xs">
+                <button onclick="switchLeaderboardTab('general')" id="tab-general" class="lb-tab px-3 py-1.5 rounded-xl bg-[#52582f] text-white font-bold transition shrink-0">🏆 General</button>
+                <button onclick="switchLeaderboardTab('chico')" id="tab-chico" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">👾 Chico</button>
+                <button onclick="switchLeaderboardTab('chica')" id="tab-chica" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">👰🏻 Chica</button>
+                <button onclick="switchLeaderboardTab('maddie')" id="tab-maddie" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">🐶 Maddie</button>
+                <button onclick="switchLeaderboardTab('puebla')" id="tab-puebla" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">🚗 Puebla</button>
+            </div>
+
+            <div class="overflow-y-auto my-2 flex-1 pr-1">
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="text-xs text-gray-400 uppercase border-b border-gray-100 pb-2">
                             <th class="py-2">Pos</th>
                             <th class="py-2">Jugador</th>
-                            <th class="py-2 text-right">ChiCoins 🪙</th>
+                            <th class="py-2 text-right" id="leaderboardScoreColTitle">Puntos Totales</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboardTableBody" class="divide-y divide-gray-50">
@@ -302,6 +318,22 @@
             <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
                 <span>🟢 Actualización en vivo</span>
                 <button onclick="closeLeaderboardModal()" class="bg-[#52582f] text-white px-5 py-2 rounded-xl font-bold hover:bg-opacity-90 transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE AUTENTICACIÓN DE ADMINISTRADOR -->
+    <div id="adminAuthModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <span class="text-4xl">🔐</span>
+            <h2 class="text-xl font-extrabold text-gray-800 mt-3">Acceso Administrador</h2>
+            <p class="text-gray-500 text-xs mt-1">Ingresa la contraseña del Stand de los Chicos</p>
+            <input type="password" id="adminPasswordInput" placeholder="Contraseña" class="w-full mt-4 p-3 border border-gray-200 rounded-xl text-center font-bold text-base outline-none focus:border-[#52582f] transition" onkeyup="if(event.key==='Enter') submitAdminPassword()">
+            <p id="adminAuthError" class="text-red-500 text-xs font-semibold mt-2 hidden">Contraseña incorrecta ❌</p>
+            <div class="flex gap-2 mt-4">
+                <button onclick="closeAdminAuthModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl transition text-xs">Cancelar</button>
+                <button onclick="submitAdminPassword()" class="w-1/2 bg-[#52582f] hover:bg-opacity-90 text-white font-bold py-2.5 rounded-xl transition text-xs">Ingresar</button>
             </div>
         </div>
     </div>
@@ -711,31 +743,38 @@
             return sum + bonus;
         }
 
+        let currentLeaderboardTab = "general";
+        let rawPlayersData = {};
+        let isLeaderboardListening = false;
+
         function syncPlayerToFirebase() {
             if (!db || !playerGamertag || !playerGamertag.trim()) return;
             const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
             
             const scoresObj = {};
             const coinsObj = {};
-            let total = 0;
+            let totalCoins = 0;
+            let totalScoreSum = 0;
             
             Object.keys(METAS).forEach(g => {
                 const s = getScore(g);
                 const c = calculateGameChiCoins(g, s);
                 scoresObj[g] = s;
                 coinsObj[g] = c;
-                total += c;
+                totalCoins += c;
+                totalScoreSum += s;
             });
 
             const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
-            total += bonus;
+            totalCoins += bonus;
 
             db.ref("players/" + keyTag).update({
                 gamerTag: playerGamertag.trim(),
                 scores: scoresObj,
                 chiCoins: coinsObj,
                 bonusCoins: bonus,
-                totalChiCoins: total,
+                totalChiCoins: totalCoins,
+                totalScore: totalScoreSum,
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
             }).catch(err => console.error("Error al sincronizar con Firebase:", err));
         }
@@ -749,41 +788,127 @@
             document.getElementById("leaderboardModal").classList.add("hidden");
         }
 
+        function switchLeaderboardTab(tab) {
+            currentLeaderboardTab = tab;
+            
+            const tabs = ['general', 'chico', 'chica', 'maddie', 'puebla'];
+            tabs.forEach(t => {
+                const btn = document.getElementById("tab-" + t);
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = "lb-tab px-3 py-1.5 rounded-xl bg-[#52582f] text-white font-bold transition shrink-0 shadow-xs";
+                    } else {
+                        btn.className = "lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0";
+                    }
+                }
+            });
+
+            renderLeaderboardTable();
+        }
+
         function listenToLeaderboard() {
             const tbody = document.getElementById("leaderboardTableBody");
             if (!db) {
                 tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Conectando a Firebase...</td></tr>`;
                 return;
             }
-            db.ref("players").orderByChild("totalChiCoins").limitToLast(30).on("value", (snapshot) => {
-                const val = snapshot.val() || {};
-                const list = Object.values(val).sort((a, b) => (b.totalChiCoins || 0) - (a.totalChiCoins || 0));
-                
-                if (list.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Aún no hay récords registrados. ¡Sé el primero!</td></tr>`;
-                    return;
-                }
-
-                let html = "";
-                list.forEach((player, idx) => {
-                    let posBadge = `<span class="font-bold text-gray-500">${idx + 1}</span>`;
-                    if (idx === 0) posBadge = `<span class="text-xl">🥇</span>`;
-                    else if (idx === 1) posBadge = `<span class="text-xl">🥈</span>`;
-                    else if (idx === 2) posBadge = `<span class="text-xl">🥉</span>`;
-
-                    const isCurrent = player.gamerTag === playerGamertag;
-                    const rowClass = isCurrent ? "bg-amber-50 font-bold text-amber-900" : "";
-
-                    html += `
-                        <tr class="${rowClass} hover:bg-gray-50 transition">
-                            <td class="py-2.5 px-2">${posBadge}</td>
-                            <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || 'Anónimo'} ${isCurrent ? ' (Tú)' : ''}</td>
-                            <td class="py-2.5 px-2 text-right font-monogram font-bold text-amber-800 text-base">${(player.totalChiCoins || 0).toLocaleString()} 🪙</td>
-                        </tr>
-                    `;
+            if (!isLeaderboardListening) {
+                isLeaderboardListening = true;
+                db.ref("players").on("value", (snapshot) => {
+                    rawPlayersData = snapshot.val() || {};
+                    renderLeaderboardTable();
                 });
-                tbody.innerHTML = html;
+            } else {
+                renderLeaderboardTable();
+            }
+        }
+
+        function renderLeaderboardTable() {
+            const tbody = document.getElementById("leaderboardTableBody");
+            const colTitle = document.getElementById("leaderboardScoreColTitle");
+            const subtitle = document.getElementById("leaderboardSubtitle");
+
+            if (!tbody) return;
+
+            const tabInfo = {
+                general: { col: "Puntos Totales", sub: "Ranking general de puntajes acumulados en todos los minijuegos" },
+                chico: { col: "Récord (Pts)", sub: "Ranking de puntuación en Invasores Espaciales (Chico)" },
+                chica: { col: "Récord (Pts)", sub: "Ranking de puntuación en Atrapa el Amor (Chica)" },
+                maddie: { col: "Récord (Clics)", sub: "Ranking de clics en Atrapa a Maddie" },
+                puebla: { col: "Récord (Pts)", sub: "Ranking de puntuación en Camino a Puebla" }
+            };
+
+            if (colTitle && tabInfo[currentLeaderboardTab]) colTitle.innerText = tabInfo[currentLeaderboardTab].col;
+            if (subtitle && tabInfo[currentLeaderboardTab]) subtitle.innerText = tabInfo[currentLeaderboardTab].sub;
+
+            const list = Object.values(rawPlayersData);
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Aún no hay récords registrados. ¡Sé el primero!</td></tr>`;
+                return;
+            }
+
+            const getScoreVal = (player, tab) => {
+                if (tab === "general") {
+                    if (typeof player.totalScore === "number") return player.totalScore;
+                    return (
+                        (player.scores?.chico || 0) + 
+                        (player.scores?.chica || 0) + 
+                        (player.scores?.maddie || 0) + 
+                        (player.scores?.puebla || 0)
+                    );
+                }
+                return (player.scores && typeof player.scores[tab] === "number") ? player.scores[tab] : 0;
+            };
+
+            list.sort((a, b) => getScoreVal(b, currentLeaderboardTab) - getScoreVal(a, currentLeaderboardTab));
+
+            let html = "";
+            list.forEach((player, idx) => {
+                let posBadge = `<span class="font-bold text-gray-500">${idx + 1}</span>`;
+                if (idx === 0) posBadge = `<span class="text-xl">🥇</span>`;
+                else if (idx === 1) posBadge = `<span class="text-xl">🥈</span>`;
+                else if (idx === 2) posBadge = `<span class="text-xl">🥉</span>`;
+
+                const isCurrent = player.gamerTag === playerGamertag;
+                const rowClass = isCurrent ? "bg-amber-50 font-bold text-amber-900" : "";
+                const scoreVal = getScoreVal(player, currentLeaderboardTab);
+                const unit = currentLeaderboardTab === "maddie" ? "clics" : "pts";
+
+                html += `
+                    <tr class="${rowClass} hover:bg-gray-50 transition">
+                        <td class="py-2.5 px-2">${posBadge}</td>
+                        <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || 'Anónimo'} ${isCurrent ? ' (Tú)' : ''}</td>
+                        <td class="py-2.5 px-2 text-right font-monogram font-bold text-amber-800 text-base">${scoreVal.toLocaleString()} ${unit}</td>
+                    </tr>
+                `;
             });
+            tbody.innerHTML = html;
+        }
+
+        // CONTROL DE ACCESO ADMINISTRADOR
+        function openAdminAuthModal() {
+            document.getElementById("adminAuthError").classList.add("hidden");
+            document.getElementById("adminPasswordInput").value = "";
+            document.getElementById("adminAuthModal").classList.remove("hidden");
+            setTimeout(() => {
+                const el = document.getElementById("adminPasswordInput");
+                if (el) el.focus();
+            }, 100);
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById("adminAuthModal").classList.add("hidden");
+        }
+
+        function submitAdminPassword() {
+            const val = document.getElementById("adminPasswordInput").value.trim();
+            if (val.toLowerCase() === "souvenir") {
+                sessionStorage.setItem("bodachicos_admin_auth", "true");
+                window.location.href = "admin.html";
+            } else {
+                document.getElementById("adminAuthError").classList.remove("hidden");
+            }
         }
 
         // INICIALIZACIÓN

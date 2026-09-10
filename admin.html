@@ -161,8 +161,21 @@
         let selectedPlayerKey = null;
 
         document.addEventListener("DOMContentLoaded", () => {
+            checkAdminAuth();
             listenToPlayers();
         });
+
+        function checkAdminAuth() {
+            if (sessionStorage.getItem("bodachicos_admin_auth") !== "true") {
+                const pass = prompt("🔐 Acceso Administrador - Ingresa la contraseña:");
+                if (pass && pass.trim().toLowerCase() === "souvenir") {
+                    sessionStorage.setItem("bodachicos_admin_auth", "true");
+                } else {
+                    alert("Acceso denegado: Contraseña incorrecta.");
+                    window.location.href = "juegos.html";
+                }
+            }
+        }
 
         function listenToPlayers() {
             db.ref("players").on("value", (snapshot) => {
