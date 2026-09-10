@@ -948,10 +948,10 @@
     </section>
 
     <!-- SECCIÓN: CONFIRMACIÓN RSVP PERSONALIZADA (CONECTADA A GOOGLE SHEETS) -->
-    <div id="confirmacion" style="background-color: #eef2e6; padding: 80px 20px; text-align: center;" class="fade-in-section">
-        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 35px 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(82, 88, 47, 0.08); border: 1px solid rgba(82, 88, 47, 0.12);">
+    <div id="confirmacion" style="background-color: #eef2e6; padding: 60px 15px; text-align: center;" class="fade-in-section">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: clamp(22px, 5vw, 35px) clamp(14px, 4vw, 25px); border-radius: 24px; box-shadow: 0 10px 30px rgba(82, 88, 47, 0.08); border: 1px solid rgba(82, 88, 47, 0.12); box-sizing: border-box;">
             
-            <h2 style="font-family: 'Alex Brush', cursive; font-size: clamp(2.6rem, 7vw, 3.8rem); color: var(--olivo-base); margin: 0 0 10px 0;">RSVP</h2>
+            <h2 style="font-family: 'Alex Brush', cursive; font-size: clamp(2.4rem, 7vw, 3.8rem); color: var(--olivo-base); margin: 0 0 8px 0;">RSVP</h2>
 
             <!-- ESTADO 1: BÚSQUEDA / INGRESO DE ID (SI NO HAY PARÁMETRO EN LA URL) -->
             <div id="rsvpSearchContainer">
@@ -960,9 +960,9 @@
                     <span style="font-size: 0.85rem; color: #777; font-style: italic;">Ingresa la clave o apellido de tu tarjeta de invitación:</span>
                 </p>
                 
-                <div style="display: flex; gap: 10px; max-width: 420px; margin: 0 auto; justify-content: center;">
-                    <input type="text" id="rsvpSearchInput" placeholder="Ej. familia-perez" onkeypress="if(event.key==='Enter') searchRSVPInvitation()" style="flex: 1; padding: 12px 16px; border: 1.5px solid #ccc; border-radius: 14px; outline: none; font-size: 0.95rem; font-family: inherit;">
-                    <button onclick="searchRSVPInvitation()" class="btn btn-rsvp" style="padding: 12px 22px; white-space: nowrap; font-size: 0.9rem;">Buscar 🔍</button>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; max-width: 420px; margin: 0 auto; justify-content: center;">
+                    <input type="text" id="rsvpSearchInput" placeholder="Ej. familia-perez" onkeypress="if(event.key==='Enter') searchRSVPInvitation()" style="flex: 1 1 200px; min-width: 180px; padding: 12px 16px; border: 1.5px solid #ccc; border-radius: 14px; outline: none; font-size: 16px; font-family: inherit; box-sizing: border-box;">
+                    <button onclick="searchRSVPInvitation()" class="btn btn-rsvp" style="flex: 0 0 auto; padding: 12px 24px; white-space: nowrap; font-size: 0.95rem;">Buscar 🔍</button>
                 </div>
                 <p id="rsvpSearchError" style="color: #e74c3c; font-size: 0.85rem; margin-top: 12px; display: none; font-weight: 600;"></p>
             </div>
@@ -975,38 +975,38 @@
 
             <!-- ESTADO 3: FORMULARIO PERSONALIZADO (VIERNES / SÁBADO) -->
             <div id="rsvpFormContainer" style="display: none; text-align: left;">
-                <div style="text-align: center; margin-bottom: 25px; border-bottom: 1px dashed rgba(82, 88, 47, 0.2); padding-bottom: 18px;">
-                    <h3 id="rsvpGuestTitle" style="color: var(--olivo-base); font-size: 1.6rem; font-weight: 600; margin: 0;">¡Hola Familia!</h3>
-                    <p id="rsvpPassesText" style="color: #666; font-size: 0.92rem; margin-top: 4px;">Tienen 2 pases reservados para nuestra boda.</p>
+                <div style="text-align: center; margin-bottom: 22px; border-bottom: 1px dashed rgba(82, 88, 47, 0.2); padding-bottom: 16px;">
+                    <h3 id="rsvpGuestTitle" style="color: var(--olivo-base); font-size: clamp(1.4rem, 5vw, 1.7rem); font-weight: 600; margin: 0;">¡Hola Familia!</h3>
+                    <p id="rsvpPassesText" style="color: #666; font-size: 0.9rem; margin-top: 4px;">Tienen 2 pases reservados para nuestra boda.</p>
                 </div>
 
                 <form id="rsvpCustomForm" onsubmit="submitRSVPForm(event)">
                     
                     <!-- SECCIÓN OPTATIVA: BODA CIVIL (VIERNES) -->
-                    <div id="rsvpFridaySection" style="display: none; background: #f9faf7; padding: 18px; border-radius: 18px; margin-bottom: 20px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                    <div id="rsvpFridaySection" style="display: none; background: #f9faf7; padding: clamp(12px, 3vw, 18px); border-radius: 18px; margin-bottom: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
                         <h4 style="color: var(--olivo-base); font-size: 1.05rem; font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
                             <span>🥂</span> Boda Civil (Viernes 12 de Feb - 6:00 PM)
                         </h4>
-                        <p style="font-size: 0.8rem; color: #777; margin: 0 0 14px 0;">¡Están invitados a nuestra ceremonia íntima!</p>
-                        <div id="rsvpFridayMembers" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                        <p style="font-size: 0.8rem; color: #777; margin: 0 0 12px 0;">¡Están invitados a nuestra ceremonia íntima!</p>
+                        <div id="rsvpFridayMembers" style="display: flex; flex-direction: column; gap: 12px;"></div>
                     </div>
 
                     <!-- SECCIÓN OBLIGATORIA: BODA Y FIESTA (SÁBADO) -->
-                    <div id="rsvpSaturdaySection" style="background: #f9faf7; padding: 18px; border-radius: 18px; margin-bottom: 20px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                    <div id="rsvpSaturdaySection" style="background: #f9faf7; padding: clamp(12px, 3vw, 18px); border-radius: 18px; margin-bottom: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
                         <h4 style="color: var(--olivo-base); font-size: 1.05rem; font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
                             <span>💒</span> Boda & Fiesta (Sábado 13 de Feb - 4:00 PM)
                         </h4>
-                        <p style="font-size: 0.8rem; color: #777; margin: 0 0 14px 0;">Hacienda San José Actipan, Cholula</p>
+                        <p style="font-size: 0.8rem; color: #777; margin: 0 0 12px 0;">Hacienda San José Actipan, Cholula</p>
                         <div id="rsvpSaturdayMembers" style="display: flex; flex-direction: column; gap: 12px;"></div>
                     </div>
 
                     <!-- SECCIÓN: CELEBRACIÓN ESPECIAL -->
-                    <div style="margin-bottom: 22px; background: #f9faf7; padding: 16px; border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                    <div style="margin-bottom: 20px; background: #f9faf7; padding: clamp(12px, 3vw, 16px); border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
                         <label style="display: block; font-size: 0.88rem; font-weight: 600; color: var(--olivo-base); margin-bottom: 6px;">🎉 ¿Celebras algo especial cerca de la fecha? (Cumpleaños, aniversario, etc.):</label>
-                        <input type="text" id="rsvpCelebracionInput" placeholder="Ej. Cumpleaños de Mariana, Aniversario..." style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 0.9rem; outline: none; box-sizing: border-box; font-family: inherit; background: white;">
+                        <input type="text" id="rsvpCelebracionInput" placeholder="Ej. Cumpleaños de Mariana, Aniversario..." style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; outline: none; box-sizing: border-box; font-family: inherit; background: white;">
                     </div>
 
-                    <button type="submit" id="rsvpSubmitBtn" class="btn btn-rsvp" style="width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 14px;">Confirmar Asistencia 💌</button>
+                    <button type="submit" id="rsvpSubmitBtn" class="btn btn-rsvp" style="width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 14px; box-sizing: border-box;">Confirmar Asistencia 💌</button>
                 </form>
             </div>
 
@@ -1348,12 +1348,12 @@
                 fridayMembers.innerHTML = "";
                 integrantes.forEach((member, idx) => {
                     const div = document.createElement("div");
-                    div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 12px; border: 1px solid #eaefe0;";
+                    div.style.cssText = "display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: white; border-radius: 14px; border: 1px solid #eaefe0;";
                     div.innerHTML = `
-                        <span style="font-size: 0.9rem; font-weight: 600; color: #333;">👤 ${member}</span>
-                        <div style="display: flex; gap: 14px; font-size: 0.85rem;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="civil_${idx}" value="SI" checked> Sí asistirá</label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="civil_${idx}" value="NO"> No asistirá</label>
+                        <span style="font-size: 0.95rem; font-weight: 600; color: #333;">👤 ${member}</span>
+                        <div style="display: flex; gap: 10px; font-size: 0.85rem;">
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="civil_${idx}" value="SI" checked> Sí asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="civil_${idx}" value="NO"> No asistirá</label>
                         </div>
                     `;
                     fridayMembers.appendChild(div);
@@ -1367,17 +1367,17 @@
             saturdayMembers.innerHTML = "";
             integrantes.forEach((member, idx) => {
                 const div = document.createElement("div");
-                div.style.cssText = "padding: 12px; background: white; border-radius: 14px; border: 1px solid #eaefe0; display: flex; flex-direction: column; gap: 8px;";
+                div.style.cssText = "padding: 12px 14px; background: white; border-radius: 14px; border: 1px solid #eaefe0; display: flex; flex-direction: column; gap: 10px;";
                 div.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;">
                         <span style="font-size: 0.95rem; font-weight: 600; color: #333;">👤 ${member}</span>
-                        <div style="display: flex; gap: 14px; font-size: 0.85rem;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="SI" checked> Sí asistirá</label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="radio" name="sabado_${idx}" value="NO"> No asistirá</label>
+                        <div style="display: flex; gap: 10px; font-size: 0.85rem;">
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="sabado_${idx}" value="SI" checked> Sí asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="sabado_${idx}" value="NO"> No asistirá</label>
                         </div>
                     </div>
                     <div>
-                        <input type="text" id="alergia_${idx}" placeholder="Restricciones alimenticias o menú de ${member} (opcional)" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 0.82rem; outline: none; box-sizing: border-box; background: #fafafa; font-family: inherit;">
+                        <input type="text" id="alergia_${idx}" placeholder="Restricciones alimenticias o menú de ${member} (opcional)" style="width: 100%; padding: 9px 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box; background: #fafafa; font-family: inherit;">
                     </div>
                 `;
                 saturdayMembers.appendChild(div);
