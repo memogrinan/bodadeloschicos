@@ -2097,9 +2097,10 @@
         }
 
         // ==========================================
-        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro con Casetas y Letreros SCT)
+        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro con Casetas, Curvas y Letreros SCT)
         let playerX, targetLane, roadObjects, sceneryObjects, roadFrame, roadSpeed;
         let distanceKm = 0, bonusScore = 0;
+        let currentRoadCurve = 0, targetRoadCurve = 0;
         let rioFrioSpawned = false, sanMartinSpawned = false, cholulaSpawned = false, tollGates = [];
         let pueblaKeyDownHandler = null;
 
@@ -2110,16 +2111,25 @@
             { text: "MOLE POBLANO", arrow: "➔", dist: "1 km" },
             { text: "VAL'QUIRICO", arrow: "➔", dist: "8 km" },
             { text: "ATLIXCO", arrow: "↑", dist: "30 km" },
+            { text: "ZONA CURVAS", arrow: "⬿", dist: "RÍO FRÍO" },
             { text: "CEMITAS", arrow: "➔", dist: "300 m" },
             { text: "CATEDRAL", arrow: "➔", dist: "20 km" }
         ];
         
+        function getPueblaRoadCenter(y) {
+            const horizonY = 180;
+            const roadHeight = canvas.height - horizonY;
+            const depthPct = Math.max(0, Math.min(1, (y - horizonY) / roadHeight));
+            return 180 + currentRoadCurve * Math.pow(depthPct, 1.8);
+        }
+
         function getPueblaLaneX(lane, y) {
             const horizonY = 180;
             const roadHeight = canvas.height - horizonY;
             const depthPct = Math.max(0, Math.min(1, (y - horizonY) / roadHeight));
             const currentRoadWidth = 40 + depthPct * 260;
-            return 180 - currentRoadWidth / 2 + (lane * currentRoadWidth) / 3 + currentRoadWidth / 6;
+            const center = getPueblaRoadCenter(y);
+            return center - currentRoadWidth / 2 + (lane * currentRoadWidth) / 3 + currentRoadWidth / 6;
         }
 
         function initPueblaGame() {
@@ -2130,6 +2140,8 @@
             tollGates = [];
             distanceKm = 0;
             bonusScore = 0;
+            currentRoadCurve = 0;
+            targetRoadCurve = 0;
             rioFrioSpawned = false;
             sanMartinSpawned = false;
             cholulaSpawned = false;
@@ -2351,13 +2363,35 @@
             ctx.fillStyle = "#27ae60"; 
             ctx.fillRect(0, horizonY, canvas.width, roadHeight);
 
-            // 3. ASFALTO DE LA CARRETERA (SUPERFICIE LISA CONTINUA SIN COSTURAS HORIZONTALES)
+            // CÁLCULO DE CURVATURA EN LA ZONA DE MONTAÑA (ENTRE CASETA RÍO FRÍO KM 45 Y SAN MARTÍN KM 95)
+            if (distanceKm >= 45.0 && distanceKm <= 95.0) {
+                targetRoadCurve = Math.sin(roadFrame * 0.038) * 115 + Math.cos(roadFrame * 0.018) * 35;
+            } else {
+                targetRoadCurve = 0;
+            }
+            currentRoadCurve += (targetRoadCurve - currentRoadCurve) * 0.08;
+
+            // 3. ASFALTO DE LA CARRETERA (SUPERFICIE CURVA OUTRUN CONTINUA Y LISA)
             ctx.fillStyle = "#2c3e50";
             ctx.beginPath();
-            ctx.moveTo(180 - 20, horizonY);
-            ctx.lineTo(180 - 150, canvas.height);
-            ctx.lineTo(180 + 150, canvas.height);
-            ctx.lineTo(180 + 20, horizonY);
+            ctx.moveTo(getPueblaRoadCenter(horizonY) - 20, horizonY);
+
+            // Borde izquierdo curvo
+            for (let step = 0; step <= 12; step++) {
+                const stepY = horizonY + (step / 12) * roadHeight;
+                const stepDepth = (stepY - horizonY) / roadHeight;
+                const stepCenter = getPueblaRoadCenter(stepY);
+                const stepWidth = 40 + stepDepth * 260;
+                ctx.lineTo(stepCenter - stepWidth / 2, stepY);
+            }
+            // Borde derecho curvo
+            for (let step = 12; step >= 0; step--) {
+                const stepY = horizonY + (step / 12) * roadHeight;
+                const stepDepth = (stepY - horizonY) / roadHeight;
+                const stepCenter = getPueblaRoadCenter(stepY);
+                const stepWidth = 40 + stepDepth * 260;
+                ctx.lineTo(stepCenter + stepWidth / 2, stepY);
+            }
             ctx.closePath();
             ctx.fill();
 
@@ -2407,7 +2441,7 @@
                 });
             }
 
-            // DIBUJAR BORDES Y LÍNEAS DIVISORIAS EN PERSPECTIVA
+            // DIBUJAR BORDES Y LÍNEAS DIVISORIAS EN PERSPECTIVA CURVA
             const totalStripeSegments = 12;
             for (let i = totalStripeSegments; i >= 1; i--) {
                 const y1 = horizonY + Math.pow((i - 1) / totalStripeSegments, 2) * roadHeight;
@@ -2417,11 +2451,13 @@
 
                 const roadWidth1 = 40 + ((y1 - horizonY) / roadHeight) * 260;
                 const roadWidth2 = 40 + ((y2 - horizonY) / roadHeight) * 260;
+                const centerX1 = getPueblaRoadCenter(y1);
+                const centerX2 = getPueblaRoadCenter(y2);
 
-                const xl1 = 180 - roadWidth1 / 2;
-                const xl2 = 180 - roadWidth2 / 2;
-                const xr1 = 180 + roadWidth1 / 2;
-                const xr2 = 180 + roadWidth2 / 2;
+                const xl1 = centerX1 - roadWidth1 / 2;
+                const xl2 = centerX2 - roadWidth2 / 2;
+                const xr1 = centerX1 + roadWidth1 / 2;
+                const xr2 = centerX2 + roadWidth2 / 2;
 
                 // Cordón lateral (blanco / rojo)
                 ctx.fillStyle = stripeActive ? "#e74c3c" : "#ffffff";
@@ -2454,15 +2490,16 @@
                 }
             }
 
-            // 5. ANIMAR Y DIBUJAR LETREROS SCT (IZQUIERDA Y DERECHA)
+            // 5. ANIMAR Y DIBUJAR LETREROS SCT (IZQUIERDA Y DERECHA SIGUIENDO LA CURVA)
             for (let i = sceneryObjects.length - 1; i >= 0; i--) {
                 let sc = sceneryObjects[i];
                 sc.y += roadSpeed * 0.42;
                 const depthPct = Math.max(0, Math.min(1, (sc.y - horizonY) / roadHeight));
                 const currentRoadWidth = 40 + depthPct * 260;
+                const centerAtY = getPueblaRoadCenter(sc.y);
                 
                 const sideDir = sc.side || 1;
-                const roadEdgeX = sideDir < 0 ? (180 - currentRoadWidth / 2) : (180 + currentRoadWidth / 2);
+                const roadEdgeX = sideDir < 0 ? (centerAtY - currentRoadWidth / 2) : (centerAtY + currentRoadWidth / 2);
                 const scX = sideDir < 0 ? (roadEdgeX - 26 - depthPct * 65) : (roadEdgeX + 26 + depthPct * 65);
                 
                 const scale = 0.32 + depthPct * 0.95;
@@ -2599,17 +2636,18 @@
 
             drawRearViewCar(ctx, playerX, 440, 62, 38);
 
-            // 9. ANIMAR Y DIBUJAR CASETAS DE COBRO / ARCO DE CHOLULA (SE DIBUJA DESPUÉS DEL AUTO PARA QUE PASE POR DEBAJO DE LA VIGA SUPERIOR)
+            // 9. ANIMAR Y DIBUJAR CASETAS DE COBRO / ARCO DE CHOLULA (SIGUIENDO LA CURVA Y DIBUJADAS TRAS EL AUTO PARA QUE PASE POR DEBAJO)
             for (let i = tollGates.length - 1; i >= 0; i--) {
                 let gate = tollGates[i];
                 gate.y += roadSpeed * 0.52;
                 
                 const depthPct = Math.max(0, Math.min(1, (gate.y - horizonY) / roadHeight));
                 const currentRoadWidth = 40 + depthPct * 260;
+                const centerAtY = getPueblaRoadCenter(gate.y);
                 const scale = 0.35 + depthPct * 0.95;
 
-                const leftPillarX = 180 - currentRoadWidth / 2 - 8 * scale;
-                const rightPillarX = 180 + currentRoadWidth / 2 + 8 * scale;
+                const leftPillarX = centerAtY - currentRoadWidth / 2 - 8 * scale;
+                const rightPillarX = centerAtY + currentRoadWidth / 2 + 8 * scale;
                 const archY = gate.y - 65 * scale;
                 const archW = currentRoadWidth + 35 * scale;
                 const archH = Math.round(28 * scale);
@@ -2628,17 +2666,17 @@
 
                 // Viga / Letrero superior de la caseta (DIBUJADO POR ENCIMA DEL AUTO)
                 ctx.fillStyle = gate.color || "#16a34a";
-                ctx.fillRect(Math.round(180 - archW / 2), Math.round(archY), archW, archH);
+                ctx.fillRect(Math.round(centerAtY - archW / 2), Math.round(archY), archW, archH);
                 ctx.strokeStyle = "#ffffff";
                 ctx.lineWidth = Math.max(1.5, 2.5 * scale);
-                ctx.strokeRect(Math.round(180 - archW / 2), Math.round(archY), archW, archH);
+                ctx.strokeRect(Math.round(centerAtY - archW / 2), Math.round(archY), archW, archH);
 
                 // Texto de la Caseta
                 ctx.fillStyle = "#ffffff";
                 const gateFontSize = Math.max(7, Math.round(11 * scale));
                 ctx.font = `bold ${gateFontSize}px sans-serif`;
                 ctx.textAlign = "center";
-                ctx.fillText(gate.name, 180, Math.round(archY + 18 * scale));
+                ctx.fillText(gate.name, centerAtY, Math.round(archY + 18 * scale));
                 ctx.restore();
 
                 // Lógica de paso por la caseta
