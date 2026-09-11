@@ -463,6 +463,7 @@
         let gameInterval = null;
         let score = 0;
         let gameRunning = false;
+        let gameStartTime = 0;
 
         // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
@@ -794,8 +795,9 @@
 
             const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
             totalCoins += bonus;
+            const timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
 
-            db.ref("players/" + keyTag).update({
+            const payload = {
                 gamerTag: playerGamertag.trim(),
                 realName: playerRealName || selectedRealName || "",
                 partyId: currentPartyId || "general",
@@ -804,8 +806,35 @@
                 bonusCoins: bonus,
                 totalChiCoins: totalCoins,
                 totalScore: totalScoreSum,
+                timePlayedSeconds: timePlayed,
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
-            }).catch(err => console.error("Error al sincronizar con Firebase:", err));
+            };
+
+            db.ref("players/" + keyTag).update(payload).catch(err => console.error("Error al sincronizar con Firebase:", err));
+
+            // Enviar analíticos a Google Sheets (Trix) silenciosamente
+            try {
+                const sheetPayload = {
+                    action: "updateGameStats",
+                    partyId: currentPartyId || "general",
+                    realName: payload.realName,
+                    gamerTag: payload.gamerTag,
+                    totalScore: payload.totalScore,
+                    totalChiCoins: payload.totalChiCoins,
+                    timePlayedSeconds: payload.timePlayedSeconds,
+                    chicoScore: scoresObj.chico || 0,
+                    chicaScore: scoresObj.chica || 0,
+                    maddieScore: scoresObj.maddie || 0,
+                    pueblaScore: scoresObj.puebla || 0
+                };
+                
+                fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sheetPayload)
+                }).catch(e => console.warn("Aviso: No se pudo enviar a Trix", e));
+            } catch (e) {}
         }
 
         function openLeaderboardModal() {
@@ -1200,6 +1229,12 @@
         }
 
         function resetGameUI() {
+            if (gameRunning && gameStartTime) {
+                const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+                const total = parseInt(localStorage.getItem("bodachicos_time_played") || "0") + elapsed;
+                localStorage.setItem("bodachicos_time_played", total);
+                gameStartTime = 0;
+            }
             gameRunning = false;
             clearInterval(gameInterval);
             score = 0;
@@ -1272,6 +1307,7 @@
             initAudio(); 
             gameOverlay.classList.add("hidden");
             gameRunning = true;
+            gameStartTime = Date.now();
             score = 0;
             currentGameState.innerText = "Jugando";
 
@@ -1282,7 +1318,8 @@
                 canvas.classList.remove("hidden");
                 initChicaGame();
             } else if (activeGame === 'maddie') {
-                document.getElementById("maddieContainer").classList.remove("hidden");
+                maddieGrid.classList.remove("hidden");
+                maddieScoreboard.classList.remove("hidden");
                 initMaddieGame();
             } else if (activeGame === 'puebla') {
                 canvas.classList.remove("hidden");
@@ -1308,6 +1345,12 @@
         }
 
         function gameOver(finalScore) {
+            if (gameRunning && gameStartTime) {
+                const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+                const total = parseInt(localStorage.getItem("bodachicos_time_played") || "0") + elapsed;
+                localStorage.setItem("bodachicos_time_played", total);
+                gameStartTime = 0;
+            }
             gameRunning = false;
             clearInterval(gameInterval);
             saveScore(activeGame, finalScore);
