@@ -1402,7 +1402,17 @@
             restartCanvas.onclick = startActiveGame;
             
             let resultMessage = "";
-            if (finalScore >= meta) {
+            if (activeGame === 'puebla') {
+                const distDriven = distanceKm.toFixed(1);
+                const diffKm = Math.max(0, (120.0 - distanceKm)).toFixed(1);
+                if (finalScore >= meta || distanceKm >= 120.0) {
+                    resultMessage = `🎉 ¡Reto superado! Condujiste los 120 km completos y llegaste a Cholula.`;
+                    currentGameState.innerText = "¡Meta lograda!";
+                } else {
+                    resultMessage = `🚗 Recorriste ${distDriven} km. Te quedaste a solo ${diffKm} km de llegar a Cholula (120 km totales). ¡Inténtalo de nuevo!`;
+                    currentGameState.innerText = "Buen intento";
+                }
+            } else if (finalScore >= meta) {
                 resultMessage = `🎉 ¡Reto superado con éxito! Lograste sobrepasar el objetivo.`;
                 currentGameState.innerText = "¡Meta lograda!";
             } else {
@@ -2413,7 +2423,7 @@
                 tollGates.push({ name: "¡BIENVENIDO A CHOLULA! 🏛️ (KM 120)", y: horizonY, passed: false, isFinal: true, color: "#0284c7" });
             }
 
-            // GENERAR LETREROS MEXICANOS VERDES DE CARRETERA (IZQUIERDA Y DERECHA + SALIDAS)
+            // GENERAR LETREROS MEXICANOS VERDES DE CARRETERA (IZQUIERDA Y DERECHA + SALIDAS + KM REALES DINÁMICOS)
             if (roadFrame % 65 === 0) {
                 const side = Math.random() < 0.5 ? -1 : 1;
                 const isExit = Math.random() < 0.3;
@@ -2429,7 +2439,23 @@
                     const signData = PUEBLA_SIGNS[Math.floor(Math.random() * PUEBLA_SIGNS.length)];
                     textVal = signData.text;
                     arrowVal = side === -1 ? "⬿" : signData.arrow;
-                    distVal = signData.dist;
+                    
+                    // Distancias dinámicas reales según los kilómetros recorridos en vivo
+                    if (textVal === "CHOLULA") {
+                        distVal = `${Math.max(1, Math.round(120 - distanceKm))} km`;
+                    } else if (textVal === "VAL'QUIRICO") {
+                        distVal = `${Math.max(1, Math.round(85 - distanceKm))} km`;
+                    } else if (textVal === "SAN MARTÍN") {
+                        distVal = `${Math.max(1, Math.round(95 - distanceKm))} km`;
+                    } else if (textVal === "PUEBLA CENTRO") {
+                        distVal = `${Math.max(1, Math.round(125 - distanceKm))} km`;
+                    } else if (textVal === "ATLIXCO") {
+                        distVal = `${Math.max(1, Math.round(140 - distanceKm))} km`;
+                    } else if (textVal === "CATEDRAL") {
+                        distVal = `${Math.max(1, Math.round(126 - distanceKm))} km`;
+                    } else {
+                        distVal = signData.dist;
+                    }
                 }
 
                 sceneryObjects.push({
@@ -2546,8 +2572,10 @@
                 }
             }
 
-            // 6. GENERAR OBSTÁCULOS E ÍTEMS EN LOS CARRILES (DIFICULTAD GRADUAL SEGÚN DISTANCIA)
-            const spawnInterval = Math.max(14, Math.floor(28 - (distanceKm / 120.0) * 14));
+            // 6. GENERAR OBSTÁCULOS E ÍTEMS EN LOS CARRILES (MÁS TIEMPO DE VISIÓN EN CURVAS)
+            const isCurveZone = distanceKm >= 45.0 && distanceKm <= 95.0;
+            const baseSpawn = Math.max(14, Math.floor(28 - (distanceKm / 120.0) * 14));
+            const spawnInterval = isCurveZone ? baseSpawn + 12 : baseSpawn;
             if (roadFrame % spawnInterval === 0) {
                 const laneIdx = Math.floor(Math.random() * 3);
                 const rollType = Math.random();
