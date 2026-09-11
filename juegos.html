@@ -1135,14 +1135,7 @@
         }
 
         function changeGamerTagPrompt() {
-            const val = prompt("Ingresa tu nuevo GamerTag:", playerGamertag);
-            if (val && val.trim()) {
-                localStorage.setItem("bodachicos_gamertag", val.trim());
-                playerGamertag = val.trim();
-                document.getElementById("playerGamertag").innerText = playerGamertag;
-                document.getElementById("bottomGamerTag").innerText = playerGamertag;
-                updateScoresDashboard();
-            }
+            prepareGamertagModal();
         }
 
         function getScore(game) {
@@ -1822,135 +1815,6 @@
             ctx.restore();
         }
 
-        // DIBUJO DE LA NOVIA CASTAÑA DE CABELLO LARGO Y CON VELO (CUSTOM CANVAS VECTOR)
-        function drawBrunetteBride(ctx, x, y) {
-            ctx.save();
-            ctx.translate(x, y);
-
-            // Velo transparente (blanco radiante) cayendo por detrás
-            ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-            ctx.beginPath();
-            ctx.ellipse(0, -5, 24, 38, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Cabello largo castaño oscuro por detrás (#4a2c11)
-            ctx.fillStyle = "#5c3a1e";
-            ctx.beginPath();
-            ctx.ellipse(0, -14, 18, 25, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Mechones largos cayendo sobre los hombros
-            ctx.beginPath();
-            ctx.ellipse(-14, 4, 7, 24, 0.15, 0, Math.PI * 2);
-            ctx.ellipse(14, 4, 7, 24, -0.15, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Vestido de novia blanco elegante
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.moveTo(-15, 8);
-            ctx.lineTo(15, 8);
-            ctx.lineTo(26, 42);
-            ctx.lineTo(-26, 42);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#cbd5e1";
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            // Cinta de encaje / cinturón
-            ctx.fillStyle = "#f59e0b";
-            ctx.fillRect(-11, 13, 22, 2);
-
-            // Cabeza / Cara
-            ctx.fillStyle = "#ffdfd3";
-            ctx.beginPath();
-            ctx.arc(0, -14, 13, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Peinado Castaño con fleco ondulado y caída larga
-            ctx.fillStyle = "#4a2a10";
-            ctx.beginPath();
-            ctx.arc(0, -17, 13.5, Math.PI * 1.15, Math.PI * 1.85);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.ellipse(-5, -20, 8, 5, -0.3, 0, Math.PI * 2);
-            ctx.ellipse(5, -20, 8, 5, 0.3, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Ojos expresivos y cejas
-            ctx.fillStyle = "#2d1b0e";
-            ctx.beginPath();
-            ctx.arc(-4.5, -13, 1.8, 0, Math.PI * 2);
-            ctx.arc(4.5, -13, 1.8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Pestañas
-            ctx.strokeStyle = "#3a220f";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(-4.5, -15, 2.5, Math.PI * 1.2, Math.PI * 1.8);
-            ctx.arc(4.5, -15, 2.5, Math.PI * 1.2, Math.PI * 1.8);
-            ctx.stroke();
-
-            // Sonrisa alegre
-            ctx.strokeStyle = "#e11d48";
-            ctx.lineWidth = 1.3;
-            ctx.beginPath();
-            ctx.arc(0, -10, 3.5, 0.1, Math.PI - 0.1);
-            ctx.stroke();
-
-            // Rubor sonrojado en mejillas
-            ctx.fillStyle = "rgba(244, 63, 94, 0.35)";
-            ctx.beginPath();
-            ctx.arc(-8, -10, 2.8, 0, Math.PI * 2);
-            ctx.arc(8, -10, 2.8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Corona / Tiara brillante 👑
-            ctx.fillStyle = "#fbbf24";
-            ctx.beginPath();
-            ctx.moveTo(-8, -24);
-            ctx.lineTo(-4, -28);
-            ctx.lineTo(0, -24);
-            ctx.lineTo(4, -28);
-            ctx.lineTo(8, -24);
-            ctx.lineTo(7, -22);
-            ctx.lineTo(-7, -22);
-            ctx.closePath();
-            ctx.fill();
-
-            // Brillantes en la tiara
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(-4, -27, 1, 0, Math.PI * 2);
-            ctx.arc(0, -24, 1, 0, Math.PI * 2);
-            ctx.arc(4, -27, 1, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Ramo de novia (Flores) 💐
-            ctx.fillStyle = "#16a34a"; // Hojas
-            ctx.beginPath();
-            ctx.arc(0, 20, 7, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#f43f5e"; // Rosas
-            ctx.beginPath();
-            ctx.arc(-4, 18, 3.5, 0, Math.PI * 2);
-            ctx.arc(4, 18, 3.5, 0, Math.PI * 2);
-            ctx.arc(0, 22, 3.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(0, 18, 2.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-        }
-
         function initChicaGame() {
             basketX = canvas.width / 2 - 25;
             fallObjects = [];
@@ -2028,8 +1892,15 @@
                 });
             }
 
-        // 4. DIBUJAR A LA NOVIA CASTAÑA DE CABELLO LARGO
-            drawBrunetteBride(ctx, Math.round(basketX + 25), 420);
+            // 4. DIBUJAR A LA NOVIA CASTAÑA DE CABELLO LARGO (EMOJI 👰🏽‍♀️)
+            ctx.save();
+            ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 3;
+            ctx.font = "48px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("👰🏽‍♀️", Math.round(basketX + 25), 450);
+            ctx.restore();
 
             // 5. VIDAS EN PANTALLA
             let heartUI = "";
@@ -2472,7 +2343,17 @@
             ctx.fillStyle = "#27ae60"; 
             ctx.fillRect(0, horizonY, canvas.width, roadHeight);
 
-            // 3. GENERAR LETREROS MEXICANOS VERDES DE CARRETERA
+            // 3. ASFALTO DE LA CARRETERA (SUPERFICIE LISA CONTINUA SIN COSTURAS HORIZONTALES)
+            ctx.fillStyle = "#2c3e50";
+            ctx.beginPath();
+            ctx.moveTo(180 - 20, horizonY);
+            ctx.lineTo(180 - 150, canvas.height);
+            ctx.lineTo(180 + 150, canvas.height);
+            ctx.lineTo(180 + 20, horizonY);
+            ctx.closePath();
+            ctx.fill();
+
+            // 4. GENERAR LETREROS MEXICANOS VERDES DE CARRETERA
             if (roadFrame % 75 === 0) {
                 const signData = PUEBLA_SIGNS[Math.floor(Math.random() * PUEBLA_SIGNS.length)];
                 sceneryObjects.push({
@@ -2483,7 +2364,7 @@
                 });
             }
 
-            // DIBUJAR RAYAS Y CARRETERA EN PERSPECTIVA
+            // DIBUJAR BORDES Y LÍNEAS DIVISORIAS EN PERSPECTIVA
             const totalStripeSegments = 12;
             for (let i = totalStripeSegments; i >= 1; i--) {
                 const y1 = horizonY + Math.pow((i - 1) / totalStripeSegments, 2) * roadHeight;
@@ -2509,13 +2390,6 @@
                 ctx.beginPath();
                 ctx.moveTo(xr1, y1); ctx.lineTo(xr2, y2);
                 ctx.lineTo(xr2 + 11, y2); ctx.lineTo(xr1 + 7, y1);
-                ctx.fill();
-
-                // Asfalto
-                ctx.fillStyle = "#2c3e50";
-                ctx.beginPath();
-                ctx.moveTo(xl1, y1); ctx.lineTo(xl2, y2);
-                ctx.lineTo(xr2, y2); ctx.lineTo(xr1, y1);
                 ctx.fill();
 
                 // Líneas divisorias amarillas
