@@ -2129,17 +2129,22 @@
         let currentRoadCurve = 0, targetRoadCurve = 0;
         let rioFrioSpawned = false, sanMartinSpawned = false, cholulaSpawned = false, tollGates = [];
         let pueblaKeyDownHandler = null;
+        let recentSignTexts = [];
 
         const PUEBLA_SIGNS = [
             { text: "CHOLULA", arrow: "↑", dist: "15 km" },
-            { text: "CHALUPAS", arrow: "➔", dist: "500 m" },
+            { text: "VAL'QUIRICO", arrow: "➔", dist: "8 km" },
+            { text: "SAN MARTÍN", arrow: "↑", dist: "10 km" },
             { text: "PUEBLA CENTRO", arrow: "↑", dist: "22 km" },
             { text: "MOLE POBLANO", arrow: "➔", dist: "1 km" },
-            { text: "VAL'QUIRICO", arrow: "➔", dist: "8 km" },
+            { text: "CHALUPAS", arrow: "➔", dist: "500 m" },
+            { text: "CEMITAS", arrow: "➔", dist: "300 m" },
             { text: "ATLIXCO", arrow: "↑", dist: "30 km" },
             { text: "ZONA CURVAS", arrow: "⬿", dist: "RÍO FRÍO" },
-            { text: "CEMITAS", arrow: "➔", dist: "300 m" },
-            { text: "CATEDRAL", arrow: "➔", dist: "20 km" }
+            { text: "CATEDRAL", arrow: "➔", dist: "20 km" },
+            { text: "FUERTES LORETO", arrow: "➔", dist: "18 km" },
+            { text: "AFRICAM SAFARI", arrow: "➔", dist: "25 km" },
+            { text: "TELÉFERICO", arrow: "➔", dist: "16 km" }
         ];
         
         function getPueblaRoadCenter(y) {
@@ -2164,6 +2169,7 @@
             roadObjects = [];
             sceneryObjects = [];
             tollGates = [];
+            recentSignTexts = [];
             distanceKm = 0;
             bonusScore = 0;
             currentRoadCurve = 0;
@@ -2350,32 +2356,81 @@
             ctx.arc(280, 65, 18, 0, Math.PI * 2);
             ctx.fill();
 
-            // CORDILLERA DE MONTAÑAS Y VOLCÁN POPOCATÉPETL
-            ctx.fillStyle = "#2c3e50";
-            ctx.beginPath();
-            ctx.moveTo(0, horizonY);
-            ctx.lineTo(40, 140);
-            ctx.lineTo(95, horizonY);
-            ctx.lineTo(130, 150);
-            ctx.lineTo(170, horizonY);
-            ctx.fill();
+            // 1.5. VOLCANES POPOCATÉPETL E IZTACCÍHUATL (SE APROXIMAN Y QUEDAN ATRÁS ANTES DE LLEGAR A SAN MARTÍN KM 80)
+            if (distanceKm < 80.0) {
+                ctx.save();
+                let volScale = 1.0;
+                let volYOffset = 0;
+                let volSpread = 0;
 
-            // Volcán Popocatépetl
-            ctx.fillStyle = "#1e272e";
-            ctx.beginPath();
-            ctx.moveTo(210, horizonY);
-            ctx.lineTo(275, 110);
-            ctx.lineTo(345, horizonY);
-            ctx.fill();
+                if (distanceKm < 45.0) {
+                    volScale = 1.0 + (distanceKm / 45.0) * 1.5;
+                } else {
+                    const passPct = (distanceKm - 45.0) / 35.0; // 0.0 a 1.0
+                    volScale = 2.5 + passPct * 0.9;
+                    volYOffset = passPct * 160; // Se desplazan hacia abajo fuera de la pantalla
+                    volSpread = passPct * 110;  // Se abren hacia los lados al rebasarlos
+                }
 
-            // Nieve en el cráter del Popocatépetl
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.moveTo(263, 122);
-            ctx.lineTo(275, 110);
-            ctx.lineTo(287, 122);
-            ctx.closePath();
-            ctx.fill();
+                const volBaseY = horizonY + volYOffset;
+
+                // IZTACCÍHUATL (La Mujer Dormida - silueta izquierda)
+                const iztaX = 140 - volSpread;
+                ctx.fillStyle = "#2c3e50";
+                ctx.beginPath();
+                ctx.moveTo(iztaX - 110 * volScale, volBaseY);
+                ctx.lineTo(iztaX - 60 * volScale, volBaseY - 38 * volScale);
+                ctx.lineTo(iztaX - 15 * volScale, volBaseY - 52 * volScale);
+                ctx.lineTo(iztaX + 25 * volScale, volBaseY - 60 * volScale);
+                ctx.lineTo(iztaX + 65 * volScale, volBaseY - 42 * volScale);
+                ctx.lineTo(iztaX + 95 * volScale, volBaseY - 48 * volScale);
+                ctx.lineTo(iztaX + 130 * volScale, volBaseY);
+                ctx.closePath();
+                ctx.fill();
+
+                // Nieve en Iztaccíhuatl
+                ctx.fillStyle = "#ffffff";
+                ctx.beginPath();
+                ctx.moveTo(iztaX - 25 * volScale, volBaseY - 50 * volScale);
+                ctx.lineTo(iztaX + 25 * volScale, volBaseY - 60 * volScale);
+                ctx.lineTo(iztaX + 60 * volScale, volBaseY - 44 * volScale);
+                ctx.lineTo(iztaX + 90 * volScale, volBaseY - 48 * volScale);
+                ctx.lineTo(iztaX + 40 * volScale, volBaseY - 35 * volScale);
+                ctx.closePath();
+                ctx.fill();
+
+                // POPOCATÉPETL (El Volcán Don Goyo - silueta derecha)
+                const popoX = 275 + volSpread;
+                ctx.fillStyle = "#1e272e";
+                ctx.beginPath();
+                ctx.moveTo(popoX - 85 * volScale, volBaseY);
+                ctx.lineTo(popoX - 15 * volScale, volBaseY - 78 * volScale);
+                ctx.lineTo(popoX + 15 * volScale, volBaseY - 78 * volScale);
+                ctx.lineTo(popoX + 95 * volScale, volBaseY);
+                ctx.closePath();
+                ctx.fill();
+
+                // Nieve en el cráter de Popocatépetl
+                ctx.fillStyle = "#ffffff";
+                ctx.beginPath();
+                ctx.moveTo(popoX - 25 * volScale, volBaseY - 65 * volScale);
+                ctx.lineTo(popoX - 15 * volScale, volBaseY - 78 * volScale);
+                ctx.lineTo(popoX + 15 * volScale, volBaseY - 78 * volScale);
+                ctx.lineTo(popoX + 25 * volScale, volBaseY - 65 * volScale);
+                ctx.closePath();
+                ctx.fill();
+
+                // Fumarola sutil de vapor del Popocatépetl
+                if (roadFrame % 10 < 6) {
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+                    ctx.beginPath();
+                    ctx.arc(popoX, volBaseY - 88 * volScale, 6 * volScale, 0, Math.PI * 2);
+                    ctx.arc(popoX + 5 * volScale, volBaseY - 98 * volScale, 10 * volScale, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
 
             // Nubes flotando
             ctx.fillStyle = "#ffffff";
@@ -2439,10 +2494,10 @@
                 tollGates.push({ name: "¡BIENVENIDO A CHOLULA! 🏛️ (KM 120)", y: horizonY, passed: false, isFinal: true, color: "#0284c7" });
             }
 
-            // GENERAR LETREROS MEXICANOS VERDES DE CARRETERA (IZQUIERDA Y DERECHA + SALIDAS + KM REALES DINÁMICOS)
+            // GENERAR LETREROS MEXICANOS VERDES DE CARRETERA (SIN REPETICIONES DE LOS ÚLTIMOS 4)
             if (roadFrame % 65 === 0) {
                 const side = Math.random() < 0.5 ? -1 : 1;
-                const isExit = Math.random() < 0.3;
+                const isExit = Math.random() < 0.12; // 12% probabilidad de letrero de salida
                 let textVal = "";
                 let arrowVal = "";
                 let distVal = "500 m";
@@ -2452,10 +2507,19 @@
                     arrowVal = side === -1 ? "⬿" : "➔";
                     distVal = "300 m";
                 } else {
-                    const signData = PUEBLA_SIGNS[Math.floor(Math.random() * PUEBLA_SIGNS.length)];
+                    // Filtrar para evitar repetir letreros recientes
+                    let available = PUEBLA_SIGNS.filter(s => !recentSignTexts.includes(s.text));
+                    if (available.length === 0) {
+                        recentSignTexts = [];
+                        available = PUEBLA_SIGNS;
+                    }
+                    const signData = available[Math.floor(Math.random() * available.length)];
                     textVal = signData.text;
                     arrowVal = side === -1 ? "⬿" : signData.arrow;
                     
+                    recentSignTexts.push(textVal);
+                    if (recentSignTexts.length > 4) recentSignTexts.shift();
+
                     // Distancias dinámicas reales según los kilómetros recorridos en vivo
                     if (textVal === "CHOLULA") {
                         distVal = `${Math.max(1, Math.round(120 - distanceKm))} km`;
@@ -2469,6 +2533,12 @@
                         distVal = `${Math.max(1, Math.round(140 - distanceKm))} km`;
                     } else if (textVal === "CATEDRAL") {
                         distVal = `${Math.max(1, Math.round(126 - distanceKm))} km`;
+                    } else if (textVal === "FUERTES LORETO") {
+                        distVal = `${Math.max(1, Math.round(122 - distanceKm))} km`;
+                    } else if (textVal === "TELÉFERICO") {
+                        distVal = `${Math.max(1, Math.round(124 - distanceKm))} km`;
+                    } else if (textVal === "AFRICAM SAFARI") {
+                        distVal = `${Math.max(1, Math.round(135 - distanceKm))} km`;
                     } else {
                         distVal = signData.dist;
                     }
