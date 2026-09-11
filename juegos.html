@@ -202,11 +202,11 @@
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-start">
-                        <span class="text-4xl">👰🏻</span>
+                        <span class="text-4xl">👰🏽‍♀️</span>
                         <span id="badge-chica" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego de la Chica: Atrapa el Amor</h3>
-                    <p class="text-gray-500 text-sm mt-2">Mueve a la Novia (👰🏻) para atrapar corazones (💖) y anillos de compromiso (💍) antes de que caigan. ¡Esquiva las tormentas eléctricas (🌩️)!</p>
+                    <p class="text-gray-500 text-sm mt-2">Mueve a la Novia (👰🏽‍♀️) para atrapar corazones (💖) y anillos de compromiso (💍) antes de que caigan. ¡Esquiva las tormentas eléctricas (🌩️)!</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
@@ -246,12 +246,12 @@
                         <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: OutRun Retro</h3>
-                    <p class="text-gray-500 text-sm mt-2">Conduce un auto deportivo rumbo a Cholula esquivando tráfico (🚙/🚕), baches (🕳️) y obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!</p>
+                    <p class="text-gray-500 text-sm mt-2">Conduce un auto deportivo rumbo a Cholula esquivando tráfico (🚙/🚕), baches (🕳️) y obras (🚧). ¡Pasa casetas y recolecta chalupas (🌮)!</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
-                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-puebla">0</span> pts / <span class="text-olivo-base font-bold">80 pts</span></p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-puebla">0</span> pts / <span class="text-olivo-base font-bold">200 pts</span></p>
                         <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-puebla">0</span> ChiCoins</p>
                     </div>
                     <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
@@ -461,7 +461,7 @@
             chico: 100,
             chica: 15,
             maddie: 20,
-            puebla: 80
+            puebla: 200
         };
 
         let playerGamertag = "";
@@ -2097,8 +2097,9 @@
         }
 
         // ==========================================
-        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro con Letreros SCT de México)
+        // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro con Casetas y Letreros SCT)
         let playerX, targetLane, roadObjects, sceneryObjects, roadFrame, roadSpeed;
+        let rioFrioSpawned = false, sanMartinSpawned = false, cholulaSpawned = false, tollGates = [];
         let pueblaKeyDownHandler = null;
 
         const PUEBLA_SIGNS = [
@@ -2125,6 +2126,10 @@
             targetLane = 1; 
             roadObjects = [];
             sceneryObjects = [];
+            tollGates = [];
+            rioFrioSpawned = false;
+            sanMartinSpawned = false;
+            cholulaSpawned = false;
             roadFrame = 0;
             roadSpeed = 8.5;
             currentGameState.innerText = "Manejando";
@@ -2353,14 +2358,43 @@
             ctx.closePath();
             ctx.fill();
 
-            // 4. GENERAR LETREROS MEXICANOS VERDES DE CARRETERA
-            if (roadFrame % 75 === 0) {
-                const signData = PUEBLA_SIGNS[Math.floor(Math.random() * PUEBLA_SIGNS.length)];
+            // 4. GENERAR CASETAS DE COBRO Y ARCO FINAL DE CHOLULA (ESTILO ANTARCTIC ADVENTURE)
+            if (score >= 68 && !rioFrioSpawned) {
+                rioFrioSpawned = true;
+                tollGates.push({ name: "CASETA RÍO FRÍO", y: horizonY, passed: false, color: "#16a34a" });
+            } else if (score >= 168 && !sanMartinSpawned) {
+                sanMartinSpawned = true;
+                tollGates.push({ name: "CASETA SAN MARTÍN", y: horizonY, passed: false, color: "#16a34a" });
+            } else if (score >= 195 && !cholulaSpawned) {
+                cholulaSpawned = true;
+                tollGates.push({ name: "¡BIENVENIDO A CHOLULA! 🏛️", y: horizonY, passed: false, isFinal: true, color: "#0284c7" });
+            }
+
+            // GENERAR LETREROS MEXICANOS VERDES DE CARRETERA (IZQUIERDA Y DERECHA + SALIDAS)
+            if (roadFrame % 65 === 0) {
+                const side = Math.random() < 0.5 ? -1 : 1;
+                const isExit = Math.random() < 0.3;
+                let textVal = "";
+                let arrowVal = "";
+                let distVal = "500 m";
+                
+                if (isExit) {
+                    textVal = "SALIDA";
+                    arrowVal = side === -1 ? "⬿" : "➔";
+                    distVal = "300 m";
+                } else {
+                    const signData = PUEBLA_SIGNS[Math.floor(Math.random() * PUEBLA_SIGNS.length)];
+                    textVal = signData.text;
+                    arrowVal = side === -1 ? "⬿" : signData.arrow;
+                    distVal = signData.dist;
+                }
+
                 sceneryObjects.push({
                     y: horizonY,
-                    text: signData.text,
-                    arrow: signData.arrow,
-                    dist: signData.dist
+                    text: textVal,
+                    arrow: arrowVal,
+                    dist: distVal,
+                    side: side
                 });
             }
 
@@ -2411,17 +2445,16 @@
                 }
             }
 
-            // 4. ANIMAR Y DIBUJAR LETREROS VERDES SCT (VELOCIDAD SUAVE PARA FÁCIL LECTURA)
+            // 5. ANIMAR Y DIBUJAR LETREROS SCT (IZQUIERDA Y DERECHA)
             for (let i = sceneryObjects.length - 1; i >= 0; i--) {
                 let sc = sceneryObjects[i];
-                // Pasan a velocidad moderada para permitir leer con calma
                 sc.y += roadSpeed * 0.42;
                 const depthPct = Math.max(0, Math.min(1, (sc.y - horizonY) / roadHeight));
                 const currentRoadWidth = 40 + depthPct * 260;
                 
-                // Ubicado en la orilla derecha de la carretera
-                const roadEdgeX = 180 + currentRoadWidth / 2;
-                const scX = roadEdgeX + 26 + depthPct * 65;
+                const sideDir = sc.side || 1;
+                const roadEdgeX = sideDir < 0 ? (180 - currentRoadWidth / 2) : (180 + currentRoadWidth / 2);
+                const scX = sideDir < 0 ? (roadEdgeX - 26 - depthPct * 65) : (roadEdgeX + 26 + depthPct * 65);
                 
                 const scale = 0.32 + depthPct * 0.95;
                 const signW = Math.round(112 * scale);
@@ -2467,8 +2500,69 @@
                 }
             }
 
-            // 5. GENERAR OBSTÁCULOS E ÍTEMS EN LOS CARRILES
-            if (roadFrame % 28 === 0) {
+            // 6. ANIMAR Y DIBUJAR CASETAS DE COBRO / ARCO DE CHOLULA (ESTILO ANTARCTIC ADVENTURE)
+            for (let i = tollGates.length - 1; i >= 0; i--) {
+                let gate = tollGates[i];
+                gate.y += roadSpeed * 0.52;
+                
+                const depthPct = Math.max(0, Math.min(1, (gate.y - horizonY) / roadHeight));
+                const currentRoadWidth = 40 + depthPct * 260;
+                const scale = 0.35 + depthPct * 0.95;
+
+                const leftPillarX = 180 - currentRoadWidth / 2 - 8 * scale;
+                const rightPillarX = 180 + currentRoadWidth / 2 + 8 * scale;
+                const archY = gate.y - 65 * scale;
+                const archW = currentRoadWidth + 30 * scale;
+                const archH = Math.round(28 * scale);
+                const pillarW = Math.round(12 * scale);
+                const pillarH = Math.round(65 * scale);
+
+                ctx.save();
+                // Pilares de la caseta
+                ctx.fillStyle = "#64748b";
+                ctx.fillRect(Math.round(leftPillarX - pillarW / 2), Math.round(gate.y - pillarH), pillarW, pillarH);
+                ctx.fillRect(Math.round(rightPillarX - pillarW / 2), Math.round(gate.y - pillarH), pillarW, pillarH);
+                ctx.strokeStyle = "#0f172a";
+                ctx.lineWidth = Math.max(1, scale);
+                ctx.strokeRect(Math.round(leftPillarX - pillarW / 2), Math.round(gate.y - pillarH), pillarW, pillarH);
+                ctx.strokeRect(Math.round(rightPillarX - pillarW / 2), Math.round(gate.y - pillarH), pillarW, pillarH);
+
+                // Viga / Letrero superior de la caseta
+                ctx.fillStyle = gate.color || "#16a34a";
+                ctx.fillRect(Math.round(180 - archW / 2), Math.round(archY), archW, archH);
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = Math.max(1.5, 2.5 * scale);
+                ctx.strokeRect(Math.round(180 - archW / 2), Math.round(archY), archW, archH);
+
+                // Texto de la Caseta
+                ctx.fillStyle = "#ffffff";
+                const gateFontSize = Math.max(7, Math.round(12 * scale));
+                ctx.font = `bold ${gateFontSize}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(gate.name, 180, Math.round(archY + 18 * scale));
+                ctx.restore();
+
+                // Lógica de paso por la caseta
+                if (gate.y >= 430 && !gate.passed) {
+                    gate.passed = true;
+                    if (gate.isFinal) {
+                        score = 200;
+                        playSound('score');
+                        gameOver(200);
+                        return;
+                    } else {
+                        score += 5;
+                        playSound('coin');
+                    }
+                }
+
+                if (gate.y > canvas.height + 100) {
+                    tollGates.splice(i, 1);
+                }
+            }
+
+            // 7. GENERAR OBSTÁCULOS E ÍTEMS EN LOS CARRILES
+            if (roadFrame % 26 === 0) {
                 const laneIdx = Math.floor(Math.random() * 3);
                 const rollType = Math.random();
                 let typeEmoji = "🚧";
@@ -2476,13 +2570,13 @@
                 let isTrafficCar = false;
                 let pts = 0;
 
-                if (rollType > 0.7) {
-                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡)
+                if (rollType > 0.65) {
+                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡) +3 pts
                     const isTaco = Math.random() > 0.5;
                     typeEmoji = isTaco ? "🌮" : "⚡";
                     isItem = true;
-                    pts = 10;
-                } else if (rollType > 0.35) {
+                    pts = 3;
+                } else if (rollType > 0.3) {
                     // Carros de tráfico (Azul, Taxi, Camión)
                     const carTypes = ["🚙", "🚕", "🚚"];
                     typeEmoji = carTypes[Math.floor(Math.random() * carTypes.length)];
@@ -2503,7 +2597,7 @@
                 });
             }
 
-            // 6. ANIMAR Y DIBUJAR OBJETOS EN LOS CARRILES
+            // 8. ANIMAR Y DIBUJAR OBJETOS EN LOS CARRILES
             for (let i = roadObjects.length - 1; i >= 0; i--) {
                 let obj = roadObjects[i];
                 
@@ -2517,7 +2611,6 @@
                 const depthPct = Math.max(0, Math.min(1, (obj.y - horizonY) / roadHeight));
                 const currentScale = Math.max(18, Math.floor(16 + depthPct * 34));
 
-                // Dibujar objeto con sombra limpia y nítida (sin auras verdes que ensucien)
                 ctx.save();
                 ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
                 ctx.shadowBlur = 4;
@@ -2542,21 +2635,22 @@
 
                 if (obj.y > canvas.height + 40) {
                     if (obj.isCar) {
-                        score += 5; 
+                        score += 2; 
                     }
                     roadObjects.splice(i, 1);
                 }
             }
 
-            // 7. JUGADOR (Auto Deportivo Rojo Retro Visto Desde Atrás 🚗)
+            // 9. JUGADOR (Auto Deportivo Rojo Retro Visto Desde Atrás 🚗)
             const playerTargetX = getPueblaLaneX(targetLane, 440);
             playerX += (playerTargetX - playerX) * 0.45; 
 
             drawRearViewCar(ctx, playerX, 440, 62, 38);
 
-            if (roadFrame % 8 === 0) {
+            // Incremento progresivo de velocidad y distancia
+            if (roadFrame % 9 === 0) {
                 score += 1;
-                if (score % 40 === 0) roadSpeed += 0.7; 
+                roadSpeed = 8.5 + Math.min(5.0, (score / 200) * 5.0); 
             }
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);
