@@ -1162,7 +1162,14 @@
                 if (coinsEl) coinsEl.innerText = coinsEarned.toLocaleString();
 
                 const badge = document.getElementById("badge-" + game);
-                if (gameScore >= target) {
+                let isGamePassed = false;
+                if (game === 'puebla') {
+                    isGamePassed = localStorage.getItem("bodachicos_puebla_won") === "true";
+                } else {
+                    isGamePassed = gameScore >= target;
+                }
+
+                if (isGamePassed) {
                     badge.innerText = "¡Completado! ✓";
                     badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-green-100 text-green-700 font-monogram text-sm";
                     totalMetasSuperadas++;
@@ -1344,7 +1351,7 @@
             }
         }
 
-        function gameOver(finalScore) {
+        function gameOver(finalScore, isVictoryParam = false) {
             if (gameRunning && gameStartTime) {
                 const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
                 const total = parseInt(localStorage.getItem("bodachicos_time_played") || "0") + elapsed;
@@ -1353,8 +1360,19 @@
             }
             gameRunning = false;
             clearInterval(gameInterval);
+            
+            const isSuccess = activeGame === 'puebla' ? isVictoryParam : (finalScore >= METAS[activeGame]);
+
+            if (activeGame === 'puebla' && isVictoryParam) {
+                localStorage.setItem("bodachicos_puebla_won", "true");
+            }
             saveScore(activeGame, finalScore);
-            playSound('hit'); 
+
+            if (isSuccess) {
+                playSound('score');
+            } else {
+                playSound('hit');
+            }
 
             if (chicoKeyDownHandler) {
                 window.removeEventListener("keydown", chicoKeyDownHandler);
@@ -1387,16 +1405,14 @@
                 coinsEarnedEl.innerText = `🪙 +${coinsEarned.toLocaleString()} ChiCoins`;
             }
             
-            // Dibujar sobre los lienzos usando sprites.png (con coordenadas corregidas)
+            // Dibujar sobre los lienzos usando sprites.png
             drawGameOverOverlaySprites();
 
-            // SOLUCIÓN: El botón de texto para reiniciar cambia de texto y se MANTIENE visible debajo del icono
             const startBtn = document.getElementById("startGameBtn");
             startBtn.innerText = "Jugar de nuevo";
             startBtn.classList.remove("hidden");
             startBtn.onclick = startActiveGame;
             
-            // También hacemos clickeable el icono circular de reinicio
             const restartCanvas = document.getElementById("restartSpriteCanvas");
             restartCanvas.classList.remove("hidden");
             restartCanvas.onclick = startActiveGame;
@@ -1405,14 +1421,14 @@
             if (activeGame === 'puebla') {
                 const distDriven = distanceKm.toFixed(1);
                 const diffKm = Math.max(0, (120.0 - distanceKm)).toFixed(1);
-                if (finalScore >= meta || distanceKm >= 120.0) {
-                    resultMessage = `🎉 ¡Reto superado! Condujiste los 120 km completos y llegaste a Cholula.`;
+                if (isSuccess) {
+                    resultMessage = `🏆 ¡CRUZASTE LA META! Condujiste los 120 km completos, cruzaste el Arco de Cholula y ganaste +${coinsEarned.toLocaleString()} ChiCoins.`;
                     currentGameState.innerText = "¡Meta lograda!";
                 } else {
-                    resultMessage = `🚗 Recorriste ${distDriven} km. Te quedaste a solo ${diffKm} km de llegar a Cholula (120 km totales). ¡Inténtalo de nuevo!`;
+                    resultMessage = `💥 ¡CHOCASTE ANTES DE LLEGAR! Recorriste ${distDriven} km de 120 km (te faltaron ${diffKm} km para el Arco de Cholula). Puntuación: ${finalScore} pts. ¡Inténtalo de nuevo!`;
                     currentGameState.innerText = "Buen intento";
                 }
-            } else if (finalScore >= meta) {
+            } else if (isSuccess) {
                 resultMessage = `🎉 ¡Reto superado con éxito! Lograste sobrepasar el objetivo.`;
                 currentGameState.innerText = "¡Meta lograda!";
             } else {
@@ -2648,7 +2664,7 @@
                     } else {
                         // Impacto real por solapamiento directo
                         const currentFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
-                        gameOver(currentFinalScore);
+                        gameOver(currentFinalScore, false);
                         return;
                     }
                 }
@@ -2712,8 +2728,7 @@
                     gate.passed = true;
                     if (gate.isFinal) {
                         const totalFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
-                        playSound('score');
-                        gameOver(totalFinalScore);
+                        gameOver(totalFinalScore, true);
                         return;
                     } else {
                         bonusScore += 5;
