@@ -1422,10 +1422,10 @@
                 const distDriven = distanceKm.toFixed(1);
                 const diffKm = Math.max(0, (120.0 - distanceKm)).toFixed(1);
                 if (isSuccess) {
-                    resultMessage = `🏆 ¡CRUZASTE LA META! Condujiste los 120 km completos, cruzaste el Arco de Cholula y ganaste +${coinsEarned.toLocaleString()} ChiCoins.`;
+                    resultMessage = `🏆 ¡BIENVENIDO A CHOLULA! Condujiste los 120 km completos, llegaste a Cholula y ganaste +${coinsEarned.toLocaleString()} ChiCoins.`;
                     currentGameState.innerText = "¡Meta lograda!";
                 } else {
-                    resultMessage = `💥 ¡CHOCASTE ANTES DE LLEGAR! Recorriste ${distDriven} km de 120 km (te faltaron ${diffKm} km para el Arco de Cholula). Puntuación: ${finalScore} pts. ¡Inténtalo de nuevo!`;
+                    resultMessage = `💥 ¡CHOCASTE ANTES DE LLEGAR! Recorriste ${distDriven} km de 120 km (te faltaron ${diffKm} km para llegar a Cholula). Puntuación: ${finalScore} pts. ¡Inténtalo de nuevo!`;
                     currentGameState.innerText = "Buen intento";
                 }
             } else if (isSuccess) {
@@ -2346,14 +2346,14 @@
             ctx.fillStyle = skyGrad;
             ctx.fillRect(0, 0, canvas.width, horizonY);
 
-            // SOL / RESPLANDOR
+            // SOL / RESPLANDOR (Ubicar a la izquierda para que nunca sea tapado por los volcanes)
             ctx.fillStyle = "rgba(255, 241, 118, 0.4)";
             ctx.beginPath();
-            ctx.arc(280, 65, 28, 0, Math.PI * 2);
+            ctx.arc(75, 55, 28, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = "#fff9c4";
             ctx.beginPath();
-            ctx.arc(280, 65, 18, 0, Math.PI * 2);
+            ctx.arc(75, 55, 18, 0, Math.PI * 2);
             ctx.fill();
 
             // 1.5. VOLCANES POPOCATÉPETL E IZTACCÍHUATL (SE APROXIMAN Y QUEDAN ATRÁS ANTES DE LLEGAR A SAN MARTÍN KM 80)
@@ -2432,6 +2432,63 @@
                 ctx.restore();
             }
 
+            // 1.6. LA GRAN PIRÁMIDE DE CHOLULA Y EL SANTUARIO DE LA VIRGEN EN LA CIMA (KM 80 A 120)
+            if (distanceKm >= 80.0) {
+                ctx.save();
+                const cholulaPct = Math.min(1, (distanceKm - 80.0) / 40.0);
+                const scale = 0.4 + cholulaPct * 1.8;
+                const pX = 180;
+                const pY = horizonY;
+
+                // Cerro / Pirámide prehispánica verde escalonada
+                ctx.fillStyle = "#1e7e34";
+                ctx.beginPath();
+                ctx.moveTo(pX - 110 * scale, pY);
+                ctx.lineTo(pX - 70 * scale, pY - 25 * scale);
+                ctx.lineTo(pX - 50 * scale, pY - 25 * scale);
+                ctx.lineTo(pX - 32 * scale, pY - 45 * scale);
+                ctx.lineTo(pX + 32 * scale, pY - 45 * scale);
+                ctx.lineTo(pX + 50 * scale, pY - 25 * scale);
+                ctx.lineTo(pX + 70 * scale, pY - 25 * scale);
+                ctx.lineTo(pX + 110 * scale, pY);
+                ctx.closePath();
+                ctx.fill();
+
+                // Terrazas de vegetación
+                ctx.fillStyle = "#145a32";
+                ctx.fillRect(Math.round(pX - 65 * scale), Math.round(pY - 23 * scale), 130 * scale, 3 * scale);
+                ctx.fillRect(Math.round(pX - 45 * scale), Math.round(pY - 43 * scale), 90 * scale, 3 * scale);
+
+                // Santuario de la Virgen de los Remedios (Iglesia Amarilla Colonial)
+                const churchY = pY - 45 * scale;
+                ctx.fillStyle = "#d97706";
+                ctx.fillRect(Math.round(pX - 22 * scale), Math.round(churchY - 20 * scale), 44 * scale, 20 * scale);
+
+                // Cúpula central
+                ctx.fillStyle = "#eab308";
+                ctx.beginPath();
+                ctx.arc(pX, churchY - 20 * scale, 10 * scale, Math.PI, 0);
+                ctx.fill();
+
+                // Torres campanario laterales
+                ctx.fillStyle = "#f59e0b";
+                ctx.fillRect(Math.round(pX - 22 * scale), Math.round(churchY - 36 * scale), 9 * scale, 16 * scale);
+                ctx.fillRect(Math.round(pX + 13 * scale), Math.round(churchY - 36 * scale), 9 * scale, 16 * scale);
+
+                // Cúpulas de las torres
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(Math.round(pX - 21 * scale), Math.round(churchY - 40 * scale), 7 * scale, 4 * scale);
+                ctx.fillRect(Math.round(pX + 14 * scale), Math.round(churchY - 40 * scale), 7 * scale, 4 * scale);
+
+                // Cruces en la cima
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(Math.round(pX - 18 * scale), Math.round(churchY - 45 * scale), 1.5 * scale, 5 * scale);
+                ctx.fillRect(Math.round(pX + 17 * scale), Math.round(churchY - 45 * scale), 1.5 * scale, 5 * scale);
+                ctx.fillRect(Math.round(pX), Math.round(churchY - 34 * scale), 1.5 * scale, 6 * scale);
+
+                ctx.restore();
+            }
+
             // Nubes flotando
             ctx.fillStyle = "#ffffff";
             ctx.font = "24px sans-serif";
@@ -2491,7 +2548,7 @@
                 tollGates.push({ name: "CASETA SAN MARTÍN (KM 95)", y: horizonY, passed: false, color: "#16a34a" });
             } else if (distanceKm >= 120.0 && !cholulaSpawned) {
                 cholulaSpawned = true;
-                tollGates.push({ name: "¡BIENVENIDO A CHOLULA! 🏛️ (KM 120)", y: horizonY, passed: false, isFinal: true, color: "#0284c7" });
+                tollGates.push({ name: "¡BIENVENIDO A CHOLULA! ⛪ (KM 120)", y: horizonY, passed: false, isFinal: true, color: "#0284c7" });
             }
 
             // GENERAR LETREROS MEXICANOS VERDES DE CARRETERA (SIN REPETICIONES DE LOS ÚLTIMOS 4)
