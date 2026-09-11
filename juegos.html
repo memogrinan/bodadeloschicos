@@ -118,12 +118,17 @@
 <body class="font-sans min-h-screen pb-12">
 
     <!-- CABECERA -->
-    <header class="bg-[#52582f] text-white py-6 px-4 text-center shadow-md relative">
-        <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white font-semibold py-1 px-3 rounded-full text-xs transition">
-            ← Volver
-        </a>
-        <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide">ARCADE DE LOS CHICOS</h1>
-        <p class="text-xs text-olivo-claro/80 mt-1">Supera las metas para ganar un premio el día de la boda</p>
+    <header class="bg-[#52582f] text-white py-4 px-4 shadow-md">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+            <a href="index.html" class="self-center sm:self-center bg-white/20 hover:bg-white/30 text-white font-semibold py-1.5 px-4 rounded-full text-xs transition inline-flex items-center gap-1.5 shadow-xs">
+                ← Volver
+            </a>
+            <div class="text-center flex-grow">
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wide">ARCADE DE LOS CHICOS</h1>
+                <p class="text-[11px] sm:text-xs text-olivo-claro/80 mt-0.5">Supera las metas para ganar un premio el día de la boda</p>
+            </div>
+            <div class="hidden sm:block w-20"></div>
+        </div>
     </header>
 
     <!-- PANEL DEL USUARIO -->
@@ -141,11 +146,12 @@
             </div>
 
             <!-- CONTADOR CHI-COINS -->
-            <div class="bg-amber-50 border border-amber-200/80 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-xs">
-                <span class="text-2xl">🪙</span>
-                <div>
-                    <p class="text-[10px] text-amber-700 font-bold uppercase tracking-wider">Tus ChiCoins</p>
-                    <p id="totalChiCoinsDisplay" class="text-xl md:text-2xl font-extrabold text-amber-900 font-monogram">0 🪙</p>
+            <div class="bg-amber-50 border border-amber-200/80 px-6 py-2 rounded-2xl text-center shadow-xs">
+                <p class="text-xs text-amber-800 font-bold tracking-wider text-center">Tus ChiCoins</p>
+                <div class="flex items-center justify-center gap-2 mt-0.5">
+                    <span class="text-xl md:text-2xl">🪙</span>
+                    <span id="totalChiCoinsDisplay" class="text-xl md:text-2xl font-extrabold text-amber-900 font-monogram">0</span>
+                    <span class="text-xl md:text-2xl">🪙</span>
                 </div>
             </div>
             
@@ -1175,7 +1181,7 @@
 
             const grandTotalCoins = getTotalChiCoins();
             const totalDisplay = document.getElementById("totalChiCoinsDisplay");
-            if (totalDisplay) totalDisplay.innerText = grandTotalCoins.toLocaleString() + " 🪙";
+            if (totalDisplay) totalDisplay.innerText = grandTotalCoins.toLocaleString();
 
             const prizeStatus = document.getElementById("prizeStatus");
             if (totalMetasSuperadas === 4) {
@@ -1318,6 +1324,7 @@
                 canvas.classList.remove("hidden");
                 initChicaGame();
             } else if (activeGame === 'maddie') {
+                document.getElementById("maddieContainer").classList.remove("hidden");
                 maddieGrid.classList.remove("hidden");
                 maddieScoreboard.classList.remove("hidden");
                 initMaddieGame();
@@ -1815,6 +1822,135 @@
             ctx.restore();
         }
 
+        // DIBUJO DE LA NOVIA CASTAÑA DE CABELLO LARGO Y CON VELO (CUSTOM CANVAS VECTOR)
+        function drawBrunetteBride(ctx, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Velo transparente (blanco radiante) cayendo por detrás
+            ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+            ctx.beginPath();
+            ctx.ellipse(0, -5, 24, 38, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Cabello largo castaño oscuro por detrás (#4a2c11)
+            ctx.fillStyle = "#5c3a1e";
+            ctx.beginPath();
+            ctx.ellipse(0, -14, 18, 25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Mechones largos cayendo sobre los hombros
+            ctx.beginPath();
+            ctx.ellipse(-14, 4, 7, 24, 0.15, 0, Math.PI * 2);
+            ctx.ellipse(14, 4, 7, 24, -0.15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Vestido de novia blanco elegante
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(-15, 8);
+            ctx.lineTo(15, 8);
+            ctx.lineTo(26, 42);
+            ctx.lineTo(-26, 42);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Cinta de encaje / cinturón
+            ctx.fillStyle = "#f59e0b";
+            ctx.fillRect(-11, 13, 22, 2);
+
+            // Cabeza / Cara
+            ctx.fillStyle = "#ffdfd3";
+            ctx.beginPath();
+            ctx.arc(0, -14, 13, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Peinado Castaño con fleco ondulado y caída larga
+            ctx.fillStyle = "#4a2a10";
+            ctx.beginPath();
+            ctx.arc(0, -17, 13.5, Math.PI * 1.15, Math.PI * 1.85);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.ellipse(-5, -20, 8, 5, -0.3, 0, Math.PI * 2);
+            ctx.ellipse(5, -20, 8, 5, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ojos expresivos y cejas
+            ctx.fillStyle = "#2d1b0e";
+            ctx.beginPath();
+            ctx.arc(-4.5, -13, 1.8, 0, Math.PI * 2);
+            ctx.arc(4.5, -13, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pestañas
+            ctx.strokeStyle = "#3a220f";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(-4.5, -15, 2.5, Math.PI * 1.2, Math.PI * 1.8);
+            ctx.arc(4.5, -15, 2.5, Math.PI * 1.2, Math.PI * 1.8);
+            ctx.stroke();
+
+            // Sonrisa alegre
+            ctx.strokeStyle = "#e11d48";
+            ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            ctx.arc(0, -10, 3.5, 0.1, Math.PI - 0.1);
+            ctx.stroke();
+
+            // Rubor sonrojado en mejillas
+            ctx.fillStyle = "rgba(244, 63, 94, 0.35)";
+            ctx.beginPath();
+            ctx.arc(-8, -10, 2.8, 0, Math.PI * 2);
+            ctx.arc(8, -10, 2.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Corona / Tiara brillante 👑
+            ctx.fillStyle = "#fbbf24";
+            ctx.beginPath();
+            ctx.moveTo(-8, -24);
+            ctx.lineTo(-4, -28);
+            ctx.lineTo(0, -24);
+            ctx.lineTo(4, -28);
+            ctx.lineTo(8, -24);
+            ctx.lineTo(7, -22);
+            ctx.lineTo(-7, -22);
+            ctx.closePath();
+            ctx.fill();
+
+            // Brillantes en la tiara
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(-4, -27, 1, 0, Math.PI * 2);
+            ctx.arc(0, -24, 1, 0, Math.PI * 2);
+            ctx.arc(4, -27, 1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ramo de novia (Flores) 💐
+            ctx.fillStyle = "#16a34a"; // Hojas
+            ctx.beginPath();
+            ctx.arc(0, 20, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#f43f5e"; // Rosas
+            ctx.beginPath();
+            ctx.arc(-4, 18, 3.5, 0, Math.PI * 2);
+            ctx.arc(4, 18, 3.5, 0, Math.PI * 2);
+            ctx.arc(0, 22, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(0, 18, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
         function initChicaGame() {
             basketX = canvas.width / 2 - 25;
             fallObjects = [];
@@ -1892,15 +2028,8 @@
                 });
             }
 
-            // 4. DIBUJAR A LA NOVIA (100% OPACA Y NÍTIDA)
-            ctx.save();
-            ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
-            ctx.shadowBlur = 6;
-            ctx.shadowOffsetY = 3;
-            ctx.font = "48px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("👰🏻", Math.round(basketX + 25), 450);
-            ctx.restore();
+        // 4. DIBUJAR A LA NOVIA CASTAÑA DE CABELLO LARGO
+            drawBrunetteBride(ctx, Math.round(basketX + 25), 420);
 
             // 5. VIDAS EN PANTALLA
             let heartUI = "";
@@ -2140,9 +2269,12 @@
                 }
             };
 
-            const handleSideTouch = (clientX) => {
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            canvas.onclick = (e) => {
                 const rect = canvas.getBoundingClientRect();
-                const clickX = clientX - rect.left;
+                const clickX = e.clientX - rect.left;
                 if (clickX < rect.width / 2) {
                     changeLane(-1);
                 } else {
@@ -2150,10 +2282,36 @@
                 }
             };
 
-            canvas.onclick = (e) => handleSideTouch(e.clientX);
             canvas.ontouchstart = (e) => {
-                e.preventDefault();
-                handleSideTouch(e.touches[0].clientX);
+                if (e.touches && e.touches.length > 0) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            };
+
+            canvas.ontouchend = (e) => {
+                if (!e.changedTouches || e.changedTouches.length === 0) return;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+
+                // Swipe horizontal consistente estilo Subway Surfers (Mueve exactamente 1 carril por swipe)
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
+                    if (diffX > 0) {
+                        changeLane(1);
+                    } else {
+                        changeLane(-1);
+                    }
+                } else if (Math.abs(diffX) < 15 && Math.abs(diffY) < 15) {
+                    const rect = canvas.getBoundingClientRect();
+                    const clickX = touchEndX - rect.left;
+                    if (clickX < rect.width / 2) {
+                        changeLane(-1);
+                    } else {
+                        changeLane(1);
+                    }
+                }
             };
 
             pueblaKeyDownHandler = (e) => {
