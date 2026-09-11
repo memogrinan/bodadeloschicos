@@ -246,13 +246,16 @@
                         <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: OutRun Retro</h3>
-                    <p class="text-gray-500 text-sm mt-2">Conduce un auto deportivo rumbo a Cholula esquivando tráfico (🚙/🚕), baches (🕳️) y obras (🚧). ¡Pasa casetas y recolecta chalupas (🌮)!</p>
+                    <p class="text-gray-500 text-sm mt-2">Conduce un auto deportivo 120 KM rumbo a Cholula esquivando tráfico (🚙/🚕), baches (🕳️) y obras (🚧). ¡Pasa casetas y recolecta chalupas (🌮)!</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
-                        <p class="text-xs text-gray-400">Récord / Meta</p>
-                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-puebla">0</span> pts / <span class="text-olivo-base font-bold">200 pts</span></p>
-                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-puebla">0</span> ChiCoins</p>
+                        <p class="text-xs text-gray-400">Distancia Máxima / Meta</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="dist-puebla">0.0</span> km / <span class="text-olivo-base font-bold">120 km</span></p>
+                        <div class="flex items-center gap-3 mt-1 text-xs font-monogram">
+                            <span class="text-gray-600 font-bold">🏆 <span id="score-puebla">0</span> pts</span>
+                            <span class="text-amber-700 font-bold">🪙 <span id="chicoins-puebla">0</span></span>
+                        </div>
                     </div>
                     <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
                 </div>
@@ -1179,6 +1182,10 @@
                 }
             });
 
+            const maxDistPuebla = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+            const distPueblaEl = document.getElementById("dist-puebla");
+            if (distPueblaEl) distPueblaEl.innerText = maxDistPuebla.toFixed(1);
+
             const grandTotalCoins = getTotalChiCoins();
             const totalDisplay = document.getElementById("totalChiCoinsDisplay");
             if (totalDisplay) totalDisplay.innerText = grandTotalCoins.toLocaleString();
@@ -1363,8 +1370,14 @@
             
             const isSuccess = activeGame === 'puebla' ? isVictoryParam : (finalScore >= METAS[activeGame]);
 
-            if (activeGame === 'puebla' && isVictoryParam) {
-                localStorage.setItem("bodachicos_puebla_won", "true");
+            if (activeGame === 'puebla') {
+                if (isVictoryParam) {
+                    localStorage.setItem("bodachicos_puebla_won", "true");
+                }
+                const prevMaxDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+                if (distanceKm > prevMaxDist) {
+                    localStorage.setItem("bodachicos_maxdist_puebla", distanceKm.toFixed(1));
+                }
             }
             saveScore(activeGame, finalScore);
 
