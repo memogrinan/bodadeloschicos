@@ -2099,6 +2099,7 @@
         // ==========================================
         // JUEGO 4: CAMINO A PUEBLA (OutRun 3D Retro con Casetas y Letreros SCT)
         let playerX, targetLane, roadObjects, sceneryObjects, roadFrame, roadSpeed;
+        let distanceKm = 0, bonusScore = 0;
         let rioFrioSpawned = false, sanMartinSpawned = false, cholulaSpawned = false, tollGates = [];
         let pueblaKeyDownHandler = null;
 
@@ -2127,6 +2128,8 @@
             roadObjects = [];
             sceneryObjects = [];
             tollGates = [];
+            distanceKm = 0;
+            bonusScore = 0;
             rioFrioSpawned = false;
             sanMartinSpawned = false;
             cholulaSpawned = false;
@@ -2172,7 +2175,7 @@
                 const diffX = touchEndX - touchStartX;
                 const diffY = touchEndY - touchStartY;
 
-                // Swipe horizontal consistente estilo Subway Surfers (Mueve exactamente 1 carril por swipe)
+                // Swipe horizontal consistente estilo Subway Surfers
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
                     if (diffX > 0) {
                         changeLane(1);
@@ -2358,16 +2361,22 @@
             ctx.closePath();
             ctx.fill();
 
-            // 4. GENERAR CASETAS DE COBRO Y ARCO FINAL DE CHOLULA (ESTILO ANTARCTIC ADVENTURE)
-            if (score >= 68 && !rioFrioSpawned) {
+            // 4. LÓGICA DE DISTANCIA REAL DE CDMX A CHOLULA (120 KM TOTALES)
+            if (distanceKm < 120) {
+                distanceKm += (roadSpeed / 8.5) * 0.16;
+                if (distanceKm > 120) distanceKm = 120;
+            }
+
+            // GENERAR CASETAS EN KM REALES (Río Frío km 45, San Martín km 95, Cholula km 120)
+            if (distanceKm >= 45.0 && !rioFrioSpawned) {
                 rioFrioSpawned = true;
-                tollGates.push({ name: "CASETA RÍO FRÍO", y: horizonY, passed: false, color: "#16a34a" });
-            } else if (score >= 168 && !sanMartinSpawned) {
+                tollGates.push({ name: "CASETA RÍO FRÍO (KM 45)", y: horizonY, passed: false, color: "#16a34a" });
+            } else if (distanceKm >= 95.0 && !sanMartinSpawned) {
                 sanMartinSpawned = true;
-                tollGates.push({ name: "CASETA SAN MARTÍN", y: horizonY, passed: false, color: "#16a34a" });
-            } else if (score >= 195 && !cholulaSpawned) {
+                tollGates.push({ name: "CASETA SAN MARTÍN (KM 95)", y: horizonY, passed: false, color: "#16a34a" });
+            } else if (distanceKm >= 120.0 && !cholulaSpawned) {
                 cholulaSpawned = true;
-                tollGates.push({ name: "¡BIENVENIDO A CHOLULA! 🏛️", y: horizonY, passed: false, isFinal: true, color: "#0284c7" });
+                tollGates.push({ name: "¡BIENVENIDO A CHOLULA! 🏛️ (KM 120)", y: horizonY, passed: false, isFinal: true, color: "#0284c7" });
             }
 
             // GENERAR LETREROS MEXICANOS VERDES DE CARRETERA (IZQUIERDA Y DERECHA + SALIDAS)
@@ -2536,7 +2545,7 @@
 
                 // Texto de la Caseta
                 ctx.fillStyle = "#ffffff";
-                const gateFontSize = Math.max(7, Math.round(12 * scale));
+                const gateFontSize = Math.max(7, Math.round(11 * scale));
                 ctx.font = `bold ${gateFontSize}px sans-serif`;
                 ctx.textAlign = "center";
                 ctx.fillText(gate.name, 180, Math.round(archY + 18 * scale));
@@ -2546,12 +2555,12 @@
                 if (gate.y >= 430 && !gate.passed) {
                     gate.passed = true;
                     if (gate.isFinal) {
-                        score = 200;
+                        const totalFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
                         playSound('score');
-                        gameOver(200);
+                        gameOver(totalFinalScore);
                         return;
                     } else {
-                        score += 5;
+                        bonusScore += 5;
                         playSound('coin');
                     }
                 }
@@ -2597,7 +2606,7 @@
                 });
             }
 
-            // 8. ANIMAR Y DIBUJAR OBJETOS EN LOS CARRILES
+            // 8. ANIMAR Y DIBUJAR OBJETOS EN LOS CARRILES CON COLISIÓN PRECISA (HITBOX REAL)
             for (let i = roadObjects.length - 1; i >= 0; i--) {
                 let obj = roadObjects[i];
                 
@@ -2610,6 +2619,7 @@
                 const currentLaneX = getPueblaLaneX(obj.lane, obj.y);
                 const depthPct = Math.max(0, Math.min(1, (obj.y - horizonY) / roadHeight));
                 const currentScale = Math.max(18, Math.floor(16 + depthPct * 34));
+                const objWidth = currentScale * 0.85;
 
                 ctx.save();
                 ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
@@ -2620,23 +2630,25 @@
                 ctx.fillText(obj.emoji, Math.round(currentLaneX), Math.round(obj.y));
                 ctx.restore();
 
-                // COLISIÓN CON EL JUGADOR
-                if (obj.y >= 395 && obj.y <= 445 && obj.lane === targetLane) {
+                // COLISIÓN CON EL HITBOX JUSTO DEL AUTO ROJO DEPORTIVO (x=playerX, y=440, w=48, h=28)
+                const hitX = Math.abs(currentLaneX - playerX) < (18 + objWidth * 0.4);
+                const hitY = Math.abs(obj.y - 440) < 18;
+
+                if (hitX && hitY) {
                     if (obj.isItem) {
-                        score += obj.pts;
+                        bonusScore += obj.pts;
                         playSound('coin'); 
                         roadObjects.splice(i, 1);
                         continue;
                     } else {
-                        gameOver(score);
+                        // Impacto real por solapamiento directo
+                        const currentFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
+                        gameOver(currentFinalScore);
                         return;
                     }
                 }
 
                 if (obj.y > canvas.height + 40) {
-                    if (obj.isCar) {
-                        score += 2; 
-                    }
                     roadObjects.splice(i, 1);
                 }
             }
@@ -2647,14 +2659,25 @@
 
             drawRearViewCar(ctx, playerX, 440, 62, 38);
 
-            // Incremento progresivo de velocidad y distancia
-            if (roadFrame % 9 === 0) {
-                score += 1;
-                roadSpeed = 8.5 + Math.min(5.0, (score / 200) * 5.0); 
-            }
+            // Incremento progresivo de velocidad y distancia (0 a 120 KM)
+            roadSpeed = 8.5 + Math.min(5.0, (distanceKm / 120.0) * 5.0); 
+
+            // CÁLCULO DE PUNTUACCIÓN: 200 PTS POR DISTANCIA (120 KM) + BONUS POR POWER-UPS
+            const distBaseScore = Math.floor((distanceKm / 120.0) * 200);
+            score = distBaseScore + bonusScore;
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);
             currentGameScore.innerText = score.toString().padStart(5, '0');
+
+            // HUD EN PANTALLA CON KILÓMETROS REALES
+            ctx.save();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 13px font-monogram, sans-serif";
+            ctx.textAlign = "left";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(`📍 ${distanceKm.toFixed(1)} / 120 km`, 16, 26);
+            ctx.restore();
         }
     </script>
 </body>
