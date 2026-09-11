@@ -946,7 +946,7 @@
         </div>
 
         <div style="margin-top: 40px;">
-            <a href="juegos.html" class="btn btn-rsvp" style="background-color: var(--olivo-base); box-shadow: 0 4px 15px rgba(82, 88, 47, 0.15);">Entrar al Arcade 🎮</a>
+            <a href="juegos.html?v=5.0" onclick="const p=localStorage.getItem('bodachicos_party_id') || new URLSearchParams(window.location.search).get('p'); if(p) this.href='juegos.html?v=5.0&p='+encodeURIComponent(p);" class="btn btn-rsvp" style="background-color: var(--olivo-base); box-shadow: 0 4px 15px rgba(82, 88, 47, 0.15);">Entrar al Arcade 🎮</a>
         </div>
     </section>
 

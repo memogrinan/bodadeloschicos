@@ -134,7 +134,7 @@
                 <div>
                     <p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p>
                     <div class="flex items-center gap-2">
-                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-xl md:text-2xl font-monogram">Cargando...</span>
+                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-xl md:text-2xl font-monogram">Sin registrar</span>
                         <button onclick="changeGamerTagPrompt()" class="text-xs text-blue-500 hover:underline">Editar</button>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                     <span>🏆</span> Tabla de Líderes
                 </button>
                 <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-3 py-2 rounded-xl text-xs font-semibold text-center transition-all duration-300">
-                    Cargando...
+                    Progreso: 0/4 metas
                 </div>
             </div>
         </div>
@@ -263,14 +263,26 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODAL DE REGISTRO GAMERTAG -->
-    <div id="gamertagModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+    <!-- MODAL DE REGISTRO GAMERTAG & INTEGRANTE RSVP -->
+    <div id="gamertagModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 justify-center items-center p-4 hidden" style="display: none;">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative">
+            <button onclick="closeGamertagModal()" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold p-1">✕</button>
             <span class="text-4xl">👾</span>
-            <h2 class="text-xl font-extrabold text-olivo-base mt-4">¡Ingresa tu GamerTag!</h2>
-            <p class="text-gray-500 text-xs mt-2">Para poder registrar tus récords locales en el navegador, por favor ingresa un nombre o apodo único.</p>
-            <input type="text" id="gamertagInput" maxlength="15" placeholder="Tu Apodo / Nombre" class="w-full mt-4 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition">
-            <button onclick="saveGamerTag()" class="w-full mt-4 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition">Comenzar a Jugar</button>
+            <h2 class="text-xl font-extrabold text-olivo-base mt-2">¡Bienvenido al Arcade!</h2>
+            
+            <!-- SECCIÓN 1: SELECTOR DE INTEGRANTE RSVP -->
+            <div id="memberSelectContainer" class="mt-4 text-left hidden">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2 text-center">1. Selecciona quién eres:</label>
+                <div id="memberButtonsList" class="flex flex-col gap-2"></div>
+            </div>
+
+            <!-- SECCIÓN 2: GAMERTAG (APODO) -->
+            <div class="mt-4 text-left">
+                <label id="gamertagLabel" class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1 text-center">2. Tu GamerTag (Apodo):</label>
+                <input type="text" id="gamertagInput" maxlength="15" placeholder="Tu Apodo / Nombre" class="w-full mt-2 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition" onkeyup="if(event.key==='Enter') saveGamerTag()">
+            </div>
+            
+            <button onclick="saveGamerTag()" id="saveGamerTagBtn" type="button" class="w-full mt-4 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md">Comenzar a Jugar 🎮</button>
         </div>
     </div>
 
@@ -743,6 +755,21 @@
             return sum + bonus;
         }
 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
+        let currentPartyId = "";
+        let partyMembers = [];
+        let selectedRealName = "";
+        let playerRealName = "";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const pParam = urlParams.get("p") || urlParams.get("id") || urlParams.get("invitado");
+        if (pParam) {
+            currentPartyId = pParam.trim().toLowerCase();
+            localStorage.setItem("bodachicos_party_id", currentPartyId);
+        } else {
+            currentPartyId = localStorage.getItem("bodachicos_party_id") || "chicos";
+        }
+
         let currentLeaderboardTab = "general";
         let rawPlayersData = {};
         let isLeaderboardListening = false;
@@ -770,6 +797,8 @@
 
             db.ref("players/" + keyTag).update({
                 gamerTag: playerGamertag.trim(),
+                realName: playerRealName || selectedRealName || "",
+                partyId: currentPartyId || "general",
                 scores: scoresObj,
                 chiCoins: coinsObj,
                 bonusCoins: bonus,
@@ -917,26 +946,155 @@
             updateScoresDashboard();
         });
 
+        function closeGamertagModal() {
+            const modal = document.getElementById("gamertagModal");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.style.display = "none";
+            }
+        }
+
         function checkGamertag() {
-            const saved = localStorage.getItem("bodachicos_gamertag");
-            if (!saved) {
-                document.getElementById("gamertagModal").classList.remove("hidden");
-            } else {
-                playerGamertag = saved;
-                document.getElementById("playerGamertag").innerText = playerGamertag;
-                document.getElementById("bottomGamerTag").innerText = playerGamertag;
+            const savedTag = localStorage.getItem("bodachicos_gamertag");
+            const savedReal = localStorage.getItem("bodachicos_real_name");
+
+            playerGamertag = savedTag || "";
+            playerRealName = savedReal || "";
+
+            const tagDisplay = playerGamertag ? playerGamertag : "Sin registrar";
+            document.getElementById("playerGamertag").innerText = tagDisplay;
+            document.getElementById("bottomGamerTag").innerText = tagDisplay;
+
+            // Restaurar puntuaciones de Firebase al cargar la página si existen
+            if (db && playerGamertag) {
+                const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+                db.ref("players/" + keyTag).once("value").then(snapshot => {
+                    const data = snapshot.val();
+                    if (data) {
+                        if (data.realName && !playerRealName) {
+                            playerRealName = data.realName;
+                            localStorage.setItem("bodachicos_real_name", playerRealName);
+                        }
+                        if (data.scores) {
+                            Object.keys(data.scores).forEach(g => {
+                                const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
+                                const fbSc = data.scores[g] || 0;
+                                localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
+                            });
+                            updateScoresDashboard();
+                        }
+                    }
+                    syncPlayerToFirebase();
+                }).catch(e => {
+                    console.warn("Error al restaurar desde Firebase:", e);
+                    syncPlayerToFirebase();
+                });
+            } else if (playerGamertag && !db) {
                 syncPlayerToFirebase();
             }
+
+            if (!savedTag || !savedReal) {
+                prepareGamertagModal();
+            }
+        }
+
+        async function prepareGamertagModal() {
+            const modal = document.getElementById("gamertagModal");
+            const container = document.getElementById("memberSelectContainer");
+            const buttonsList = document.getElementById("memberButtonsList");
+            const inputEl = document.getElementById("gamertagInput");
+
+            if (inputEl) inputEl.value = playerGamertag || "";
+
+            if (modal) {
+                modal.classList.remove("hidden");
+                modal.style.display = "flex";
+            }
+
+            if (currentPartyId && partyMembers.length === 0) {
+                if (container) container.classList.remove("hidden");
+                if (buttonsList) buttonsList.innerHTML = `<p class="text-xs text-gray-400 italic py-2 text-center animate-pulse">⌛ Cargando integrantes de la invitación...</p>`;
+
+                try {
+                    const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(currentPartyId)}`);
+                    const data = await res.json();
+                    if (data.status === "success" && data.integrantes) {
+                        partyMembers = data.integrantes.toString().split(",").map(s => s.trim());
+                        renderMemberButtons();
+                    } else {
+                        if (container) container.classList.add("hidden");
+                    }
+                } catch (e) {
+                    console.warn("No se pudo cargar la lista de integrantes del RSVP:", e);
+                    if (container) container.classList.add("hidden");
+                }
+            } else if (partyMembers && partyMembers.length > 0) {
+                if (container) container.classList.remove("hidden");
+                renderMemberButtons();
+            } else {
+                if (container) container.classList.add("hidden");
+                selectedRealName = playerRealName || "";
+            }
+        }
+
+        function renderMemberButtons() {
+            const buttonsList = document.getElementById("memberButtonsList");
+            const container = document.getElementById("memberSelectContainer");
+            if (!buttonsList) return;
+
+            if (!partyMembers || partyMembers.length === 0) {
+                if (container) container.classList.add("hidden");
+                return;
+            }
+
+            if (container) container.classList.remove("hidden");
+            buttonsList.innerHTML = "";
+            let defaultIdx = 0;
+            if (playerRealName) {
+                const found = partyMembers.findIndex(m => m.toLowerCase() === playerRealName.toLowerCase());
+                if (found >= 0) defaultIdx = found;
+            }
+            selectedRealName = partyMembers[defaultIdx];
+
+            partyMembers.forEach((member, idx) => {
+                const isSel = (idx === defaultIdx);
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.onclick = () => selectMemberChoice(idx, member);
+                btn.className = `w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn ${isSel ? 'border-olivo-base bg-amber-50 text-olivo-base shadow-xs' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`;
+                btn.innerHTML = `<span>👤 ${member}</span><span class="check-icon ${isSel ? '' : 'hidden'} font-bold">✓</span>`;
+                buttonsList.appendChild(btn);
+            });
+        }
+
+        function selectMemberChoice(idx, memberName) {
+            selectedRealName = memberName;
+            const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
+            const checks = document.querySelectorAll("#memberButtonsList .check-icon");
+            buttons.forEach((btn, i) => {
+                if (i === idx) {
+                    btn.className = "w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn border-olivo-base bg-amber-50 text-olivo-base shadow-xs";
+                    if (checks[i]) checks[i].classList.remove("hidden");
+                } else {
+                    btn.className = "w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn border-gray-200 bg-white text-gray-700 hover:bg-gray-50";
+                    if (checks[i]) checks[i].classList.add("hidden");
+                }
+            });
         }
 
         function saveGamerTag() {
             const val = document.getElementById("gamertagInput").value.trim();
             if (val) {
                 localStorage.setItem("bodachicos_gamertag", val);
+                if (selectedRealName) {
+                    localStorage.setItem("bodachicos_real_name", selectedRealName);
+                    playerRealName = selectedRealName;
+                }
                 playerGamertag = val;
                 document.getElementById("playerGamertag").innerText = playerGamertag;
                 document.getElementById("bottomGamerTag").innerText = playerGamertag;
-                document.getElementById("gamertagModal").classList.add("hidden");
+                
+                closeGamertagModal();
                 updateScoresDashboard();
             }
         }
