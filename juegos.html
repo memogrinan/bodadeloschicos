@@ -2356,8 +2356,8 @@
             ctx.arc(75, 55, 18, 0, Math.PI * 2);
             ctx.fill();
 
-            // 1.5. VOLCANES POPOCATÉPETL E IZTACCÍHUATL (SE APROXIMAN Y QUEDAN ATRÁS ANTES DE LLEGAR A SAN MARTÍN KM 80)
-            if (distanceKm < 80.0) {
+            // 1.5. VOLCANES POPOCATÉPETL E IZTACCÍHUATL (SE APROXIMAN Y QUEDAN ATRÁS A LOS KM 70)
+            if (distanceKm < 70.0) {
                 ctx.save();
                 let volScale = 1.0;
                 let volYOffset = 0;
@@ -2366,10 +2366,10 @@
                 if (distanceKm < 45.0) {
                     volScale = 1.0 + (distanceKm / 45.0) * 1.5;
                 } else {
-                    const passPct = (distanceKm - 45.0) / 35.0; // 0.0 a 1.0
+                    const passPct = (distanceKm - 45.0) / 25.0; // 0.0 a 1.0 (rebasados por completo al km 70)
                     volScale = 2.5 + passPct * 0.9;
-                    volYOffset = passPct * 160; // Se desplazan hacia abajo fuera de la pantalla
-                    volSpread = passPct * 110;  // Se abren hacia los lados al rebasarlos
+                    volYOffset = passPct * 170; // Se desplazan hacia abajo fuera de la pantalla
+                    volSpread = passPct * 120;  // Se abren hacia los lados al rebasarlos
                 }
 
                 const volBaseY = horizonY + volYOffset;
@@ -2432,11 +2432,11 @@
                 ctx.restore();
             }
 
-            // 1.6. LA GRAN PIRÁMIDE DE CHOLULA Y EL SANTUARIO DE LA VIRGEN EN LA CIMA (KM 80 A 120)
-            if (distanceKm >= 80.0) {
+            // 1.6. LA GRAN PIRÁMIDE DE CHOLULA Y EL SANTUARIO EN LA CIMA (APARECEN A PARTIR DEL KM 88 TRAS LA PAUSA DE CARRETERA LIBRE)
+            if (distanceKm >= 88.0) {
                 ctx.save();
-                const cholulaPct = Math.min(1, (distanceKm - 80.0) / 40.0);
-                const scale = 0.4 + cholulaPct * 1.8;
+                const cholulaPct = Math.min(1, (distanceKm - 88.0) / 32.0);
+                const scale = 0.35 + cholulaPct * 1.85;
                 const pX = 180;
                 const pY = horizonY;
 
