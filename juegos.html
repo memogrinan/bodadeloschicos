@@ -396,31 +396,31 @@
                 </div>
 
                 <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO (FONDO GRIS OSCURO) -->
-                <div id="gameOverlay" class="absolute inset-0 bg-[#151719] flex flex-col justify-center items-center text-white text-center p-6 rounded-2xl z-2">
+                <div id="gameOverlay" class="absolute inset-0 bg-[#151719] flex flex-col justify-center items-center text-white text-center p-3 py-4 max-h-full overflow-y-auto rounded-2xl z-2">
                     
                     <!-- G A M E   O V E R  DIBUJADO CON FUENTE RETRO MONOGRAM -->
-                    <div id="gameOverTitleContainer" class="hidden mb-6 text-center select-none pointer-events-none">
-                        <h2 class="text-4xl md:text-5xl font-monogram font-bold tracking-widest text-[#e74c3c] animate-pulse">GAME OVER</h2>
+                    <div id="gameOverTitleContainer" class="hidden mb-3 text-center select-none pointer-events-none shrink-0">
+                        <h2 class="text-3xl md:text-4xl font-monogram font-bold tracking-widest text-[#e74c3c] animate-pulse">GAME OVER</h2>
                     </div>
 
                     <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
-                    <div id="overlayScoreBox" class="hidden mb-6 bg-white/10 border border-white/15 p-4 rounded-2xl w-64 shadow-sm text-gray-200">
-                        <p class="text-xs md:text-sm tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
-                        <p id="overlayFinalScore" class="text-6xl md:text-7xl font-extrabold text-[#a3ad73] font-monogram my-2">00000</p>
-                        <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
-                        <p id="overlayChiCoinsEarned" class="text-base md:text-lg font-bold text-amber-300 font-monogram mt-2 border-t border-white/10 pt-2">🪙 +0 ChiCoins</p>
+                    <div id="overlayScoreBox" class="hidden mb-3 bg-white/10 border border-white/15 p-3 rounded-2xl w-60 shadow-sm text-gray-200 shrink-0">
+                        <p class="text-xs tracking-widest text-gray-400 font-bold uppercase font-monogram">Puntuación Obtenida</p>
+                        <p id="overlayFinalScore" class="text-4xl md:text-5xl font-extrabold text-[#a3ad73] font-monogram my-1">00000</p>
+                        <p id="overlayMetaCompare" class="text-xs md:text-sm text-gray-300 font-semibold font-monogram">Meta del juego: 100 pts</p>
+                        <p id="overlayChiCoinsEarned" class="text-sm md:text-base font-bold text-amber-300 font-monogram mt-1 border-t border-white/10 pt-1">🪙 +0 ChiCoins</p>
                     </div>
                     
                     <!-- Instrucciones y mensaje de fin (Soporta imágenes reales dinámicas) -->
-                    <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-8 text-gray-300 leading-relaxed font-monogram"></p>
+                    <p id="overlayInstructions" class="text-xs md:text-sm max-w-[320px] mb-3 text-gray-300 leading-relaxed font-monogram shrink-0"></p>
                     
-                    <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO (Corregida la desaparición del botón de texto) -->
-                    <div id="restartBtnContainer" class="flex flex-col items-center gap-4 mt-2">
+                    <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO -->
+                    <div id="restartBtnContainer" class="flex flex-col items-center gap-2 mt-1 shrink-0 pb-1">
                         <!-- Icono circular original de Dino -->
-                        <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[54px] h-[48px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                        <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[44px] h-[38px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
                         
                         <!-- Botón de texto para iniciar y reiniciar de forma segura -->
-                        <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-10 py-3.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
+                        <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-8 py-2.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
                             Jugar
                         </button>
                     </div>
