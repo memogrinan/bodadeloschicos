@@ -1457,8 +1457,7 @@
         }
 
         // ==========================================
-        // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial HDPI 2x)
-        let memo, obstacles, items, clouds, chicoFrame, chicoSpeed, groundX, lastScoreMilestone, scorePopups;
+        let memo, obstacles, items, clouds, bgCacti, chicoFrame, chicoSpeed, groundX, lastScoreMilestone, scorePopups;
         let chicoKeyDownHandler = null;
         let chicoKeyUpHandler = null;
         
@@ -1486,6 +1485,7 @@
             };
             obstacles = [];
             items = [];
+            bgCacti = [];
             clouds = [
                 {x: 120, y: 60, speed: 0.6},
                 {x: 320, y: 90, speed: 0.4}
@@ -1568,13 +1568,15 @@
             ctx.fillStyle = skyBgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // MODO NOCHE: LUNA Y ESTRELLAS ORIGINALES DE LA HOJA DE SPRITES DE CHROME
+            // MODO NOCHE: LUNA Y ESTRELLAS EXACTAS DE LA HOJA DE SPRITES DE CHROME (SIN CORTES)
             if (isNightMode) {
                 if (sprite.complete && sprite.naturalWidth >= 1000) {
-                    ctx.drawImage(sprite, 954, 2, 40, 80, 290, 35, 20, 40);
-                    ctx.drawImage(sprite, 645, 2, 18, 18, 80, 45, 9, 9);
-                    ctx.drawImage(sprite, 645, 18, 18, 18, 180, 70, 9, 9);
-                    ctx.drawImage(sprite, 645, 2, 18, 18, 330, 35, 9, 9);
+                    // Luna en fase Creciente (x: 1034, y: 2, w: 40, h: 80)
+                    ctx.drawImage(sprite, 1034, 2, 40, 80, 290, 35, 20, 40);
+                    // Estrellas (x: 1274, y: 2/20/38, w: 18, h: 18)
+                    ctx.drawImage(sprite, 1274, 2, 18, 18, 80, 45, 9, 9);
+                    ctx.drawImage(sprite, 1274, 20, 18, 18, 180, 70, 9, 9);
+                    ctx.drawImage(sprite, 1274, 38, 18, 18, 330, 35, 9, 9);
                 } else {
                     ctx.font = "20px sans-serif";
                     ctx.fillText("🌙", 295, 55);
@@ -1582,6 +1584,34 @@
                     ctx.fillText("✨", 80, 40);
                     ctx.fillText("✨", 180, 75);
                     ctx.fillText("✨", 320, 35);
+                }
+            }
+
+            // CACTUS DE FONDO EN SEGUNDO PLANO (PARALAJE SUAVE AL 35% DE VELOCIDAD, OPACIDAD TENUE)
+            if (bgCacti.length < 2 && Math.random() < 0.012) {
+                bgCacti.push({
+                    x: canvas.width + 40,
+                    type: Math.random() < 0.5 ? 0 : 1
+                });
+            }
+
+            for (let i = bgCacti.length - 1; i >= 0; i--) {
+                let bg = bgCacti[i];
+                bg.x -= chicoSpeed * 0.35; 
+
+                if (sprite.complete && sprite.naturalWidth >= 1000) {
+                    ctx.save();
+                    ctx.globalAlpha = isNightMode ? 0.20 : 0.28; 
+                    if (bg.type === 0) {
+                        ctx.drawImage(sprite, 446, 2, 34, 70, Math.round(bg.x), 316, 17, 35);
+                    } else {
+                        ctx.drawImage(sprite, 480, 2, 68, 70, Math.round(bg.x), 316, 34, 35);
+                    }
+                    ctx.restore();
+                }
+
+                if (bg.x < -60) {
+                    bgCacti.splice(i, 1);
                 }
             }
 
