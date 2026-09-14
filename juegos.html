@@ -1221,7 +1221,7 @@
             });
         }
 
-        function saveGamerTag() {
+        async function saveGamerTag() {
             const errorMsg = document.getElementById("gamertagErrorMsg");
             if (errorMsg) errorMsg.classList.add("hidden");
 
@@ -1237,7 +1237,6 @@
             const container = document.getElementById("memberSelectContainer");
             const isSelectVisible = container && !container.classList.contains("hidden");
             
-            // Obligar a esperar que carguen los invitados y que seleccione su nombre si la lista está activa
             if (isSelectVisible && partyMembers.length === 0) {
                 if (errorMsg) {
                     errorMsg.innerText = "⌛ Espera a que cargue la invitación o revisa tu conexión.";
@@ -1253,11 +1252,63 @@
                 return;
             }
 
-            // Si el jugador cambió su GamerTag, borramos el registro anterior de Firebase
-            // para que no aparezca duplicado en el Leaderboard.
-            if (db && playerGamertag && playerGamertag !== val) {
-                const oldKey = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
-                db.ref("players/" + oldKey).remove().catch(e => console.warn(e));
+            const btn = document.getElementById("saveGamerTagBtn");
+            if (btn) {
+                btn.innerText = "Conectando al Arcade...";
+                btn.disabled = true;
+                btn.classList.add("opacity-70", "cursor-wait");
+            }
+
+            const newKey = val.replace(/[.#$/[\]]/g, "_");
+
+            if (db && selectedRealName) {
+                try {
+                    // 1. Buscar si ya existe este invitado con un Gamertag anterior
+                    const snap = await db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value");
+                    const data = snap.val();
+                    
+                    if (data) {
+                        const oldKey = Object.keys(data)[0];
+                        const oldData = data[oldKey];
+                        
+                        // Renombrar: Si el Gamertag anterior es distinto al nuevo, pasamos la data y borramos la vieja
+                        if (oldKey !== newKey) {
+                            oldData.gamerTag = val;
+                            await db.ref("players/" + newKey).set(oldData);
+                            await db.ref("players/" + oldKey).remove();
+                        }
+                        
+                        // Descargar los puntos a memoria local
+                        if (oldData.scores) {
+                            Object.keys(oldData.scores).forEach(g => {
+                                localStorage.setItem("bodachicos_score_" + g, oldData.scores[g]);
+                            });
+                        }
+                        if (oldData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", oldData.bonusCoins);
+                        if (oldData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", oldData.timePlayedSeconds);
+                    } else {
+                        // 2. Si no encontró por nombre real, buscar por si acaso el Gamertag ya existe (para no borrarle sus puntos a ceros)
+                        const tagSnap = await db.ref("players/" + newKey).once("value");
+                        const tagData = tagSnap.val();
+                        if (tagData) {
+                            if (tagData.scores) {
+                                Object.keys(tagData.scores).forEach(g => {
+                                    localStorage.setItem("bodachicos_score_" + g, tagData.scores[g]);
+                                });
+                            }
+                            if (tagData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", tagData.bonusCoins);
+                            if (tagData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", tagData.timePlayedSeconds);
+                        }
+                    }
+                } catch (e) {
+                    console.warn("No se pudo descargar progreso previo:", e);
+                }
+            }
+
+            if (btn) {
+                btn.innerText = "Comenzar a Jugar 🎮";
+                btn.disabled = false;
+                btn.classList.remove("opacity-70", "cursor-wait");
             }
 
             localStorage.setItem("bodachicos_gamertag", val);
