@@ -31,7 +31,7 @@
     <meta name="twitter:image" content="https://bodadeloschicos.pages.dev/ImagenesWeb/portada_preview.jpg"> <!-- Imagen optimizada para iMessage -->
     <!-- ========================================== -->
 
-    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Montserrat:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Prata&display=swap" rel="stylesheet">
     <style>
         :root {
             --olivo-base: #52582f;      
@@ -1600,6 +1600,86 @@
             } else {
                 document.getElementById("rsvpSearchContainer").style.display = "block";
             }
+        }
+    </script>
+
+    <!-- ========================================== -->
+    <!-- WIDGET TEMPORAL DE PRUEBA DE TIPOGRAFÍAS -->
+    <!-- (No afecta el funcionamiento ni los datos, solo vista previa dinámica) -->
+    <div id="fontTesterWidget" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: #ffffff; border: 2px solid #52582f; border-radius: 20px; padding: 14px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); max-width: 320px; font-family: sans-serif; font-size: 13px; color: #333;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 6px;">
+            <strong style="color: #52582f; font-size: 14px;">✨ Probador de Fuentes (Opción 2)</strong>
+            <button onclick="document.getElementById('fontTesterWidget').style.display='none'" style="background: none; border: none; font-weight: bold; color: #888; cursor: pointer; font-size: 16px;">✕</button>
+        </div>
+        
+        <label style="display: block; font-weight: bold; margin-bottom: 4px; color: #555;">Títulos (h1, h2, nombres, secciones):</label>
+        <select id="titleFontSelect" onchange="applyTitleFont(this.value)" style="width: 100%; padding: 7px 10px; border-radius: 10px; border: 1px solid #ccc; background: #fff; font-size: 13px; margin-bottom: 12px; outline: none; font-weight: 600;">
+            <option value="Alex Brush" selected>1. Alex Brush (Actual - Cursiva Suelta)</option>
+            <option value="Cormorant Garamond Italic">2. Cormorant Garamond (Itálica Editorial)</option>
+            <option value="Cormorant Garamond Regular">3. Cormorant Garamond (Regular Elegante)</option>
+            <option value="Playfair Display Italic">4. Playfair Display (Itálica Vogue)</option>
+            <option value="Bodoni Moda Italic">5. Bodoni Moda (Itálica Alta Costura)</option>
+            <option value="Prata">6. Prata (Romana Botánica)</option>
+            <option value="Cinzel">7. Cinzel (Romana Clásica / Lista)</option>
+            <option value="Lora Italic">8. Lora (Itálica Caligráfica Suave)</option>
+        </select>
+
+        <label style="display: block; font-weight: bold; margin-bottom: 4px; color: #555;">Texto del Cuerpo / Párrafos:</label>
+        <select id="bodyFontSelect" onchange="applyBodyFont(this.value)" style="width: 100%; padding: 7px 10px; border-radius: 10px; border: 1px solid #ccc; background: #fff; font-size: 13px; margin-bottom: 10px; outline: none;">
+            <option value="Montserrat" selected>Montserrat (Actual - Sin Serifas)</option>
+            <option value="Cormorant Garamond">Cormorant Garamond (Serif Clásica)</option>
+            <option value="Lora">Lora (Serif Caligráfica)</option>
+        </select>
+
+        <div style="font-size: 11px; color: #777; line-height: 1.3; text-align: center; margin-top: 6px; background: #fcfaf7; padding: 6px; border-radius: 8px;">
+            💡 Selecciona cualquier opción para ver el cambio en vivo en la página.
+        </div>
+    </div>
+
+    <script>
+        function applyTitleFont(fontName) {
+            let fontCss = "";
+            let transform = "none";
+            let letterSpacing = "normal";
+
+            if (fontName === 'Alex Brush') {
+                fontCss = "'Alex Brush', cursive";
+            } else if (fontName === 'Cormorant Garamond Italic') {
+                fontCss = "'Cormorant Garamond', serif";
+                fontStyle = "italic";
+            } else if (fontName === 'Cormorant Garamond Regular') {
+                fontCss = "'Cormorant Garamond', serif";
+            } else if (fontName === 'Playfair Display Italic') {
+                fontCss = "'Playfair Display', serif";
+                fontStyle = "italic";
+            } else if (fontName === 'Bodoni Moda Italic') {
+                fontCss = "'Bodoni Moda', serif";
+                fontStyle = "italic";
+            } else if (fontName === 'Prata') {
+                fontCss = "'Prata', serif";
+            } else if (fontName === 'Cinzel') {
+                fontCss = "'Cinzel', serif";
+                letterSpacing = "2px";
+            } else if (fontName === 'Lora Italic') {
+                fontCss = "'Lora', serif";
+                fontStyle = "italic";
+            }
+
+            // Aplicar a h1, h2, nav-logo, h3 de secciones
+            const elements = document.querySelectorAll('h1, h2, .nav-logo, h3[style*="Alex Brush"], h2[style*="Alex Brush"]');
+            elements.forEach(el => {
+                el.style.fontFamily = fontCss;
+                if (fontName.includes('Italic')) {
+                    el.style.fontStyle = 'italic';
+                } else {
+                    el.style.fontStyle = 'normal';
+                }
+                el.style.letterSpacing = letterSpacing;
+            });
+        }
+
+        function applyBodyFont(fontName) {
+            document.body.style.fontFamily = `'${fontName}', serif`;
         }
     </script>
 </body>
