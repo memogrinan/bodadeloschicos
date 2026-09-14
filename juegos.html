@@ -285,13 +285,14 @@
                 <div id="memberButtonsList" class="flex flex-col gap-2"></div>
             </div>
 
-            <!-- SECCIÓN 2: GAMERTAG (APODO) -->
             <div class="mt-4 text-left">
                 <label id="gamertagLabel" class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1 text-center">2. Tu GamerTag (Apodo):</label>
                 <input type="text" id="gamertagInput" maxlength="15" placeholder="Tu Apodo / Nombre" class="w-full mt-2 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition" onkeyup="if(event.key==='Enter') saveGamerTag()">
             </div>
             
-            <button onclick="saveGamerTag()" id="saveGamerTagBtn" type="button" class="w-full mt-4 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md">Comenzar a Jugar 🎮</button>
+            <p id="gamertagErrorMsg" class="text-red-500 text-xs font-bold mt-2 hidden text-center"></p>
+            
+            <button onclick="saveGamerTag()" id="saveGamerTagBtn" type="button" class="w-full mt-3 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md">Comenzar a Jugar 🎮</button>
         </div>
     </div>
 
@@ -1182,12 +1183,17 @@
 
             if (container) container.classList.remove("hidden");
             buttonsList.innerHTML = "";
-            let defaultIdx = 0;
+            
+            let defaultIdx = -1;
+            selectedRealName = ""; // Inicialmente vacío
+            
             if (playerRealName) {
                 const found = partyMembers.findIndex(m => m.toLowerCase() === playerRealName.toLowerCase());
-                if (found >= 0) defaultIdx = found;
+                if (found >= 0) {
+                    defaultIdx = found;
+                    selectedRealName = partyMembers[defaultIdx];
+                }
             }
-            selectedRealName = partyMembers[defaultIdx];
 
             partyMembers.forEach((member, idx) => {
                 const isSel = (idx === defaultIdx);
@@ -1216,19 +1222,34 @@
         }
 
         function saveGamerTag() {
+            const errorMsg = document.getElementById("gamertagErrorMsg");
+            if (errorMsg) errorMsg.classList.add("hidden");
+
             const val = document.getElementById("gamertagInput").value.trim();
-            if (!val) return;
+            if (!val) {
+                if (errorMsg) {
+                    errorMsg.innerText = "❌ Escribe un GamerTag (Apodo) para jugar.";
+                    errorMsg.classList.remove("hidden");
+                }
+                return;
+            }
 
             const container = document.getElementById("memberSelectContainer");
             const isSelectVisible = container && !container.classList.contains("hidden");
             
             // Obligar a esperar que carguen los invitados y que seleccione su nombre si la lista está activa
             if (isSelectVisible && partyMembers.length === 0) {
-                alert("Espera un segundo a que carguen los invitados.");
+                if (errorMsg) {
+                    errorMsg.innerText = "⌛ Espera a que cargue la invitación o revisa tu conexión.";
+                    errorMsg.classList.remove("hidden");
+                }
                 return;
             }
             if (isSelectVisible && !selectedRealName) {
-                alert("Por favor selecciona quién de la invitación eres.");
+                if (errorMsg) {
+                    errorMsg.innerText = "👆 Por favor selecciona qué invitado eres de la lista superior.";
+                    errorMsg.classList.remove("hidden");
+                }
                 return;
             }
 
@@ -1255,6 +1276,8 @@
         }
 
         function changeGamerTagPrompt() {
+            const errorMsg = document.getElementById("gamertagErrorMsg");
+            if (errorMsg) errorMsg.classList.add("hidden");
             prepareGamertagModal();
         }
 
