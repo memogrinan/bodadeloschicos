@@ -168,30 +168,22 @@
         <!-- SECCIÓN DE JUEGOS (MENÚ PRINCIPAL) -->
         <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" id="gamesMenu">
             
-            <!-- JUEGO 1: EL CHICO (Con iconos reales en la descripción) -->
+            <!-- JUEGO 1: EL CHICO (Google Chrome Novio Edition) -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-start">
                         <span class="text-4xl">🦖</span>
                         <span id="badge-chico" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
-                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chicosaurio</h3>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Chicosaurio: Chrome Novio Edition</h3>
                     <p class="text-gray-500 text-sm mt-2 leading-relaxed">
-                        Ayuda a Chicosaurio (🦖) a saltar juntas 
-                        <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendario">, 
-                        alarmas 
-                        <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarma"> 
-                        y emails 
-                        <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
-                        y atrapa los controles de videojuegos 
-                        <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
-                        en el camino.
+                        ¡El clásico Google Chrome Dino Runner! Presiona <b>Espacio / ⬆️</b> para saltar y <b>⬇️ / S</b> para agacharte. Esquiva obstáculos y pterodáctilos (🦇) en Modo Infinito.
                     </p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
                         <p class="text-xs text-gray-400">Récord / Meta</p>
-                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chico">0</span> pts / <span class="text-olivo-base font-bold">100 pts</span></p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chico">0</span> pts / <span class="text-olivo-base font-bold">200 pts</span></p>
                         <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-chico">0</span> ChiCoins</p>
                     </div>
                     <button onclick="openGame('chico')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Jugar</button>
@@ -461,7 +453,7 @@
     <script>
         // CONFIGURACIÓN DE METAS (Score targets)
         const METAS = {
-            chico: 100,
+            chico: 200,
             chica: 15,
             maddie: 20,
             puebla: 200
@@ -1273,7 +1265,7 @@
             const targetScore = METAS[activeGame];
             let inst = "";
             if (activeGame === 'chico') {
-                inst = `Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
+                inst = `Google Chrome Novio Edition! Presiona ESPACIO / ⬆️ o toca la parte superior para SALTAR, y ⬇️ / S o toca la parte inferior para AGACHARTE. Esquiva obstáculos y pterodáctilos (🦇) en Modo Infinito.<br>Meta de Boda: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
                 inst = `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos de compromiso (💍). ¡Esquiva las tormentas eléctricas (🌩️)!<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
@@ -1457,15 +1449,17 @@
         }
 
         // ==========================================
-        // JUEGO 1: CHICOSAURIO (Pixel Style Chrome Oficial HDPI 2x)
+        // ==========================================
+        // JUEGO 1: CHICOSAURIO (Google Chrome Novio Edition - Modo Infinito 8-bit)
         let memo, obstacles, items, clouds, chicoFrame, chicoSpeed, groundX, lastScoreMilestone, scorePopups;
+        let chicoWonTriggered = false;
         let chicoKeyDownHandler = null;
         let chicoKeyUpHandler = null;
         
-        function drawDinoScore(ctx, score, highscore, x, y) {
+        function drawDinoScore(ctx, score, highscore, x, y, textColor = "#535353") {
             ctx.save();
             ctx.font = "24px 'Monogram'";
-            ctx.fillStyle = "#535353"; // Gris del dinosaurio de Chrome
+            ctx.fillStyle = textColor;
             ctx.textAlign = "right";
             const scoreStr = score.toString().padStart(5, '0');
             const hiStr = highscore.toString().padStart(5, '0');
@@ -1482,22 +1476,24 @@
                 vy: 0,
                 gravity: 1.6,
                 jumpHeight: -17,
-                isGrounded: true
+                isGrounded: true,
+                isDucking: false
             };
             obstacles = [];
             items = [];
             clouds = [
                 {x: 120, y: 60, speed: 0.6},
-                {x: 320, y: 90, speed: 0.4}
+                {x: 320, y: 85, speed: 0.4}
             ];
             chicoFrame = 0;
             chicoSpeed = 6.0; 
             groundX = 0;
             lastScoreMilestone = 0;
+            chicoWonTriggered = false;
             scorePopups = []; 
 
             const triggerJump = () => {
-                if (memo.isGrounded) {
+                if (memo.isGrounded && !memo.isDucking) {
                     memo.vy = memo.jumpHeight;
                     memo.isGrounded = false;
                     playSound('jump'); 
@@ -1510,31 +1506,68 @@
                 }
             };
 
+            const startDuck = () => {
+                if (memo.isGrounded) {
+                    memo.isDucking = true;
+                    memo.height = 28;
+                    memo.y = 322;
+                }
+            };
+
+            const stopDuck = () => {
+                if (memo.isDucking) {
+                    memo.isDucking = false;
+                    memo.height = 47;
+                    if (memo.isGrounded) memo.y = 303;
+                }
+            };
+
             canvas.onmousedown = (e) => {
-                triggerJump();
+                const rect = canvas.getBoundingClientRect();
+                const clickY = e.clientY - rect.top;
+                if (clickY > rect.height * 0.7) {
+                    startDuck();
+                } else {
+                    triggerJump();
+                }
             };
             canvas.onmouseup = () => {
                 endJump();
+                stopDuck();
             };
 
             canvas.ontouchstart = (e) => {
                 e.preventDefault();
-                triggerJump();
+                if (e.touches && e.touches.length > 0) {
+                    const rect = canvas.getBoundingClientRect();
+                    const touchY = e.touches[0].clientY - rect.top;
+                    if (touchY > rect.height * 0.7) {
+                        startDuck();
+                    } else {
+                        triggerJump();
+                    }
+                }
             };
             canvas.ontouchend = (e) => {
                 e.preventDefault();
                 endJump();
+                stopDuck();
             };
 
             chicoKeyDownHandler = (e) => {
-                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp") {
+                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
                     e.preventDefault(); 
                     triggerJump();
+                } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
+                    e.preventDefault();
+                    startDuck();
                 }
             };
             chicoKeyUpHandler = (e) => {
-                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp") {
+                if (e.key === " " || e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
                     endJump();
+                } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
+                    stopDuck();
                 }
             };
 
@@ -1547,26 +1580,51 @@
         function updateChico() {
             chicoFrame++;
             
-            // Incremento acelerado más veloz y nuevo tope de velocidad (15.0)
-            if (chicoSpeed < 15.0) {
-                chicoSpeed += 0.004; 
+            // Incremento acelerado progresivo de velocidad hasta 16.0 (Chrome Speed Curve)
+            if (chicoSpeed < 16.0) {
+                chicoSpeed += 0.0035; 
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // CONFIGURACIÓN INICIAL DEL FRAME: El T-rex, el fondo y las nubes requieren pixel art (smoothing = false)
             ctx.imageSmoothingEnabled = false;
             ctx.mozImageSmoothingEnabled = false;
             ctx.webkitImageSmoothingEnabled = false;
             ctx.msImageSmoothingEnabled = false;
 
-            ctx.fillStyle = "#f7f7f7";
+            // CICLO DÍA / NOCHE GOOGLER (Cambia cada 350 puntos)
+            const isNightMode = Math.floor(score / 350) % 2 === 1;
+            const skyBgColor = isNightMode ? "#202124" : "#f7f7f7";
+            const mainTextColor = isNightMode ? "#e8eaed" : "#535353";
+
+            ctx.fillStyle = skyBgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // MODO NOCHE: LUNA Y ESTRELLAS PIXELADAS
+            if (isNightMode) {
+                ctx.fillStyle = "#f1c40f";
+                ctx.font = "20px sans-serif";
+                ctx.fillText("🌙", 295, 55);
+
+                ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                ctx.font = "10px sans-serif";
+                ctx.fillText("✨", 80, 40);
+                ctx.fillText("✨", 180, 75);
+                ctx.fillText("✨", 330, 35);
+            }
+
+            // ENCABEZADO "NO INTERNET" ESTILO CHROME EASTER EGG
+            ctx.save();
+            ctx.fillStyle = isNightMode ? "rgba(255, 255, 255, 0.45)" : "rgba(0, 0, 0, 0.35)";
+            ctx.font = "bold 9px font-monogram, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("NO INTERNET — CONECTANDO AL AMOR DE LOS NOVIOS...", canvas.width / 2, 16);
+            ctx.restore();
+
+            // RENDER DE NUBES Y SUELO
             if (sprite.complete && sprite.naturalWidth !== 0) {
                 for (let cl of clouds) {
                     cl.x -= cl.speed;
-                    // Alineación a pixel entero (Math.round) para evitar temblor
                     ctx.drawImage(sprite, 166, 2, 92, 28, Math.round(cl.x), Math.round(cl.y), 46, 14);
                     if (cl.x < -50) cl.x = canvas.width + 20;
                 }
@@ -1590,13 +1648,30 @@
                     frameOffset = 4; 
                 }
                 
-                ctx.drawImage(
-                    sprite, 
-                    1678 + (88 * frameOffset), 2, 
-                    88, 94, 
-                    Math.round(memo.x), Math.round(memo.y), 
-                    memo.width, memo.height
-                );
+                // Si está agachado (ducking)
+                if (memo.isDucking) {
+                    ctx.font = "26px sans-serif";
+                    ctx.fillText("🏃🏻‍♂️", Math.round(memo.x), Math.round(memo.y) + 24);
+                } else {
+                    ctx.drawImage(
+                        sprite, 
+                        1678 + (88 * frameOffset), 2, 
+                        88, 94, 
+                        Math.round(memo.x), Math.round(memo.y), 
+                        memo.width, memo.height
+                    );
+                }
+
+                // GORRITO NOOGLER O GAFAS DE SOL A LOS 200 PTS DE RUTA
+                if (score >= 200) {
+                    ctx.save();
+                    ctx.fillStyle = "#e74c3c";
+                    ctx.fillRect(Math.round(memo.x + 18), Math.round(memo.y + 2), 14, 4);
+                    ctx.fillStyle = "#f1c40f";
+                    ctx.fillRect(Math.round(memo.x + 23), Math.round(memo.y - 2), 4, 4);
+                    ctx.restore();
+                }
+
             } else {
                 ctx.font = "20px sans-serif";
                 for (let cl of clouds) {
@@ -1606,50 +1681,67 @@
                 }
 
                 groundX = (groundX + chicoSpeed) % 360;
-                ctx.strokeStyle = "#535353";
+                ctx.strokeStyle = mainTextColor;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(0, 350);
                 ctx.lineTo(canvas.width, 350);
                 ctx.stroke();
 
-                ctx.font = "32px sans-serif";
-                ctx.fillText("🦖", Math.round(memo.x), Math.round(memo.y) + 35);
+                ctx.font = memo.isDucking ? "28px sans-serif" : "34px sans-serif";
+                ctx.fillText(memo.isDucking ? "🏃🏻‍♂️" : "🦖", Math.round(memo.x), Math.round(memo.y) + (memo.isDucking ? 24 : 35));
             }
 
+            // FÍSICA DE SALTO
             memo.vy += memo.gravity;
             memo.y += memo.vy;
-            if (memo.y >= 303) {
-                memo.y = 303;
+            const groundLimitY = memo.isDucking ? 322 : 303;
+            if (memo.y >= groundLimitY) {
+                memo.y = groundLimitY;
                 memo.vy = 0;
                 memo.isGrounded = true;
             }
 
-            let spawnInterval = Math.max(45, 75 - Math.floor(chicoSpeed * 2));
+            let spawnInterval = Math.max(42, 72 - Math.floor(chicoSpeed * 2));
             
-            // Generar Obstáculos usando los sprites PNG pre-cargados
+            // GENERAR OBSTÁCULOS TERRESTRES O PTERODÁCTILOS VOLADORES (🦇)
             if (chicoFrame % spawnInterval === 0) {
-                let obsTypes = [
-                    { img: imgCalendar, fallback: "📅" },
-                    { img: imgClock, fallback: "⏰" },
-                    { img: imgEmail, fallback: "📩" }
-                ];
-                let randObs = obsTypes[Math.floor(Math.random() * obsTypes.length)];
-                obstacles.push({
-                    x: canvas.width,
-                    y: 312, 
-                    width: 32,
-                    height: 32,
-                    img: randObs.img,
-                    fallback: randObs.fallback
-                });
+                const isFlyingPtero = (score >= 60 || chicoSpeed >= 7.5) && Math.random() < 0.35;
+
+                if (isFlyingPtero) {
+                    // Pterodáctilo volador que requiere agacharse o saltar con precisión
+                    const flyY = Math.random() < 0.5 ? 275 : 245; 
+                    obstacles.push({
+                        x: canvas.width,
+                        y: flyY, 
+                        width: 32,
+                        height: 26,
+                        isPtero: true,
+                        fallback: "🦇"
+                    });
+                } else {
+                    let obsTypes = [
+                        { img: imgCalendar, fallback: "🌵" },
+                        { img: imgClock, fallback: "🎂" },
+                        { img: imgEmail, fallback: "🎁" }
+                    ];
+                    let randObs = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+                    obstacles.push({
+                        x: canvas.width,
+                        y: 312, 
+                        width: 32,
+                        height: 32,
+                        img: randObs.img,
+                        fallback: randObs.fallback
+                    });
+                }
             }
 
-            // Generar Controles con menor frecuencia (cada 200 fotogramas)
-            if (chicoFrame % 200 === 0) {
+            // Generar Controles con menor frecuencia
+            if (chicoFrame % 210 === 0) {
                 items.push({
                     x: canvas.width,
-                    y: 215 + Math.random() * 60,
+                    y: 210 + Math.random() * 55,
                     width: 30,
                     height: 30,
                     img: imgGamepad,
@@ -1657,27 +1749,34 @@
                 });
             }
 
-            // Dibujar y procesar Obstáculos ( PNG de Alta Resolución )
+            // Dibujar y procesar Obstáculos
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.x -= chicoSpeed;
                 
-                if (obs.img.complete && obs.img.naturalWidth !== 0) {
-                    // Encendemos la interpolación bilineal suave de forma temporal antes de dibujar este sprite de alta resolución
+                if (obs.isPtero) {
+                    ctx.font = "26px sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText(obs.fallback, Math.round(obs.x), Math.round(obs.y) + 20);
+                } else if (obs.img && obs.img.complete && obs.img.naturalWidth !== 0) {
                     ctx.imageSmoothingEnabled = true;
                     ctx.drawImage(obs.img, Math.round(obs.x), Math.round(obs.y), obs.width, obs.height);
-                    ctx.imageSmoothingEnabled = false; // Lo apagamos inmediatamente después
+                    ctx.imageSmoothingEnabled = false; 
                 } else {
-                    ctx.font = "30px sans-serif";
+                    ctx.font = "28px sans-serif";
                     ctx.textAlign = "left";
                     ctx.fillText(obs.fallback, Math.round(obs.x), Math.round(obs.y) + 26);
                 }
 
                 // Detección de colisión estrecha (AABB)
-                if (obs.x < memo.x + memo.width - 6 &&
+                const isColliding = (
+                    obs.x < memo.x + memo.width - 6 &&
                     obs.x + obs.width > memo.x + 6 &&
                     obs.y < memo.y + memo.height - 6 &&
-                    obs.y + obs.height > memo.y + 6) {
+                    obs.y + obs.height > memo.y + 6
+                );
+
+                if (isColliding) {
                     gameOver(score);
                     return;
                 }
@@ -1689,8 +1788,7 @@
                 let it = items[i];
                 it.x -= chicoSpeed;
                 
-                if (it.img.complete && it.img.naturalWidth !== 0) {
-                    // Suavizado temporal para encoger el gamepad limpio sin deformaciones
+                if (it.img && it.img.complete && it.img.naturalWidth !== 0) {
                     ctx.imageSmoothingEnabled = true;
                     ctx.drawImage(it.img, Math.round(it.x), Math.round(it.y), it.width, it.height);
                     ctx.imageSmoothingEnabled = false; 
@@ -1700,7 +1798,6 @@
                     ctx.fillText(it.fallback, Math.round(it.x), Math.round(it.y) + 22);
                 }
 
-                // Detección de recolección de gamepad estrecha
                 if (it.x < memo.x + memo.width - 4 &&
                     it.x + it.width > memo.x + 4 &&
                     it.y < memo.y + memo.height - 4 &&
@@ -1721,14 +1818,15 @@
                 if (it.x < -40) items.splice(i, 1);
             }
 
+            // RENDER DE POPUPS DE TEXTO
             for (let i = scorePopups.length - 1; i >= 0; i--) {
                 let p = scorePopups[i];
-                p.y -= 1.5; 
+                p.y -= 1.2; 
                 p.life--;
 
                 ctx.save();
-                ctx.font = "20px 'Monogram'";
-                ctx.fillStyle = `rgba(83, 83, 83, ${p.life / 25})`; 
+                ctx.font = "bold 14px 'Monogram', sans-serif";
+                ctx.fillStyle = isNightMode ? `rgba(232, 234, 237, ${p.life / 25})` : `rgba(83, 83, 83, ${p.life / 25})`; 
                 ctx.textAlign = "center";
                 ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
                 ctx.restore();
@@ -1742,12 +1840,26 @@
                 score += 1;
             }
 
+            // LOGRO DE META DE BODA A LOS 200 PTS (MODO INFINITO CONTINÚA SIN INTERRUMPIR)
+            if (score >= 200 && !chicoWonTriggered) {
+                chicoWonTriggered = true;
+                localStorage.setItem("bodachicos_chico_won", "true");
+                updateScoresDashboard();
+                playSound('score');
+                scorePopups.push({
+                    x: canvas.width / 2,
+                    y: 75,
+                    text: "🎉 ¡META DE BODA ALCANZADA (200 PTS)! MODO INFINITO ACTIVADO",
+                    life: 75
+                });
+            }
+
             if (score > 0 && score % 100 === 0 && score !== lastScoreMilestone) {
                 lastScoreMilestone = score;
                 playSound('score');
             }
 
-            drawDinoScore(ctx, score, getScore('chico'), canvas.width - 20, 30);
+            drawDinoScore(ctx, score, getScore('chico'), canvas.width - 20, 32, mainTextColor);
             currentGameScore.innerText = score.toString().padStart(5, '0');
         }
 
