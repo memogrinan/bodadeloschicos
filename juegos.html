@@ -521,8 +521,8 @@
         const imgTrafficCar4 = new Image();
         imgTrafficCar4.src = 'SpritesNecesarios/coches_cuatro.png';
 
-        const imgTrafficBlue = new Image();
-        imgTrafficBlue.src = 'SpritesNecesarios/Travel_Veichle_Car_2.png';
+        const imgTrafficCar2 = new Image();
+        imgTrafficCar2.src = 'SpritesNecesarios/coche_dos.png';
 
         const imgPueblaHeart = new Image();
         imgPueblaHeart.src = 'SpritesNecesarios/RPG_Stat_HP_Health_Heart_Small.png';
@@ -568,7 +568,7 @@
         imgTrafficCar1.onerror = () => handleImageError('coches_uno.png', imgTrafficCar1.src);
         imgTrafficCar3.onerror = () => handleImageError('coches_tres.png', imgTrafficCar3.src);
         imgTrafficCar4.onerror = () => handleImageError('coches_cuatro.png', imgTrafficCar4.src);
-        imgTrafficBlue.onerror = () => handleImageError('Travel_Veichle_Car_2.png', imgTrafficBlue.src);
+        imgTrafficCar2.onerror = () => handleImageError('coche_dos.png', imgTrafficCar2.src);
         imgPueblaHeart.onerror = () => handleImageError('RPG_Stat_HP_Health_Heart_Small.png', imgPueblaHeart.src);
         imgPueblaMap.onerror = () => handleImageError('Map_Markers_Travel_Map_Folded.png', imgPueblaMap.src);
         imgPueblaPothole.onerror = () => handleImageError('Map_Markers_Hole_Trap.png', imgPueblaPothole.src);
@@ -2751,18 +2751,18 @@
                     typeEmoji = isTaco ? "🌮" : "⚡";
                     isItem = true;
                     pts = 3;
-                } else if (rollType > 0.15) {
-                    // Autos de tráfico a rebasar vistos desde atrás (70% de probabilidad - NUNCA GRISES)
+                } else if (rollType > 0.05) {
+                    // Autos de tráfico a rebasar vistos desde atrás (80% de probabilidad - NUNCA GRISES)
                     const trafficImages = [
                         imgTrafficCar1,
+                        imgTrafficCar2,
                         imgTrafficCar3,
-                        imgTrafficCar4,
-                        imgTrafficBlue
+                        imgTrafficCar4
                     ];
                     trafficImg = trafficImages[Math.floor(Math.random() * trafficImages.length)];
                     isTrafficCar = true;
                 } else {
-                    // Baches u obras (15% de probabilidad, no tan seguido)
+                    // Baches u obras (solo 5% de probabilidad, muy raros)
                     typeEmoji = Math.random() > 0.5 ? "🚧" : "🕳️";
                 }
 
