@@ -387,7 +387,7 @@
                             <span class="tracking-widest uppercase">🌿 Jardín de Maddie</span>
                         </div>
                         <div id="maddieScoreboard" class="text-center select-none font-monogram text-white/95 text-lg md:text-xl tracking-widest bg-black/40 px-5 py-0.5 rounded-lg border border-white/10 shadow-inner">
-                            HI <span id="maddieHighScore" class="font-bold text-[#f1c40f]">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold text-white">00000</span>
+                            HI <span id="maddieHighScore" class="font-bold text-[#f1c40f]">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold text-white">00000</span> &nbsp;&nbsp; <span class="text-[#e74c3c]">⏳</span> <span id="maddieTimeDisplay" class="font-bold text-[#e74c3c]">30</span>s
                         </div>
                     </div>
 
@@ -1126,7 +1126,7 @@
                 syncPlayerToFirebase();
             }
 
-            if (!savedTag || !savedReal) {
+            if (!savedTag) {
                 prepareGamertagModal();
             }
         }
@@ -2169,9 +2169,13 @@
                 maddieGrid.appendChild(hole);
             }
 
+            const timeDisplay = document.getElementById("maddieTimeDisplay");
+            if (timeDisplay) timeDisplay.innerText = "30";
+
             gameInterval = setInterval(() => {
                 timeRemaining--;
                 currentGameState.innerText = `Tiempo: ${timeRemaining}s`;
+                if (timeDisplay) timeDisplay.innerText = timeRemaining.toString().padStart(2, '0');
                 if (timeRemaining <= 0) {
                     gameOver(score);
                 }
