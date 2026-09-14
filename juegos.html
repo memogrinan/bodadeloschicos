@@ -578,6 +578,90 @@
         imgSceneryLamp.onerror = () => handleImageError('Lamp.png', imgSceneryLamp.src);
         imgSceneryChurch.onerror = () => handleImageError('Church.png', imgSceneryChurch.src);
 
+        const precomputedSprites = {};
+
+        function getTightlyCroppedSprite(img, cols, rows, c, r) {
+            const cacheKey = img.src + `_${cols}_${rows}_${c}_${r}`;
+            if (precomputedSprites[cacheKey] !== undefined) return precomputedSprites[cacheKey];
+
+            const sw = img.naturalWidth / cols;
+            const sh = img.naturalHeight / rows;
+            const sx = c * sw;
+            const sy = r * sh;
+
+            const offCanvas = document.createElement("canvas");
+            offCanvas.width = sw;
+            offCanvas.height = sh;
+            const oCtx = offCanvas.getContext("2d", { willReadFrequently: true });
+            oCtx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+            const imgData = oCtx.getImageData(0, 0, sw, sh);
+            const data = imgData.data;
+            let minX = sw, minY = sh, maxX = 0, maxY = 0;
+            let hasPixels = false;
+
+            for (let y = 0; y < sh; y++) {
+                for (let x = 0; x < sw; x++) {
+                    const alpha = data[(y * sw + x) * 4 + 3];
+                    if (alpha > 10) { // not fully transparent
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                        hasPixels = true;
+                    }
+                }
+            }
+
+            if (!hasPixels) {
+                precomputedSprites[cacheKey] = null;
+                return null;
+            }
+
+            // Expand bounds slightly to prevent hard cutoffs
+            const pad = 2;
+            minX = Math.max(0, minX - pad);
+            minY = Math.max(0, minY - pad);
+            maxX = Math.min(sw - 1, maxX + pad);
+            maxY = Math.min(sh - 1, maxY + pad);
+
+            const cropW = maxX - minX + 1;
+            const cropH = maxY - minY + 1;
+
+            const finalCanvas = document.createElement("canvas");
+            finalCanvas.width = cropW;
+            finalCanvas.height = cropH;
+            finalCanvas.getContext("2d").drawImage(offCanvas, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+            
+            precomputedSprites[cacheKey] = finalCanvas;
+            return finalCanvas;
+        }
+
+        let trafficSpriteDefs = null;
+
+        function initTrafficDefs() {
+            if (trafficSpriteDefs) return;
+            trafficSpriteDefs = [];
+            
+            // coches_uno (segunda y cuarta columna, las 3 filas) -> asumiremos cuadricula 4x3
+            for (let r = 0; r < 3; r++) {
+                trafficSpriteDefs.push({ img: imgTrafficCar1, cols: 4, rows: 3, c: 1, r: r });
+                trafficSpriteDefs.push({ img: imgTrafficCar1, cols: 4, rows: 3, c: 3, r: r });
+            }
+            // coche_dos (viene recortado completo) -> 1x1
+            trafficSpriteDefs.push({ img: imgTrafficCar2, cols: 1, rows: 1, c: 0, r: 0 });
+            
+            // coches_tres (toda la segunda fila) -> asumiremos 4x3 y usamos r=1
+            for (let c = 0; c < 4; c++) {
+                trafficSpriteDefs.push({ img: imgTrafficCar3, cols: 4, rows: 3, c: c, r: 1 });
+            }
+            // coches_cuatro (segunda y cuarta columna) -> asumimos 4x3
+            for (let r = 0; r < 3; r++) {
+                trafficSpriteDefs.push({ img: imgTrafficCar4, cols: 4, rows: 3, c: 1, r: r });
+                trafficSpriteDefs.push({ img: imgTrafficCar4, cols: 4, rows: 3, c: 3, r: r });
+            }
+        }
+
         // AUDIO CONTEXT NATIVO DE 8-BITS
         let audioCtx = null;
 
@@ -2337,8 +2421,16 @@
             ctx.fill();
 
             if (imgPlayerCarGrey.complete && imgPlayerCarGrey.naturalWidth !== 0) {
-                ctx.imageSmoothingEnabled = true;
-                ctx.drawImage(imgPlayerCarGrey, Math.round(x - width / 2 - 2), Math.round(y - height / 2 - 4), width + 4, height + 6);
+                const cropped = getTightlyCroppedSprite(imgPlayerCarGrey, 1, 1, 0, 0);
+                if (cropped) {
+                    ctx.imageSmoothingEnabled = true;
+                    // Mapear la orilla correctamente al ancho del hitbox (width), ajustando la altura proporcional
+                    const carH = Math.round(width * (cropped.height / cropped.width));
+                    ctx.drawImage(cropped, Math.round(x - width / 2), Math.round(y - carH / 2 - 2), width, carH);
+                } else {
+                    ctx.fillStyle = "#616161";
+                    ctx.fillRect(Math.round(x - width / 2), Math.round(y - height / 2), width, height);
+                }
             } else {
                 // Dibujo procedural fallback
                 ctx.fillStyle = "#616161";
@@ -2349,6 +2441,7 @@
         }
 
         function updatePuebla() {
+            initTrafficDefs();
             roadFrame++;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -2752,14 +2845,9 @@
                     isItem = true;
                     pts = 3;
                 } else if (rollType > 0.05) {
-                    // Autos de tráfico a rebasar vistos desde atrás (80% de probabilidad - NUNCA GRISES)
-                    const trafficImages = [
-                        imgTrafficCar1,
-                        imgTrafficCar2,
-                        imgTrafficCar3,
-                        imgTrafficCar4
-                    ];
-                    trafficImg = trafficImages[Math.floor(Math.random() * trafficImages.length)];
+                    // Autos de tráfico a rebasar vistos desde atrás usando los Sprite Defs
+                    const def = trafficSpriteDefs[Math.floor(Math.random() * trafficSpriteDefs.length)];
+                    trafficImg = def;
                     isTrafficCar = true;
                 } else {
                     // Baches u obras (solo 5% de probabilidad, muy raros)
@@ -2793,17 +2881,28 @@
                 const currentScale = Math.max(18, Math.floor(16 + depthPct * 34));
                 const objWidth = currentScale * 0.85;
 
-                if (obj.isCar && obj.trafficImg && obj.trafficImg.complete && obj.trafficImg.naturalWidth !== 0) {
-                    ctx.save();
-                    ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
-                    ctx.shadowBlur = 4;
-                    ctx.shadowOffsetY = 2;
-                    ctx.imageSmoothingEnabled = true;
-                    const carW = Math.round(objWidth * 1.4);
-                    const carH = Math.round(currentScale * 1.0);
-                    ctx.drawImage(obj.trafficImg, Math.round(currentLaneX - carW / 2), Math.round(obj.y - carH / 2), carW, carH);
-                    ctx.restore();
-                } else {
+                // Para dibujar autos PNG autocroppeados
+                let drawnCropped = false;
+                if (obj.isCar && obj.trafficImg && obj.trafficImg.img && obj.trafficImg.img.complete && obj.trafficImg.img.naturalWidth !== 0) {
+                    const def = obj.trafficImg;
+                    const cropped = getTightlyCroppedSprite(def.img, def.cols, def.rows, def.c, def.r);
+                    if (cropped) {
+                        ctx.save();
+                        ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+                        ctx.shadowBlur = 4;
+                        ctx.shadowOffsetY = 2;
+                        ctx.imageSmoothingEnabled = true;
+                        
+                        // Escalar con base en la proporcion real del coche extraido
+                        const carW = Math.round(objWidth * 1.4);
+                        const carH = Math.round(carW * (cropped.height / cropped.width));
+                        ctx.drawImage(cropped, Math.round(currentLaneX - carW / 2), Math.round(obj.y - carH / 2), carW, carH);
+                        ctx.restore();
+                        drawnCropped = true;
+                    }
+                }
+                
+                if (!drawnCropped) {
                     ctx.save();
                     ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
                     ctx.shadowBlur = 4;
