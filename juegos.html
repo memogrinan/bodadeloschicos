@@ -1217,19 +1217,41 @@
 
         function saveGamerTag() {
             const val = document.getElementById("gamertagInput").value.trim();
-            if (val) {
-                localStorage.setItem("bodachicos_gamertag", val);
-                if (selectedRealName) {
-                    localStorage.setItem("bodachicos_real_name", selectedRealName);
-                    playerRealName = selectedRealName;
-                }
-                playerGamertag = val;
-                document.getElementById("playerGamertag").innerText = playerGamertag;
-                document.getElementById("bottomGamerTag").innerText = playerGamertag;
-                
-                closeGamertagModal();
-                updateScoresDashboard();
+            if (!val) return;
+
+            const container = document.getElementById("memberSelectContainer");
+            const isSelectVisible = container && !container.classList.contains("hidden");
+            
+            // Obligar a esperar que carguen los invitados y que seleccione su nombre si la lista está activa
+            if (isSelectVisible && partyMembers.length === 0) {
+                alert("Espera un segundo a que carguen los invitados.");
+                return;
             }
+            if (isSelectVisible && !selectedRealName) {
+                alert("Por favor selecciona quién de la invitación eres.");
+                return;
+            }
+
+            // Si el jugador cambió su GamerTag, borramos el registro anterior de Firebase
+            // para que no aparezca duplicado en el Leaderboard.
+            if (db && playerGamertag && playerGamertag !== val) {
+                const oldKey = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+                db.ref("players/" + oldKey).remove().catch(e => console.warn(e));
+            }
+
+            localStorage.setItem("bodachicos_gamertag", val);
+            if (selectedRealName) {
+                localStorage.setItem("bodachicos_real_name", selectedRealName);
+                playerRealName = selectedRealName;
+            }
+            playerGamertag = val;
+            
+            document.getElementById("playerGamertag").innerText = playerGamertag;
+            document.getElementById("bottomGamerTag").innerText = playerGamertag;
+            
+            closeGamertagModal();
+            updateScoresDashboard();
+            syncPlayerToFirebase();
         }
 
         function changeGamerTagPrompt() {
