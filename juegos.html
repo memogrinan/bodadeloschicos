@@ -509,11 +509,20 @@
         imgMaddiePoop.src = 'SpritesNecesarios/Emoji_Poop_Shite_Doodoo_Poopoo_Brown_Mousse_Cream_Creme.png';
 
         // SPRITES PARA JUEGO 4: PUEBLA
-        const imgPueblaCar = new Image();
-        imgPueblaCar.src = 'SpritesNecesarios/Travel_Veichle_Car_1.png';
+        const imgPlayerCarGrey = new Image();
+        imgPlayerCarGrey.src = 'SpritesNecesarios/player_car_grey.png';
 
-        const imgPueblaTraffic = new Image();
-        imgPueblaTraffic.src = 'SpritesNecesarios/Travel_Veichle_Car_2.png';
+        const imgTrafficCar1 = new Image();
+        imgTrafficCar1.src = 'SpritesNecesarios/coches_uno.png';
+
+        const imgTrafficCar3 = new Image();
+        imgTrafficCar3.src = 'SpritesNecesarios/coches_tres.png';
+
+        const imgTrafficCar4 = new Image();
+        imgTrafficCar4.src = 'SpritesNecesarios/coches_cuatro.png';
+
+        const imgTrafficBlue = new Image();
+        imgTrafficBlue.src = 'SpritesNecesarios/Travel_Veichle_Car_2.png';
 
         const imgPueblaHeart = new Image();
         imgPueblaHeart.src = 'SpritesNecesarios/RPG_Stat_HP_Health_Heart_Small.png';
@@ -2324,74 +2333,14 @@
             ctx.ellipse(x, y + height / 2 - 1, width / 2 + 4, 6, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Neumáticos anchos deportivos
-            ctx.fillStyle = "#151515";
-            ctx.fillRect(Math.round(x - width / 2 - 1), Math.round(y + height / 2 - 13), 8, 13);
-            ctx.fillRect(Math.round(x + width / 2 - 7), Math.round(y + height / 2 - 13), 8, 13);
-
-            // Chasis principal rojo deportivo
-            ctx.fillStyle = "#e53935";
-            ctx.beginPath();
-            ctx.moveTo(x - width / 2, y + height / 2 - 3);
-            ctx.lineTo(x - width / 2 + 3, y - 2);
-            ctx.lineTo(x - width / 4, y - height / 2 + 8);
-            ctx.lineTo(x + width / 4, y - height / 2 + 8);
-            ctx.lineTo(x + width / 2 - 3, y - 2);
-            ctx.lineTo(x + width / 2, y + height / 2 - 3);
-            ctx.closePath();
-            ctx.fill();
-
-            // Parabrisas / Ventana trasera polarizada
-            ctx.fillStyle = "#1e272e";
-            ctx.beginPath();
-            ctx.moveTo(x - width / 4 + 2, y - height / 2 + 10);
-            ctx.lineTo(x + width / 4 - 2, y - height / 2 + 10);
-            ctx.lineTo(x + width / 3 - 2, y - 2);
-            ctx.lineTo(x - width / 3 + 2, y - 2);
-            ctx.closePath();
-            ctx.fill();
-
-            // Reflejo en el cristal
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(x - 8, y - height / 2 + 12);
-            ctx.lineTo(x + 8, y - 4);
-            ctx.stroke();
-
-            // Alerón trasero (Spoiler)
-            ctx.fillStyle = "#b71c1c";
-            ctx.fillRect(Math.round(x - width / 2 - 1), Math.round(y - 4), width + 2, 4);
-            ctx.fillStyle = "#212121";
-            ctx.fillRect(Math.round(x - width / 2 - 2), Math.round(y - 6), 4, 6);
-            ctx.fillRect(Math.round(x + width / 2 - 2), Math.round(y - 6), 4, 6);
-
-            // Difusor trasero
-            ctx.fillStyle = "#212121";
-            ctx.fillRect(Math.round(x - width / 2 + 4), Math.round(y + height / 2 - 9), width - 8, 8);
-
-            // Calaveras / Luces traseras LED rojas brillantes
-            ctx.fillStyle = "#ff1744";
-            ctx.shadowColor = "#ff1744";
-            ctx.shadowBlur = 8;
-            ctx.fillRect(Math.round(x - width / 2 + 5), Math.round(y + height / 2 - 8), 11, 5);
-            ctx.fillRect(Math.round(x + width / 2 - 16), Math.round(y + height / 2 - 8), 11, 5);
-
-            // Placa de matrícula "BODA"
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(Math.round(x - 9), Math.round(y + height / 2 - 7), 18, 5);
-            ctx.fillStyle = "#111111";
-            ctx.font = "bold 5px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("BODA", Math.round(x), Math.round(y + height / 2 - 3));
-
-            // Tubos de escape metálicos
-            ctx.fillStyle = "#cfd8dc";
-            ctx.beginPath();
-            ctx.arc(Math.round(x - 14), Math.round(y + height / 2 - 2), 2, 0, Math.PI * 2);
-            ctx.arc(Math.round(x + 14), Math.round(y + height / 2 - 2), 2, 0, Math.PI * 2);
-            ctx.fill();
+            if (imgPlayerCarGrey.complete && imgPlayerCarGrey.naturalWidth !== 0) {
+                ctx.imageSmoothingEnabled = true;
+                ctx.drawImage(imgPlayerCarGrey, Math.round(x - width / 2 - 2), Math.round(y - height / 2 - 4), width + 4, height + 6);
+            } else {
+                // Dibujo procedural fallback
+                ctx.fillStyle = "#616161";
+                ctx.fillRect(Math.round(x - width / 2), Math.round(y - height / 2), width, height);
+            }
 
             ctx.restore();
         }
@@ -2783,28 +2732,34 @@
             // 6. GENERAR OBSTÁCULOS E ÍTEMS EN LOS CARRILES (MÁS TIEMPO DE VISIÓN EN CURVAS)
             const isCurveZone = distanceKm >= 45.0 && distanceKm <= 95.0;
             const baseSpawn = Math.max(14, Math.floor(28 - (distanceKm / 120.0) * 14));
-            const spawnInterval = isCurveZone ? baseSpawn + 12 : baseSpawn;
+            const spawnInterval = isCurveZone ? baseSpawn + 10 : baseSpawn;
             if (roadFrame % spawnInterval === 0) {
                 const laneIdx = Math.floor(Math.random() * 3);
                 const rollType = Math.random();
                 let typeEmoji = "🚧";
                 let isItem = false;
                 let isTrafficCar = false;
+                let trafficImg = null;
                 let pts = 0;
 
-                if (rollType > 0.65) {
-                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡) +3 pts
+                if (rollType > 0.85) {
+                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡) +3 pts (15%)
                     const isTaco = Math.random() > 0.5;
                     typeEmoji = isTaco ? "🌮" : "⚡";
                     isItem = true;
                     pts = 3;
-                } else if (rollType > 0.3) {
-                    // Carros de tráfico (Azul, Taxi, Camión)
-                    const carTypes = ["🚙", "🚕", "🚚"];
-                    typeEmoji = carTypes[Math.floor(Math.random() * carTypes.length)];
+                } else if (rollType > 0.15) {
+                    // Autos de tráfico a rebasar vistos desde atrás (70% de probabilidad - NUNCA GRISES)
+                    const trafficImages = [
+                        imgTrafficCar1,
+                        imgTrafficCar3,
+                        imgTrafficCar4,
+                        imgTrafficBlue
+                    ];
+                    trafficImg = trafficImages[Math.floor(Math.random() * trafficImages.length)];
                     isTrafficCar = true;
                 } else {
-                    // Baches u obras
+                    // Baches u obras (15% de probabilidad, no tan seguido)
                     typeEmoji = Math.random() > 0.5 ? "🚧" : "🕳️";
                 }
 
@@ -2814,6 +2769,7 @@
                     emoji: typeEmoji,
                     isItem: isItem,
                     isCar: isTrafficCar,
+                    trafficImg: trafficImg,
                     pts: pts,
                     speed: isTrafficCar ? (4.0 + (distanceKm / 120.0) * 1.5) : 0 
                 });
@@ -2834,14 +2790,26 @@
                 const currentScale = Math.max(18, Math.floor(16 + depthPct * 34));
                 const objWidth = currentScale * 0.85;
 
-                ctx.save();
-                ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
-                ctx.shadowBlur = 4;
-                ctx.shadowOffsetY = 2;
-                ctx.font = `${currentScale}px sans-serif`;
-                ctx.textAlign = "center";
-                ctx.fillText(obj.emoji, Math.round(currentLaneX), Math.round(obj.y));
-                ctx.restore();
+                if (obj.isCar && obj.trafficImg && obj.trafficImg.complete && obj.trafficImg.naturalWidth !== 0) {
+                    ctx.save();
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetY = 2;
+                    ctx.imageSmoothingEnabled = true;
+                    const carW = Math.round(objWidth * 1.4);
+                    const carH = Math.round(currentScale * 1.0);
+                    ctx.drawImage(obj.trafficImg, Math.round(currentLaneX - carW / 2), Math.round(obj.y - carH / 2), carW, carH);
+                    ctx.restore();
+                } else {
+                    ctx.save();
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetY = 2;
+                    ctx.font = `${currentScale}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText(obj.emoji, Math.round(currentLaneX), Math.round(obj.y));
+                    ctx.restore();
+                }
 
                 // COLISIÓN CON EL HITBOX JUSTO DEL AUTO ROJO DEPORTIVO (x=playerX, y=440, w=48, h=28)
                 const hitX = Math.abs(currentLaneX - playerX) < (18 + objWidth * 0.4);
