@@ -246,7 +246,7 @@
                         <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pendiente</span>
                     </div>
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Camino a Puebla: OutRun Retro</h3>
-                    <p class="text-gray-500 text-sm mt-2">Conduce un auto deportivo 120 KM rumbo a Cholula esquivando tráfico (🚙/🚕), baches (🕳️) y obras (🚧). ¡Pasa casetas y recolecta chalupas (🌮)!</p>
+                    <p class="text-gray-500 text-sm mt-2">Conduce tu deportivo gris 120 KM rumbo a Cholula esquivando y rebasando el intenso tráfico de la carretera, baches (🕳️) y obras (🚧). ¡Pasa casetas y recolecta chalupas (🌮)!</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div>
@@ -1374,7 +1374,7 @@
             } else if (activeGame === 'maddie') {
                 inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los hoyos de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
             } else if (activeGame === 'puebla') {
-                inst = `Usa las flechas ⬅️ / ➡️ o toca la pantalla para conducir a Puebla. Esquiva baches (🕳️), obras (🚧) y tráfico (🚙/🚕). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
+                inst = `Usa las flechas ⬅️ / ➡️ o toca la pantalla para conducir a Puebla. Rebasa al tráfico y esquiva baches (🕳️) u obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
             }
             
             overlayInstructions.innerHTML = inst; 
@@ -2323,10 +2323,13 @@
             return center - currentRoadWidth / 2 + (lane * currentRoadWidth) / 3 + currentRoadWidth / 6;
         }
 
+        let lastSpawnedCars = [];
+        
         function initPueblaGame() {
             playerX = 180; 
             targetLane = 1; 
             roadObjects = [];
+            lastSpawnedCars = [];
             sceneryObjects = [];
             tollGates = [];
             recentSignTexts = [];
@@ -2847,7 +2850,16 @@
                     pts = 3;
                 } else if (rollType > 0.05) {
                     // Autos de tráfico a rebasar vistos desde atrás usando los Sprite Defs
-                    const def = trafficSpriteDefs[Math.floor(Math.random() * trafficSpriteDefs.length)];
+                    let def;
+                    let attempts = 0;
+                    do {
+                        def = trafficSpriteDefs[Math.floor(Math.random() * trafficSpriteDefs.length)];
+                        attempts++;
+                    } while (lastSpawnedCars.includes(def) && attempts < 20);
+                    
+                    lastSpawnedCars.push(def);
+                    if (lastSpawnedCars.length > 3) lastSpawnedCars.shift();
+                    
                     trafficImg = def;
                     isTrafficCar = true;
                 } else {
