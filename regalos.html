@@ -68,12 +68,6 @@
         /* TARJETAS */
         .gift-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(82, 88, 47, 0.08); display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .gift-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        .gift-card.featured { grid-column: 1 / -1; flex-direction: column; }
-        @media (min-width: 600px) {
-            .gift-card.featured { flex-direction: row; align-items: center; }
-            .gift-card.featured .gift-img-wrapper { width: 50%; height: 100%; min-height: 250px; }
-            .gift-card.featured .gift-content { width: 50%; padding: 40px; }
-        }
         
         .gift-img-wrapper { width: 100%; height: 200px; background-color: #f6f8f3; overflow: hidden; position: relative; }
         .gift-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
@@ -87,8 +81,65 @@
         
         .btn-gift { background-color: transparent; color: var(--olivo-base); border: 1px solid var(--olivo-base); padding: 10px 20px; font-size: 0.85rem; font-weight: 600; border-radius: 25px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; width: 100%; display: block; margin-top: 15px;}
         .btn-gift:hover { background-color: var(--olivo-base); color: white; }
-        .btn-gift.featured-btn { background-color: var(--olivo-base); color: white; }
-        .btn-gift.featured-btn:hover { background-color: transparent; color: var(--olivo-base); }
+
+        /* FLOATING CART BUTTON */
+        .cart-float-btn {
+            position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px;
+            background-color: var(--olivo-base); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 25px rgba(82, 88, 47, 0.4); cursor: pointer;
+            z-index: 1000; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 1.8rem; border: none;
+        }
+        .cart-float-btn:hover { transform: scale(1.1); }
+        .cart-badge {
+            position: absolute; top: 0; right: 0; background-color: #d35400; color: white;
+            font-size: 0.75rem; font-weight: bold; width: 22px; height: 22px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            transform: translate(20%, -20%); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+
+        /* CART DRAWER */
+        .cart-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+            z-index: 2000; display: none; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .cart-overlay.active { display: block; opacity: 1; }
+        
+        .cart-drawer {
+            position: fixed; top: 0; right: -450px; width: 100%; max-width: 400px; height: 100vh;
+            background: white; z-index: 2001; box-shadow: -5px 0 30px rgba(0,0,0,0.1);
+            transition: right 0.3s ease; display: flex; flex-direction: column;
+        }
+        .cart-drawer.active { right: 0; }
+        
+        .cart-header { padding: 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .cart-header h2 { font-family: 'Playfair Display', serif; margin: 0; color: var(--olivo-base); font-size: 1.6rem; }
+        .cart-close { background: none; border: none; font-size: 2rem; color: #999; cursor: pointer; transition: 0.2s; line-height: 1; }
+        .cart-close:hover { color: #333; }
+        
+        .cart-body { padding: 25px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; }
+        .empty-cart-msg { text-align: center; color: #888; font-style: italic; margin-top: 40px; }
+        
+        .cart-item { display: flex; gap: 15px; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .cart-item-img { width: 70px; height: 70px; border-radius: 10px; object-fit: cover; }
+        .cart-item-info { flex-grow: 1; }
+        .cart-item-title { font-weight: 600; color: var(--olivo-base); margin: 0 0 5px 0; font-size: 0.95rem; line-height: 1.2; }
+        .cart-item-price { color: #666; font-size: 0.9rem; margin: 0; }
+        
+        .cart-qty-ctrl { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .qty-btn { background: #f0f2eb; border: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--olivo-base); font-weight: bold; transition: 0.2s; }
+        .qty-btn:hover { background: var(--olivo-base); color: white; }
+        .qty-num { font-size: 0.9rem; font-weight: 600; width: 20px; text-align: center; }
+        
+        .cart-footer { padding: 25px; border-top: 1px solid #eee; background: #fcfaf7; }
+        .cart-total { display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 700; color: var(--olivo-base); margin-bottom: 20px; }
+        
+        .btn-checkout { background: var(--olivo-base); color: white; border: none; padding: 16px; width: 100%; border-radius: 30px; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-checkout:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(82, 88, 47, 0.3); }
+        .btn-checkout:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
 
         footer { padding: 40px 20px; font-size: 0.8rem; opacity: 0.8; text-align: center; background: #fff; border-top: 1px solid rgba(0,0,0,0.05); }
     </style>
@@ -118,6 +169,32 @@
 
     <div class="gifts-grid" id="giftsGridContainer"></div>
 
+    <!-- BOTÓN FLOTANTE CARRITO -->
+    <button class="cart-float-btn" onclick="toggleCart()" aria-label="Ver carrito">
+        🛒
+        <div class="cart-badge" id="cartBadge" style="display: none;">0</div>
+    </button>
+
+    <!-- DRAWER DEL CARRITO -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-header">
+            <h2>Tus Regalos</h2>
+            <button class="cart-close" onclick="toggleCart()">&times;</button>
+        </div>
+        <div class="cart-body" id="cartBody">
+            <!-- Items del carrito irán aquí -->
+            <div class="empty-cart-msg">Tu carrito está vacío. ¡Anímate a regalarnos una experiencia!</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotalText">$0 MXN</span>
+            </div>
+            <button class="btn-checkout" id="checkoutBtn" onclick="processCheckout()" disabled>Proceder al Pago</button>
+        </div>
+    </div>
+
     <footer>
         HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
     </footer>
@@ -135,118 +212,93 @@
         const db = (typeof firebase !== "undefined") ? firebase.database() : null;
 
         let currentCurrency = 'MXN';
-        let selectedGift = null;
+        let shoppingCart = {}; // { giftId: quantity }
         
-        // CONFIGURACIÓN EXPANDIDA DE REGALOS (De 200 a 6000 MXN)
+        // CONFIGURACIÓN EXPANDIDA DE REGALOS
         const giftsConfig = [
-            {
-                id: 'fondo-libre',
-                title: 'Regalo de Monto Libre',
-                description: '¿Prefieres elegir la cantidad? Cualquier aportación para nuestra luna de miel o nuestro hogar será recibida con mucho cariño.',
-                imagePath: 'https://images.unsplash.com/photo-1549416878-b9ca95e26903?q=80&w=800&auto=format&fit=crop',
-                priceMXN: null, priceUSD: null,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn_libre',
-                stripeLinkUSD: 'https://buy.stripe.com/test_usd_libre',
-                featured: true,
-                ctaText: 'Contribuir'
-            },
             {
                 id: 'desayuno', title: 'Desayuno en la cama',
                 description: 'Invítanos un rico desayuno para recuperar energía después de la boda.',
                 imagePath: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 500, priceUSD: 30,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 500, priceUSD: 30
             },
             {
                 id: 'botella-vino', title: 'Botella de Vino',
                 description: 'Para brindar en nuestra primera cena de recién casados.',
                 imagePath: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 800, priceUSD: 45,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 800, priceUSD: 45
             },
             {
                 id: 'masaje', title: 'Masaje Relajante',
                 description: 'Una sesión de spa en pareja durante nuestra luna de miel.',
                 imagePath: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2000, priceUSD: 110,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 2000, priceUSD: 110
             },
             {
                 id: 'cena-luna-miel', title: 'Cena Romántica',
                 description: 'Nuestra primera cena elegante a la luz de las velas.',
                 imagePath: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 1500, priceUSD: 85,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 1500, priceUSD: 85
             },
             {
                 id: 'vuelo-globo', title: 'Vuelo en Globo',
                 description: 'Una aventura inolvidable por los aires durante nuestro viaje.',
                 imagePath: 'https://images.unsplash.com/photo-1507608158173-1dcec673a2e5?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 4500, priceUSD: 250,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 4500, priceUSD: 250
             },
             {
                 id: 'juego-maletas', title: 'Juego de Maletas',
                 description: 'Para acompañarnos en todas nuestras futuras aventuras.',
                 imagePath: 'https://images.unsplash.com/photo-1553531384-397c80973a0b?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 3500, priceUSD: 200,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 3500, priceUSD: 200
             },
             {
                 id: 'tour-ciudad', title: 'Tour Turístico',
                 description: 'Ayúdanos a explorar y conocer la cultura de nuestro destino.',
                 imagePath: 'https://images.unsplash.com/photo-1522851480922-0d12579ee5e4?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 1200, priceUSD: 70,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 1200, priceUSD: 70
             },
             {
                 id: 'clase-cocina', title: 'Clase de Cocina en Pareja',
                 description: 'Para aprender a preparar un platillo tradicional del lugar que visitemos.',
                 imagePath: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2500, priceUSD: 140,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 2500, priceUSD: 140
             },
             {
                 id: 'noches-hotel', title: 'Noche de Hotel',
                 description: 'Un upgrade a nuestra suite para tener la mejor vista.',
                 imagePath: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 6000, priceUSD: 330,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 6000, priceUSD: 330
             },
             {
                 id: 'robot-aspiradora', title: 'Robot Aspiradora',
                 description: 'Para mantener la casa impecable sin esfuerzo y poder jugar más con Maddie.',
                 imagePath: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 5000, priceUSD: 280,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 5000, priceUSD: 280
             },
             {
                 id: 'cafetera-hogar', title: 'Cafetera Espresso',
                 description: 'Para despertar siempre con un buen café en nuestro nuevo hogar.',
                 imagePath: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 4000, priceUSD: 220,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 4000, priceUSD: 220
             },
             {
                 id: 'juego-sartenes', title: 'Juego de Sartenes Pro',
                 description: 'Para cocinar juntos nuestras recetas favoritas.',
                 imagePath: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2800, priceUSD: 155,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 2800, priceUSD: 155
             },
             {
                 id: 'juegos-mesa', title: 'Juego de Mesa',
                 description: 'Para las noches de diversión con amigos y familia.',
                 imagePath: 'https://images.unsplash.com/photo-1610890716175-349be88a9cce?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 600, priceUSD: 35,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 600, priceUSD: 35
             },
             {
                 id: 'juguete-maddie', title: 'Juguete para Maddie',
                 description: 'Consiente a nuestra perrita con un juguete nuevo o unos premios deliciosos.',
                 imagePath: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 300, priceUSD: 15,
-                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+                priceMXN: 300, priceUSD: 15
             }
         ];
 
@@ -258,16 +310,11 @@
             
             giftsConfig.forEach(gift => {
                 const card = document.createElement('div');
-                card.className = `gift-card ${gift.featured ? 'featured' : ''}`;
+                card.className = `gift-card`;
                 
-                const cta = gift.ctaText || 'Regalar';
                 const fallbackImg = `https://source.unsplash.com/800x600/?wedding,gift,${gift.id}`;
-                
-                let priceHtml = '';
-                if(gift.priceMXN && gift.priceUSD) {
-                    const price = currentCurrency === 'MXN' ? `$${gift.priceMXN.toLocaleString('en-US')} MXN` : `$${gift.priceUSD.toLocaleString('en-US')} USD`;
-                    priceHtml = `<div class="price-badge">${price}</div>`;
-                }
+                const price = currentCurrency === 'MXN' ? `$${gift.priceMXN.toLocaleString('en-US')} MXN` : `$${gift.priceUSD.toLocaleString('en-US')} USD`;
+                const priceHtml = `<div class="price-badge">${price}</div>`;
 
                 card.innerHTML = `
                     <div class="gift-img-wrapper">
@@ -279,7 +326,7 @@
                             <h3 class="gift-title">${gift.title}</h3>
                             <p class="gift-desc">${gift.description}</p>
                         </div>
-                        <button class="btn-gift ${gift.featured ? 'featured-btn' : ''}" onclick="payGift('${gift.id}')">${cta}</button>
+                        <button class="btn-gift" onclick="addToCart('${gift.id}')">Agregar 🛒</button>
                     </div>
                 `;
                 container.appendChild(card);
@@ -287,29 +334,139 @@
         }
 
         function setCurrency(currency) {
+            // Si el carrito tiene elementos, advertir o limpiar
+            if (Object.keys(shoppingCart).length > 0) {
+                if(!confirm("Cambiar de moneda limpiará tu carrito actual. ¿Deseas continuar?")) {
+                    // Revertir el toggle visualmente
+                    document.getElementById('currencyToggle').checked = (currentCurrency === 'USD');
+                    return; 
+                }
+                shoppingCart = {}; // Limpiar
+                updateCartUI();
+            }
+
             const toggle = document.getElementById('currencyToggle');
             toggle.checked = (currency === 'USD');
             toggleCurrency(toggle);
         }
 
         function toggleCurrency(checkbox) {
+            if (Object.keys(shoppingCart).length > 0 && currentCurrency !== (checkbox.checked ? 'USD' : 'MXN')) {
+                if(!confirm("Cambiar de moneda limpiará tu carrito actual. ¿Deseas continuar?")) {
+                    checkbox.checked = !checkbox.checked;
+                    return; 
+                }
+                shoppingCart = {};
+                updateCartUI();
+            }
+
             currentCurrency = checkbox.checked ? 'USD' : 'MXN';
             
             document.getElementById('labelMXN').className = currentCurrency === 'MXN' ? 'currency-label active' : 'currency-label inactive';
             document.getElementById('labelUSD').className = currentCurrency === 'USD' ? 'currency-label active' : 'currency-label inactive';
             
             renderGiftCards();
+            updateCartUI();
         }
 
-        function payGift(giftId) {
-            const gift = giftsConfig.find(g => g.id === giftId);
-            if(!gift) return;
-            const link = currentCurrency === 'MXN' ? gift.stripeLinkMXN : gift.stripeLinkUSD;
-            window.open(link, '_blank');
+        // ==========================
+        // LÓGICA DEL CARRITO
+        // ==========================
+
+        function addToCart(giftId) {
+            if (shoppingCart[giftId]) {
+                shoppingCart[giftId]++;
+            } else {
+                shoppingCart[giftId] = 1;
+            }
+            updateCartUI();
+            
+            // Animación feedback visual
+            const btn = document.querySelector('.cart-float-btn');
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+        }
+
+        function updateCartQty(giftId, delta) {
+            if (!shoppingCart[giftId]) return;
+            shoppingCart[giftId] += delta;
+            
+            if (shoppingCart[giftId] <= 0) {
+                delete shoppingCart[giftId];
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const body = document.getElementById('cartBody');
+            const totalText = document.getElementById('cartTotalText');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            const badge = document.getElementById('cartBadge');
+            
+            let totalItems = 0;
+            let totalPrice = 0;
+            
+            body.innerHTML = '';
+            
+            const keys = Object.keys(shoppingCart);
+            
+            if (keys.length === 0) {
+                body.innerHTML = '<div class="empty-cart-msg">Tu carrito está vacío. ¡Anímate a regalarnos una experiencia!</div>';
+                checkoutBtn.disabled = true;
+                badge.style.display = 'none';
+            } else {
+                checkoutBtn.disabled = false;
+                
+                keys.forEach(id => {
+                    const qty = shoppingCart[id];
+                    const gift = giftsConfig.find(g => g.id === id);
+                    if (!gift) return;
+                    
+                    const price = currentCurrency === 'MXN' ? gift.priceMXN : gift.priceUSD;
+                    const itemTotal = price * qty;
+                    
+                    totalItems += qty;
+                    totalPrice += itemTotal;
+                    
+                    const el = document.createElement('div');
+                    el.className = 'cart-item';
+                    el.innerHTML = `
+                        <img src="${gift.imagePath}" class="cart-item-img" alt="${gift.title}">
+                        <div class="cart-item-info">
+                            <h4 class="cart-item-title">${gift.title}</h4>
+                            <p class="cart-item-price">$${price.toLocaleString()} ${currentCurrency} c/u</p>
+                            <div class="cart-qty-ctrl">
+                                <button class="qty-btn" onclick="updateCartQty('${id}', -1)">-</button>
+                                <span class="qty-num">${qty}</span>
+                                <button class="qty-btn" onclick="updateCartQty('${id}', 1)">+</button>
+                            </div>
+                        </div>
+                    `;
+                    body.appendChild(el);
+                });
+                
+                badge.innerText = totalItems;
+                badge.style.display = 'flex';
+            }
+            
+            totalText.innerText = `$${totalPrice.toLocaleString('en-US')} ${currentCurrency}`;
+        }
+
+        function toggleCart() {
+            const overlay = document.getElementById('cartOverlay');
+            const drawer = document.getElementById('cartDrawer');
+            
+            overlay.classList.toggle('active');
+            drawer.classList.toggle('active');
+        }
+
+        function processCheckout() {
+            alert("🛠️ Módulo de Pago en Construcción\n\nPróximamente implementaremos la pasarela para procesar el carrito completo hacia Stripe. ¡Gracias por probarlo!");
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             renderGiftCards();
+            updateCartUI();
         });
     </script>
 </body>
