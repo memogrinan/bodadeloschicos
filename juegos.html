@@ -1037,11 +1037,12 @@
                 const rowClass = isCurrent ? "bg-amber-50 font-bold text-amber-900" : "";
                 const scoreVal = getScoreVal(player, currentLeaderboardTab);
                 const unit = currentLeaderboardTab === "maddie" ? "clics" : "pts";
+                const realNameDisplay = player.realName && player.realName !== "Invitado No Registrado" ? ` <span class="text-xs font-normal text-gray-500">(${player.realName})</span>` : '';
 
                 html += `
                     <tr class="${rowClass} hover:bg-gray-50 transition">
                         <td class="py-2.5 px-2">${posBadge}</td>
-                        <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || 'Anónimo'} ${isCurrent ? ' (Tú)' : ''}</td>
+                        <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || 'Anónimo'}${realNameDisplay}${isCurrent ? ' <span class="text-xs font-bold text-amber-700">(Tú)</span>' : ''}</td>
                         <td class="py-2.5 px-2 text-right font-monogram font-bold text-amber-800 text-base">${scoreVal.toLocaleString()} ${unit}</td>
                     </tr>
                 `;
