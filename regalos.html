@@ -90,26 +90,6 @@
         .btn-gift.featured-btn { background-color: var(--olivo-base); color: white; }
         .btn-gift.featured-btn:hover { background-color: transparent; color: var(--olivo-base); }
 
-        /* MODAL */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-        .modal-overlay.active { display: flex; }
-        .modal-card { background: white; border-radius: 20px; width: 100%; max-width: 450px; padding: 30px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: left; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #999; transition: 0.2s; }
-        .modal-close:hover { color: #333; }
-        
-        .modal-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--olivo-base); margin: 0 0 5px 0; }
-        .modal-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 5px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; outline: none; transition: border-color 0.3s; }
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--olivo-base); }
-        
-        .btn-submit { background: var(--olivo-base); color: white; border: none; padding: 14px; width: 100%; border-radius: 25px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
-
         footer { padding: 40px 20px; font-size: 0.8rem; opacity: 0.8; text-align: center; background: #fff; border-top: 1px solid rgba(0,0,0,0.05); }
     </style>
 </head>
@@ -137,27 +117,6 @@
     </div>
 
     <div class="gifts-grid" id="giftsGridContainer"></div>
-
-    <!-- MODAL DE MENSAJE -->
-    <div class="modal-overlay" id="giftModal">
-        <div class="modal-card">
-            <span class="modal-close" onclick="closeModal()">&times;</span>
-            <h3 class="modal-title" id="modalGiftTitle">Regalo</h3>
-            <p class="modal-subtitle">Déjanos un mensajito que leeremos con mucho cariño.</p>
-            
-            <div class="form-group">
-                <label>Tu Nombre / Familia</label>
-                <input type="text" id="modalName" placeholder="Ej. Familia Pérez">
-            </div>
-            
-            <div class="form-group">
-                <label>Mensaje para los novios (Opcional)</label>
-                <textarea id="modalMessage" rows="3" placeholder="¡Muchas felicidades chicos! Que disfruten mucho su..."></textarea>
-            </div>
-            
-            <button class="btn-submit" onclick="submitGiftAndPay()">Ir al Pago 💳</button>
-        </div>
-    </div>
 
     <footer>
         HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
@@ -320,7 +279,7 @@
                             <h3 class="gift-title">${gift.title}</h3>
                             <p class="gift-desc">${gift.description}</p>
                         </div>
-                        <button class="btn-gift ${gift.featured ? 'featured-btn' : ''}" onclick="openGiftModal('${gift.id}')">${cta}</button>
+                        <button class="btn-gift ${gift.featured ? 'featured-btn' : ''}" onclick="payGift('${gift.id}')">${cta}</button>
                     </div>
                 `;
                 container.appendChild(card);
@@ -342,53 +301,10 @@
             renderGiftCards();
         }
 
-        function openGiftModal(giftId) {
-            selectedGift = giftsConfig.find(g => g.id === giftId);
-            if(!selectedGift) return;
-
-            document.getElementById('modalGiftTitle').innerText = selectedGift.title;
-            
-            // Intentar pre-llenar el nombre si existe en localStorage
-            const savedName = localStorage.getItem('bodachicos_party_id') || localStorage.getItem('bodachicos_guest_name');
-            if(savedName) {
-                // Formatear: capitalizar y quitar guiones
-                const formattedName = savedName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                document.getElementById('modalName').value = formattedName;
-            } else {
-                document.getElementById('modalName').value = '';
-            }
-            
-            document.getElementById('modalMessage').value = '';
-            document.getElementById('giftModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('giftModal').classList.remove('active');
-            selectedGift = null;
-        }
-
-        function submitGiftAndPay() {
-            if(!selectedGift) return;
-            
-            const name = document.getElementById('modalName').value.trim() || 'Invitado Anónimo';
-            const message = document.getElementById('modalMessage').value.trim();
-            const link = currentCurrency === 'MXN' ? selectedGift.stripeLinkMXN : selectedGift.stripeLinkUSD;
-            
-            // Guardar en Firebase de forma asíncrona (no bloquea al usuario)
-            if(db) {
-                db.ref("mensajes_regalos").push({
-                    giftId: selectedGift.id,
-                    giftTitle: selectedGift.title,
-                    donorName: name,
-                    message: message,
-                    currency: currentCurrency,
-                    amountMXN: selectedGift.priceMXN || 'Libre',
-                    amountUSD: selectedGift.priceUSD || 'Libre',
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                }).catch(e => console.error("Error guardando mensaje:", e));
-            }
-            
-            closeModal();
+        function payGift(giftId) {
+            const gift = giftsConfig.find(g => g.id === giftId);
+            if(!gift) return;
+            const link = currentCurrency === 'MXN' ? gift.stripeLinkMXN : gift.stripeLinkUSD;
             window.open(link, '_blank');
         }
 
