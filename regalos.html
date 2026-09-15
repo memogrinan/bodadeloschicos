@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mesa de Regalos | Mariana & Memo</title>
+    
+    <link class="favicon" rel="icon" href="ImagenesWeb/favicon.png" type="image/png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Montserrat:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --olivo-base: #52582f;      
+            --olivo-trans: rgba(82, 88, 47, 0.75); 
+            --olivo-acento: #a3ad73;
+            --crema-fondo: #fcfaf7;
+            --nav-texto: #ffffff;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
+        
+        /* NAVBAR SIMPLE */
+        nav {
+            position: fixed; top: 0; width: 100%; 
+            background: var(--olivo-trans);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 1100; padding: 14px 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .nav-container { 
+            display: flex; justify-content: space-between; align-items: center; 
+            width: 90%; max-width: 1000px; margin: 0 auto; 
+        }
+        .nav-logo { font-family: 'Alex Brush', cursive; font-size: 1.5rem; color: white; text-decoration: none; font-weight: bold; }
+        .back-btn { color: white; text-decoration: none; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 5px; }
+        .back-btn:hover { opacity: 0.8; }
+
+        /* HEADER MESA DE REGALOS */
+        .gifts-header { padding: 120px 20px 40px 20px; text-align: center; max-width: 700px; margin: 0 auto; }
+        .gifts-header h1 { font-family: 'Alex Brush', cursive; font-size: clamp(3rem, 10vw, 4.5rem); color: var(--olivo-base); margin: 0 0 15px 0; font-weight: normal;}
+        .gifts-header p { font-size: 1.05rem; color: #555; line-height: 1.6; margin-bottom: 25px; }
+
+        /* TOGGLE */
+        .currency-toggle-wrapper { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 40px; font-weight: 600; color: var(--olivo-base); }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d8dcd0; transition: .4s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: var(--olivo-base); }
+        input:checked + .slider:before { transform: translateX(30px); }
+        .currency-label { font-size: 0.95rem; cursor: pointer; transition: opacity 0.3s; }
+        .currency-label.active { opacity: 1; }
+        .currency-label.inactive { opacity: 0.5; }
+
+        /* GRID */
+        .gifts-grid { display: grid; grid-template-columns: 1fr; gap: 25px; max-width: 1000px; margin: 0 auto; padding: 0 20px 80px 20px; }
+        @media (min-width: 600px) { .gifts-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 900px) { .gifts-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        /* TARJETAS */
+        .gift-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(82, 88, 47, 0.08); display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .gift-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .gift-card.featured { grid-column: 1 / -1; flex-direction: column; }
+        @media (min-width: 600px) {
+            .gift-card.featured { flex-direction: row; align-items: center; }
+            .gift-card.featured .gift-img-wrapper { width: 50%; height: 100%; min-height: 250px; }
+            .gift-card.featured .gift-content { width: 50%; padding: 40px; }
+        }
+        
+        .gift-img-wrapper { width: 100%; height: 200px; background-color: #f6f8f3; overflow: hidden; position: relative; }
+        .gift-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .gift-card:hover .gift-img-wrapper img { transform: scale(1.05); }
+        
+        .price-badge { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); padding: 5px 12px; border-radius: 20px; font-weight: 700; color: var(--olivo-base); font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .gift-content { padding: 25px 20px; display: flex; flex-direction: column; flex-grow: 1; text-align: center; justify-content: space-between; }
+        .gift-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 600; color: var(--olivo-base); margin: 0 0 10px 0; line-height: 1.2; }
+        .gift-desc { font-size: 0.9rem; color: #666; margin: 0 0 20px 0; line-height: 1.5; flex-grow: 1; }
+        
+        .btn-gift { background-color: transparent; color: var(--olivo-base); border: 1px solid var(--olivo-base); padding: 10px 20px; font-size: 0.85rem; font-weight: 600; border-radius: 25px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; width: 100%; display: block; margin-top: 15px;}
+        .btn-gift:hover { background-color: var(--olivo-base); color: white; }
+        .btn-gift.featured-btn { background-color: var(--olivo-base); color: white; }
+        .btn-gift.featured-btn:hover { background-color: transparent; color: var(--olivo-base); }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: white; border-radius: 20px; width: 100%; max-width: 450px; padding: 30px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: left; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #999; transition: 0.2s; }
+        .modal-close:hover { color: #333; }
+        
+        .modal-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--olivo-base); margin: 0 0 5px 0; }
+        .modal-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; outline: none; transition: border-color 0.3s; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--olivo-base); }
+        
+        .btn-submit { background: var(--olivo-base); color: white; border: none; padding: 14px; width: 100%; border-radius: 25px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        footer { padding: 40px 20px; font-size: 0.8rem; opacity: 0.8; text-align: center; background: #fff; border-top: 1px solid rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="back-btn">← Volver al Inicio</a>
+            <a href="index.html" class="nav-logo">M & M</a>
+        </div>
+    </nav>
+
+    <div class="gifts-header">
+        <h1>Mesa de Regalos</h1>
+        <p>El mejor regalo es su presencia, pero si desean tener un detalle con nosotros, hemos creado esta lista de experiencias para nuestra luna de miel y futuro hogar.</p>
+        
+        <div class="currency-toggle-wrapper">
+            <span id="labelMXN" class="currency-label active" onclick="setCurrency('MXN')">🇲🇽 MXN</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="currencyToggle" onchange="toggleCurrency(this)">
+                <span class="slider"></span>
+            </label>
+            <span id="labelUSD" class="currency-label inactive" onclick="setCurrency('USD')">🇺🇸 USD</span>
+        </div>
+    </div>
+
+    <div class="gifts-grid" id="giftsGridContainer"></div>
+
+    <!-- MODAL DE MENSAJE -->
+    <div class="modal-overlay" id="giftModal">
+        <div class="modal-card">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h3 class="modal-title" id="modalGiftTitle">Regalo</h3>
+            <p class="modal-subtitle">Déjanos un mensajito que leeremos con mucho cariño.</p>
+            
+            <div class="form-group">
+                <label>Tu Nombre / Familia</label>
+                <input type="text" id="modalName" placeholder="Ej. Familia Pérez">
+            </div>
+            
+            <div class="form-group">
+                <label>Mensaje para los novios (Opcional)</label>
+                <textarea id="modalMessage" rows="3" placeholder="¡Muchas felicidades chicos! Que disfruten mucho su..."></textarea>
+            </div>
+            
+            <button class="btn-submit" onclick="submitGiftAndPay()">Ir al Pago 💳</button>
+        </div>
+    </div>
+
+    <footer>
+        HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
+    </footer>
+
+    <script>
+        // FIREBASE SETUP
+        const firebaseConfig = {
+            authDomain: "boda-los-chicos.firebaseapp.com",
+            databaseURL: "https://boda-los-chicos-default-rtdb.firebaseio.com",
+            storageBucket: "boda-los-chicos.firebasestorage.app",
+        };
+        if (typeof firebase !== "undefined" && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = (typeof firebase !== "undefined") ? firebase.database() : null;
+
+        let currentCurrency = 'MXN';
+        let selectedGift = null;
+        
+        // CONFIGURACIÓN EXPANDIDA DE REGALOS (De 200 a 6000 MXN)
+        const giftsConfig = [
+            {
+                id: 'fondo-libre',
+                title: 'Regalo de Monto Libre',
+                description: '¿Prefieres elegir la cantidad? Cualquier aportación para nuestra luna de miel o nuestro hogar será recibida con mucho cariño.',
+                imagePath: 'ImagenesWeb/regalo_libre.jpg',
+                priceMXN: null, priceUSD: null,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn_libre',
+                stripeLinkUSD: 'https://buy.stripe.com/test_usd_libre',
+                featured: true,
+                ctaText: 'Contribuir'
+            },
+            {
+                id: 'desayuno', title: 'Desayuno en la cama',
+                description: 'Invítanos un rico desayuno para recuperar energía después de la boda.',
+                imagePath: 'ImagenesWeb/desayuno.jpg',
+                priceMXN: 500, priceUSD: 30,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'botella-vino', title: 'Botella de Vino',
+                description: 'Para brindar en nuestra primera cena de recién casados.',
+                imagePath: 'ImagenesWeb/vino.jpg',
+                priceMXN: 800, priceUSD: 45,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'masaje', title: 'Masaje Relajante',
+                description: 'Una sesión de spa en pareja durante nuestra luna de miel.',
+                imagePath: 'ImagenesWeb/spa.jpg',
+                priceMXN: 2000, priceUSD: 110,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'cena-luna-miel', title: 'Cena Romántica',
+                description: 'Nuestra primera cena elegante a la luz de las velas.',
+                imagePath: 'ImagenesWeb/cena_romantica.jpg',
+                priceMXN: 1500, priceUSD: 85,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'vuelo-globo', title: 'Vuelo en Globo',
+                description: 'Una aventura inolvidable por los aires durante nuestro viaje.',
+                imagePath: 'ImagenesWeb/globo.jpg',
+                priceMXN: 4500, priceUSD: 250,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'juego-maletas', title: 'Juego de Maletas',
+                description: 'Para acompañarnos en todas nuestras futuras aventuras.',
+                imagePath: 'ImagenesWeb/maletas.jpg',
+                priceMXN: 3500, priceUSD: 200,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'tour-ciudad', title: 'Tour Turístico',
+                description: 'Ayúdanos a explorar y conocer la cultura de nuestro destino.',
+                imagePath: 'ImagenesWeb/tour.jpg',
+                priceMXN: 1200, priceUSD: 70,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'clase-cocina', title: 'Clase de Cocina en Pareja',
+                description: 'Para aprender a preparar un platillo tradicional del lugar que visitemos.',
+                imagePath: 'ImagenesWeb/clase_cocina.jpg',
+                priceMXN: 2500, priceUSD: 140,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'noches-hotel', title: 'Noche de Hotel',
+                description: 'Un upgrade a nuestra suite para tener la mejor vista.',
+                imagePath: 'ImagenesWeb/hotel.jpg',
+                priceMXN: 6000, priceUSD: 330,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'robot-aspiradora', title: 'Robot Aspiradora',
+                description: 'Para mantener la casa impecable sin esfuerzo y poder jugar más con Maddie.',
+                imagePath: 'ImagenesWeb/robot.jpg',
+                priceMXN: 5000, priceUSD: 280,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'cafetera-hogar', title: 'Cafetera Espresso',
+                description: 'Para despertar siempre con un buen café en nuestro nuevo hogar.',
+                imagePath: 'ImagenesWeb/cafetera.jpg',
+                priceMXN: 4000, priceUSD: 220,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'juego-sartenes', title: 'Juego de Sartenes Pro',
+                description: 'Para cocinar juntos nuestras recetas favoritas.',
+                imagePath: 'ImagenesWeb/sartenes.jpg',
+                priceMXN: 2800, priceUSD: 155,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'juegos-mesa', title: 'Juego de Mesa',
+                description: 'Para las noches de diversión con amigos y familia.',
+                imagePath: 'ImagenesWeb/juego_mesa.jpg',
+                priceMXN: 600, priceUSD: 35,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            },
+            {
+                id: 'donacion-perritos', title: 'Croquetas para Refugio',
+                description: 'En honor a Maddie, apoya con alimento a un perrito sin hogar.',
+                imagePath: 'ImagenesWeb/perrito.jpg',
+                priceMXN: 200, priceUSD: 10,
+                stripeLinkMXN: 'https://buy.stripe.com/test_mxn', stripeLinkUSD: 'https://buy.stripe.com/test_usd'
+            }
+        ];
+
+        function renderGiftCards() {
+            const container = document.getElementById('giftsGridContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            giftsConfig.forEach(gift => {
+                const card = document.createElement('div');
+                card.className = `gift-card ${gift.featured ? 'featured' : ''}`;
+                
+                const cta = gift.ctaText || 'Regalar';
+                const fallbackImg = `https://source.unsplash.com/800x600/?wedding,gift,${gift.id}`;
+                
+                let priceHtml = '';
+                if(gift.priceMXN && gift.priceUSD) {
+                    const price = currentCurrency === 'MXN' ? `$${gift.priceMXN.toLocaleString('en-US')} MXN` : `$${gift.priceUSD.toLocaleString('en-US')} USD`;
+                    priceHtml = `<div class="price-badge">${price}</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="gift-img-wrapper">
+                        ${priceHtml}
+                        <img src="${gift.imagePath}" onerror="this.src='${fallbackImg}'" alt="${gift.title}" loading="lazy">
+                    </div>
+                    <div class="gift-content">
+                        <div>
+                            <h3 class="gift-title">${gift.title}</h3>
+                            <p class="gift-desc">${gift.description}</p>
+                        </div>
+                        <button class="btn-gift ${gift.featured ? 'featured-btn' : ''}" onclick="openGiftModal('${gift.id}')">${cta}</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function setCurrency(currency) {
+            const toggle = document.getElementById('currencyToggle');
+            toggle.checked = (currency === 'USD');
+            toggleCurrency(toggle);
+        }
+
+        function toggleCurrency(checkbox) {
+            currentCurrency = checkbox.checked ? 'USD' : 'MXN';
+            
+            document.getElementById('labelMXN').className = currentCurrency === 'MXN' ? 'currency-label active' : 'currency-label inactive';
+            document.getElementById('labelUSD').className = currentCurrency === 'USD' ? 'currency-label active' : 'currency-label inactive';
+            
+            renderGiftCards();
+        }
+
+        function openGiftModal(giftId) {
+            selectedGift = giftsConfig.find(g => g.id === giftId);
+            if(!selectedGift) return;
+
+            document.getElementById('modalGiftTitle').innerText = selectedGift.title;
+            
+            // Intentar pre-llenar el nombre si existe en localStorage
+            const savedName = localStorage.getItem('bodachicos_party_id') || localStorage.getItem('bodachicos_guest_name');
+            if(savedName) {
+                // Formatear: capitalizar y quitar guiones
+                const formattedName = savedName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                document.getElementById('modalName').value = formattedName;
+            } else {
+                document.getElementById('modalName').value = '';
+            }
+            
+            document.getElementById('modalMessage').value = '';
+            document.getElementById('giftModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('giftModal').classList.remove('active');
+            selectedGift = null;
+        }
+
+        function submitGiftAndPay() {
+            if(!selectedGift) return;
+            
+            const name = document.getElementById('modalName').value.trim() || 'Invitado Anónimo';
+            const message = document.getElementById('modalMessage').value.trim();
+            const link = currentCurrency === 'MXN' ? selectedGift.stripeLinkMXN : selectedGift.stripeLinkUSD;
+            
+            // Guardar en Firebase de forma asíncrona (no bloquea al usuario)
+            if(db) {
+                db.ref("mensajes_regalos").push({
+                    giftId: selectedGift.id,
+                    giftTitle: selectedGift.title,
+                    donorName: name,
+                    message: message,
+                    currency: currentCurrency,
+                    amountMXN: selectedGift.priceMXN || 'Libre',
+                    amountUSD: selectedGift.priceUSD || 'Libre',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }).catch(e => console.error("Error guardando mensaje:", e));
+            }
+            
+            closeModal();
+            window.open(link, '_blank');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGiftCards();
+        });
+    </script>
+</body>
+</html>
