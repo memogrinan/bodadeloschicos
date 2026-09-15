@@ -82,9 +82,15 @@
         .btn-gift { background-color: transparent; color: var(--olivo-base); border: 1px solid var(--olivo-base); padding: 10px 20px; font-size: 0.85rem; font-weight: 600; border-radius: 25px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; width: 100%; display: block; margin-top: 15px;}
         .btn-gift:hover { background-color: var(--olivo-base); color: white; }
 
+        
+        .card-qty-ctrl { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 15px; background: var(--crema-fondo); border-radius: 25px; padding: 5px; border: 1px solid rgba(82, 88, 47, 0.2); }
+        .card-qty-ctrl .qty-btn { background: white; border: 1px solid #ddd; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--olivo-base); font-weight: bold; font-size: 1.1rem; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card-qty-ctrl .qty-btn:hover { background: var(--olivo-base); color: white; border-color: var(--olivo-base); }
+        .card-qty-ctrl .qty-num { font-size: 1.1rem; font-weight: 600; width: 30px; text-align: center; color: var(--olivo-base); }
+
         /* FLOATING CART BUTTON */
         .cart-float-btn {
-            position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px;
+            position: fixed; bottom: 30px; right: 30px; width: 75px; height: 75px;
             background-color: var(--olivo-base); color: white; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 8px 25px rgba(82, 88, 47, 0.4); cursor: pointer;
@@ -94,7 +100,7 @@
         .cart-float-btn:hover { transform: scale(1.1); }
         .cart-badge {
             position: absolute; top: 0; right: 0; background-color: #d35400; color: white;
-            font-size: 0.75rem; font-weight: bold; width: 22px; height: 22px;
+            font-size: 0.9rem; font-weight: bold; width: 26px; height: 26px;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             transform: translate(20%, -20%); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: 0.3s;
@@ -171,8 +177,12 @@
 
     <!-- BOTÓN FLOTANTE CARRITO -->
     <button class="cart-float-btn" onclick="toggleCart()" aria-label="Ver carrito">
-        🛒
-        <div class="cart-badge" id="cartBadge" style="display: none;">0</div>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <div class="cart-badge" id="cartBadge"  style="display: none;">0</div>
     </button>
 
     <!-- DRAWER DEL CARRITO -->
@@ -315,6 +325,21 @@
                 const fallbackImg = `https://source.unsplash.com/800x600/?wedding,gift,${gift.id}`;
                 const price = currentCurrency === 'MXN' ? `$${gift.priceMXN.toLocaleString('en-US')} MXN` : `$${gift.priceUSD.toLocaleString('en-US')} USD`;
                 const priceHtml = `<div class="price-badge">${price}</div>`;
+                
+                const qtyInCart = shoppingCart[gift.id] || 0;
+                let actionHtml = '';
+                if (qtyInCart > 0) {
+                    const minusIcon = qtyInCart === 1 ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>' : '-';
+                    actionHtml = `
+                        <div class="card-qty-ctrl">
+                            <button class="qty-btn" onclick="updateCartQty('${gift.id}', -1)">${minusIcon}</button>
+                            <span class="qty-num">${qtyInCart}</span>
+                            <button class="qty-btn" onclick="updateCartQty('${gift.id}', 1)">+</button>
+                        </div>
+                    `;
+                } else {
+                    actionHtml = `<button class="btn-gift" onclick="addToCart('${gift.id}')">Agregar</button>`;
+                }
 
                 card.innerHTML = `
                     <div class="gift-img-wrapper">
@@ -326,7 +351,7 @@
                             <h3 class="gift-title">${gift.title}</h3>
                             <p class="gift-desc">${gift.description}</p>
                         </div>
-                        <button class="btn-gift" onclick="addToCart('${gift.id}')">Agregar 🛒</button>
+                        ${actionHtml}
                     </div>
                 `;
                 container.appendChild(card);
@@ -380,6 +405,7 @@
                 shoppingCart[giftId] = 1;
             }
             updateCartUI();
+            renderGiftCards();
             
             // Animación feedback visual
             const btn = document.querySelector('.cart-float-btn');
@@ -395,6 +421,7 @@
                 delete shoppingCart[giftId];
             }
             updateCartUI();
+            renderGiftCards(); // Re-render card buttons
         }
 
         function updateCartUI() {
