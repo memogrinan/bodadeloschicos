@@ -134,6 +134,15 @@
                         <input type="number" id="customAmountInput" placeholder="Monto personal (+/-)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none">
                         <button onclick="applyCustomAdjustment()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Aplicar</button>
                     </div>
+
+                    <!-- ACCIONES PELIGROSAS (RESETEO / ELIMINACIÓN) -->
+                    <div class="mt-8 pt-4 border-t border-slate-700/50">
+                        <label class="text-xs font-bold text-red-400 uppercase block mb-2">⚠️ Zona de Peligro</label>
+                        <div class="flex gap-2">
+                            <button onclick="resetPlayerStats()" class="w-1/2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 rounded-xl text-xs transition">Reiniciar a Ceros</button>
+                            <button onclick="deletePlayerRecord()" class="w-1/2 bg-red-600/80 hover:bg-red-700 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm">Borrar Registro</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -202,14 +211,19 @@
             keys.forEach((key) => {
                 const p = allPlayers[key];
                 const tag = p.gamerTag || key;
-                if (filter && !tag.toLowerCase().includes(filter)) return;
+                const rName = p.realName && p.realName !== "Invitado No Registrado" ? p.realName : "";
+                
+                if (filter && !tag.toLowerCase().includes(filter) && !(rName && rName.toLowerCase().includes(filter))) return;
 
                 const coins = p.totalChiCoins || 0;
                 const isSelected = key === selectedPlayerKey;
 
                 html += `
                     <tr class="hover:bg-slate-700/40 transition ${isSelected ? 'bg-amber-500/10 border-l-4 border-amber-400' : ''}">
-                        <td class="py-3 px-3 font-bold text-slate-100">${tag}</td>
+                        <td class="py-3 px-3">
+                            <div class="font-bold text-slate-100">${tag}</div>
+                            ${rName ? `<div class="text-xs text-slate-400 mt-0.5">${rName}</div>` : ''}
+                        </td>
                         <td class="py-3 px-3 font-mono font-bold text-amber-400 text-base">${coins.toLocaleString()} 🪙</td>
                         <td class="py-3 px-3">
                             <button onclick="selectPlayer('${key}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition shadow">
@@ -301,6 +315,42 @@
             }
             addPhysicalBonus(val, "Ajuste manual");
             input.value = "";
+        }
+
+        function resetPlayerStats() {
+            if (!selectedPlayerKey) return;
+            const p = allPlayers[selectedPlayerKey];
+            const tag = p.gamerTag || selectedPlayerKey;
+            
+            if (confirm(`⚠️ ¿Estás COMPLETAMENTE SEGURO de querer REINICIAR A CEROS todos los puntos y ChiCoins de ${tag}? Esta acción no se puede deshacer.`)) {
+                db.ref("players/" + selectedPlayerKey).update({
+                    scores: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
+                    chiCoins: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
+                    bonusCoins: 0,
+                    totalChiCoins: 0,
+                    totalScore: 0,
+                    timePlayedSeconds: 0,
+                    lastUpdated: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    alert(`✅ Los datos de ${tag} han sido reiniciados a ceros.`);
+                }).catch(err => alert("Error: " + err.message));
+            }
+        }
+
+        function deletePlayerRecord() {
+            if (!selectedPlayerKey) return;
+            const p = allPlayers[selectedPlayerKey];
+            const tag = p.gamerTag || selectedPlayerKey;
+            
+            if (confirm(`🚨 PELIGRO: ¿Estás seguro de que quieres BORRAR POR COMPLETO el registro de ${tag}? Desaparecerá del Leaderboard.`)) {
+                db.ref("players/" + selectedPlayerKey).remove().then(() => {
+                    alert(`🗑️ El jugador ${tag} ha sido eliminado.`);
+                    document.getElementById("noSelectionState").classList.remove("hidden");
+                    document.getElementById("selectionState").classList.add("hidden");
+                    document.getElementById("selectionState").classList.remove("flex");
+                    selectedPlayerKey = null;
+                }).catch(err => alert("Error al borrar: " + err.message));
+            }
         }
     </script>
 </body>
