@@ -39,13 +39,13 @@
             display: flex; justify-content: space-between; align-items: center; 
             width: 90%; max-width: 1000px; margin: 0 auto; 
         }
-        .nav-logo { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: 1.5rem; color: white; text-decoration: none; font-weight: bold; }
+        .nav-logo { font-family: 'Prata', serif; font-style: italic; font-size: 1.5rem; color: white; text-decoration: none; font-weight: bold; }
         .back-btn { color: white; text-decoration: none; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 5px; }
         .back-btn:hover { opacity: 0.8; }
 
         /* HEADER MESA DE REGALOS */
         .gifts-header { padding: 120px 20px 40px 20px; text-align: center; max-width: 700px; margin: 0 auto; }
-        .gifts-header h1 { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: clamp(3rem, 10vw, 4.5rem); color: var(--olivo-base); margin: 0 0 15px 0; font-weight: normal;}
+        .gifts-header h1 { font-family: 'Prata', serif; font-style: italic; font-size: clamp(3rem, 10vw, 4.5rem); color: var(--olivo-base); margin: 0 0 15px 0; font-weight: normal;}
         .gifts-header p { font-size: 1.05rem; color: #555; line-height: 1.6; margin-bottom: 25px; }
 
         /* TOGGLE */
@@ -76,7 +76,7 @@
         .price-badge { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); padding: 5px 12px; border-radius: 20px; font-weight: 700; color: var(--olivo-base); font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
         .gift-content { padding: 25px 20px; display: flex; flex-direction: column; flex-grow: 1; text-align: center; justify-content: space-between; }
-        .gift-title { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: 1.4rem; font-weight: 600; color: var(--olivo-base); margin: 0 0 10px 0; line-height: 1.2; }
+        .gift-title { font-family: 'Prata', serif; font-style: italic; font-size: 1.4rem; font-weight: 600; color: var(--olivo-base); margin: 0 0 10px 0; line-height: 1.2; }
         .gift-desc { font-size: 0.9rem; color: #666; margin: 0 0 20px 0; line-height: 1.5; flex-grow: 1; }
         
         .btn-gift { background-color: transparent; color: var(--olivo-base); border: 1px solid var(--olivo-base); padding: 10px 20px; font-size: 0.85rem; font-weight: 600; border-radius: 25px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; width: 100%; display: block; margin-top: 15px;}
@@ -122,7 +122,7 @@
         .cart-drawer.active { right: 0; }
         
         .cart-header { padding: 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .cart-header h2 { font-family: 'Bodoni Moda', serif; font-style: italic; margin: 0; color: var(--olivo-base); font-size: 1.6rem; }
+        .cart-header h2 { font-family: 'Prata', serif; font-style: italic; margin: 0; color: var(--olivo-base); font-size: 1.6rem; }
         .cart-close { background: none; border: none; font-size: 2rem; color: #999; cursor: pointer; transition: 0.2s; line-height: 1; }
         .cart-close:hover { color: #333; }
         
@@ -225,7 +225,7 @@
         let shoppingCart = {}; // { giftId: quantity }
         
         // CONFIGURACIÓN EXPANDIDA DE REGALOS
-        const giftsConfig = [
+        const giftsConfigRaw = [
             {
                 id: 'desayuno', title: 'Desayuno en la cama',
                 description: 'Invítanos un rico desayuno para recuperar energía después de la boda.',
@@ -309,8 +309,66 @@
                 description: 'Consiente a nuestra perrita con un juguete nuevo o unos premios deliciosos.',
                 imagePath: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800&auto=format&fit=crop',
                 priceMXN: 300, priceUSD: 15
+            },
+            {
+                id: 'juego-copas', title: 'Juego de Copas',
+                description: 'Un set de cristal elegante para nuestros brindis.',
+                imagePath: 'https://images.unsplash.com/photo-1582239611204-7cd50393f9c6?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1000, priceUSD: 55
+            },
+            {
+                id: 'suscripcion-flores', title: 'Suscripción de Flores',
+                description: 'Un detalle romántico mensual para decorar nuestro hogar.',
+                imagePath: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1800, priceUSD: 100
+            },
+            {
+                id: 'clases-baile', title: 'Clases de Baile',
+                description: 'Para prepararnos y no pisarnos durante el primer baile.',
+                imagePath: 'https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 2200, priceUSD: 120
+            },
+            {
+                id: 'aportacion-auto', title: 'Aportación para Automóvil',
+                description: 'Apóyanos a dar el enganche de nuestro futuro coche familiar.',
+                imagePath: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 8000, priceUSD: 440
+            },
+            {
+                id: 'paseo-bote', title: 'Paseo Romántico en Bote',
+                description: 'Una escapada relajante por el lago.',
+                imagePath: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 3000, priceUSD: 165
+            },
+            {
+                id: 'juego-blancos', title: 'Juego de Sábanas Finas',
+                description: 'Sábanas de muchos hilos para descansar increíble.',
+                imagePath: 'https://images.unsplash.com/photo-1616422285623-14ff7d6a5fcc?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 2600, priceUSD: 145
+            },
+            {
+                id: 'kit-herramientas', title: 'Kit de Herramientas',
+                description: 'Para poder armar los muebles sin que sobren tornillos.',
+                imagePath: 'https://images.unsplash.com/photo-1540356501755-a010076a4cb9?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1600, priceUSD: 90
+            },
+            {
+                id: 'licuadora', title: 'Licuadora de Alta Potencia',
+                description: 'Para los jugos verdes de la mañana y los frappés del fin de semana.',
+                imagePath: 'https://images.unsplash.com/photo-1585515320310-259814833e62?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 3200, priceUSD: 175
+            },
+            {
+                id: 'velas-aromaticas', title: 'Set de Velas Aromáticas',
+                description: 'Para darle un toque relajante a nuestro nuevo hogar.',
+                imagePath: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 400, priceUSD: 22
             }
         ];
+        
+        // Sort items by price
+        const giftsConfig = giftsConfigRaw.sort((a, b) => a.priceMXN - b.priceMXN);
+        
 
         function renderGiftCards() {
             const container = document.getElementById('giftsGridContainer');
