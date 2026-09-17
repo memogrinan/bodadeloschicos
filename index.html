@@ -1045,7 +1045,7 @@
     <footer>
         <!-- Logotipo final elegante -->
         <div style="margin-bottom: 25px; display: flex; justify-content: center; align-items: center;">
-            <img src="ImagenesWeb/logo.webp" alt="Mariana & Memo Logo" style="max-width: 320px; width: 85%; height: auto; opacity: 0.95;">
+            <img src="ImagenesWeb/logo.png" alt="Mariana & Memo Logo" style="max-width: 320px; width: 85%; height: auto; opacity: 0.95;">
         </div>
         HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
     </footer>
@@ -1642,8 +1642,6 @@
 
     <!-- ========================================== -->
     <script>
-    
-
         // Swipe logic for Carousel
         let carouselStartX = 0;
         let carouselEndX = 0;
@@ -1652,8 +1650,7 @@
         if (carouselTrack) {
             carouselTrack.addEventListener('touchstart', e => {
                 carouselStartX = e.changedTouches[0].screenX;
-            }
-    </script>, {passive: true});
+            }, {passive: true});
             
             carouselTrack.addEventListener('touchend', e => {
                 carouselEndX = e.changedTouches[0].screenX;
@@ -1661,6 +1658,7 @@
                 if (carouselEndX > carouselStartX + 40) moveSlide(-1);
             }, {passive: true});
         }
+    </script>
 
 
     <!-- LÓGICA DE ÉXITO DE PAGO -->
