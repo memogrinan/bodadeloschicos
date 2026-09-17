@@ -227,6 +227,13 @@
         // CONFIGURACIÓN EXPANDIDA DE REGALOS
         const giftsConfigRaw = [
             {
+                id: 'prueba-sistema', title: '🛠️ Regalo de Prueba',
+                description: 'Tarjeta temporal para verificar que el sistema de cobros con Stripe funcione a la perfección.',
+                imagePath: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 10, priceUSD: 1
+            },
+            
+            {
                 id: 'desayuno', title: 'Desayuno en la cama',
                 description: 'Invítanos un rico desayuno para recuperar energía después de la boda.',
                 imagePath: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=800&auto=format&fit=crop',
@@ -545,8 +552,41 @@
             drawer.classList.toggle('active');
         }
 
-        function processCheckout() {
-            alert("🛠️ Módulo de Pago en Construcción\n\nPróximamente implementaremos la pasarela para procesar el carrito completo hacia Stripe. ¡Gracias por probarlo!");
+        async function processCheckout() {
+            if (Object.keys(shoppingCart).length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+            
+            const btn = document.querySelector('.btn-checkout');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Conectando con el banco...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        cart: shoppingCart,
+                        giftsConfig: giftsConfig 
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url; // Redirigir a la pasarela segura de Stripe
+                } else {
+                    alert('Hubo un error al conectar con Stripe: ' + (data.error || 'Error desconocido'));
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Error de conexión. Intenta nuevamente.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
