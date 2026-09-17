@@ -33,6 +33,20 @@ export async function onRequestPost(context) {
       'mode': 'payment',
       'success_url': new URL('/?pago=exito', request.url).toString(),
       'cancel_url': new URL('/regalos.html', request.url).toString(),
+      
+      // Campo obligatorio: Nombre de quién lo regala
+      'custom_fields[0][key]': 'nombre_invitado',
+      'custom_fields[0][label][type]': 'custom',
+      'custom_fields[0][label][custom]': '¿De parte de quién es este regalo?',
+      'custom_fields[0][type]': 'text',
+      'custom_fields[0][optional]': 'false',
+      
+      // Campo obligatorio: Mensaje/Dedicatoria
+      'custom_fields[1][key]': 'mensaje_novios',
+      'custom_fields[1][label][type]': 'custom',
+      'custom_fields[1][label][custom]': 'Mensaje o dedicatoria',
+      'custom_fields[1][type]': 'text',
+      'custom_fields[1][optional]': 'false'
     });
 
     line_items.forEach((item, index) => {
