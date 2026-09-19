@@ -187,13 +187,13 @@
                     <h3 class="text-xl font-extrabold text-olivo-base mt-4">Juego del Chico: Chicosaurio</h3>
                     <p class="text-gray-500 text-sm mt-2 leading-relaxed">
                         Ayuda a Chicosaurio (🦖) a saltar juntas 
-                        <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendario">, 
+                        <img src="SpritesNecesarios/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendario">, 
                         alarmas 
-                        <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarma"> 
+                        <img src="SpritesNecesarios/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarma"> 
                         y emails 
-                        <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
+                        <img src="SpritesNecesarios/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
                         y atrapa los controles de videojuegos 
-                        <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
+                        <img src="SpritesNecesarios/Optimizadas/Controller_Gamepad.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
                         en el camino.
                     </p>
                 </div>
@@ -486,20 +486,20 @@
 
         // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
-        sprite.src = 'SpritesNecesarios/sprites.png';
+        sprite.src = 'SpritesNecesarios/Optimizadas/sprites.webp';
 
         // CARGA DE SPRITES EN PNG
         const imgCalendar = new Image();
-        imgCalendar.src = 'SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png';
+        imgCalendar.src = 'SpritesNecesarios/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp';
 
         const imgClock = new Image();
-        imgClock.src = 'SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png';
+        imgClock.src = 'SpritesNecesarios/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp';
 
         const imgEmail = new Image();
-        imgEmail.src = 'SpritesNecesarios/Software_Email_Message_Unread_Closed.png';
+        imgEmail.src = 'SpritesNecesarios/Optimizadas/Software_Email_Message_Unread_Closed.webp';
 
         const imgGamepad = new Image();
-        imgGamepad.src = 'SpritesNecesarios/Controller_Gamepad.png';
+        imgGamepad.src = 'SpritesNecesarios/Optimizadas/Controller_Gamepad.webp';
 
         // SPRITES PARA JUEGO 2: LA CHICA
         const imgChicaCrown = new Image();
@@ -509,7 +509,7 @@
         imgChicaHeart.src = 'SpritesNecesarios/Boardgames_Card_Suit_Hearts.png';
 
         const imgChicaRing = new Image();
-        imgChicaRing.src = 'ImagenesWeb/icono_anillo_compromiso.png';
+        imgChicaRing.src = 'ImagenesWeb/Optimizadas/icono_anillo_compromiso.webp';
 
         const imgChicaCloud = new Image();
         imgChicaCloud.src = 'SpritesNecesarios/Weather_Thunderstorm_Cloud_Lightning_Zap.png';
@@ -561,7 +561,7 @@
         const handleImageError = (name, src) => {
             console.error(`ERROR: No se pudo cargar el sprite '${name}' en: ${src}`);
         };
-        sprite.onerror = () => handleImageError('sprites.png', sprite.src);
+        sprite.onerror = () => handleImageError('Optimizadas/sprites.webp', sprite.src);
         imgCalendar.onerror = () => handleImageError('Calendar.png', imgCalendar.src);
         imgClock.onerror = () => handleImageError('Clock.png', imgClock.src);
         imgEmail.onerror = () => handleImageError('Email.png', imgEmail.src);
@@ -569,7 +569,7 @@
 
         imgChicaCrown.onerror = () => handleImageError('Hats_Crown_Queen_Tiara.png', imgChicaCrown.src);
         imgChicaHeart.onerror = () => handleImageError('Boardgames_Card_Suit_Hearts.png', imgChicaHeart.src);
-        imgChicaRing.onerror = () => handleImageError('icono_anillo_compromiso.png', imgChicaRing.src);
+        imgChicaRing.onerror = () => handleImageError('Optimizadas/icono_anillo_compromiso.webp', imgChicaRing.src);
         imgChicaCloud.onerror = () => handleImageError('Weather_Thunderstorm_Cloud_Lightning_Zap.png', imgChicaCloud.src);
         imgMaddiePoop.onerror = () => handleImageError('Emoji_Poop.png', imgMaddiePoop.src);
         imgTrafficCar1.onerror = () => handleImageError('coches_uno.png', imgTrafficCar1.src);
@@ -1474,7 +1474,7 @@
             const targetScore = METAS[activeGame];
             let inst = "";
             if (activeGame === 'chico') {
-                inst = `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-xs py-2 px-3 rounded-xl text-center font-bold tracking-wider mb-3 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="SpritesNecesarios/Software_Calendar_Dates_Organizer_Month_3.png" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="SpritesNecesarios/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="SpritesNecesarios/Software_Email_Message_Unread_Closed.png" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="SpritesNecesarios/Controller_Gamepad.png" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
+                inst = `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-xs py-2 px-3 rounded-xl text-center font-bold tracking-wider mb-3 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="SpritesNecesarios/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="SpritesNecesarios/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="SpritesNecesarios/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="SpritesNecesarios/Optimizadas/Controller_Gamepad.webp" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
                 inst = `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos de compromiso (💍). ¡Esquiva las tormentas eléctricas (🌩️)!<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
