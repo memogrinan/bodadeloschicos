@@ -1308,6 +1308,10 @@
 
                 guestImages = images.map(img => img.download_url);
 
+                // GENERAR TRACK DEL LIGHTBOX ANTES DE ITERAR
+                const lightboxTrack = document.getElementById("lightboxTrack");
+                lightboxTrack.innerHTML = "";
+                
                 images.forEach((img, index) => {
                     const itemEl = document.createElement("div");
                     itemEl.className = "gallery-item";
@@ -1318,12 +1322,23 @@
                     
                     imgEl.addEventListener("click", () => {
                         currentGuestImageIndex = index;
-                        lightboxImg.src = img.download_url;
+                        lightboxTrack.style.transition = 'none';
+                        lightboxTrack.style.transform = `translateX(-${currentGuestImageIndex * 100}vw)`;
                         lightbox.style.display = "flex";
                         setTimeout(() => { lightbox.classList.add("active"); }, 10);
                     });
 
                     itemEl.appendChild(imgEl);
+
+                    // --- GENERAR SLIDE PARA EL LIGHTBOX ---
+                    const slide = document.createElement("div");
+                    slide.style.cssText = "min-width: 100vw; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;";
+                    
+                    const lbImg = document.createElement("img");
+                    lbImg.src = img.download_url;
+                    lbImg.className = "lightbox-content";
+                    lbImg.loading = "lazy";
+                    slide.appendChild(lbImg);
 
                     const filename = img.name;
                     if (filename.includes("-De-")) {
@@ -1333,13 +1348,22 @@
                             const cleanName = rawName.replace(/_/g, " "); 
                             
                             if (cleanName && cleanName.toLowerCase() !== "anonimo") {
-                                const captionEl = document.createElement("p");
-                                captionEl.className = "gallery-caption";
-                                captionEl.innerText = `De: ${cleanName}`;
-                                itemEl.appendChild(captionEl);
+                                // Caption en la galeria miniatura
+                                const textEl = document.createElement("div");
+                                textEl.className = "gallery-caption";
+                                textEl.innerText = cleanName;
+                                itemEl.appendChild(textEl);
+                                
+                                // Caption en el lightbox
+                                const lbText = document.createElement("p");
+                                lbText.innerText = `Subida por: ${cleanName}`;
+                                lbText.style.cssText = "color: rgba(255,255,255,0.9); font-family: 'Montserrat', sans-serif; font-size: 0.95rem; margin-top: 15px; letter-spacing: 0.5px;";
+                                slide.appendChild(lbText);
                             }
                         }
                     }
+                    lightboxTrack.appendChild(slide);
+                    // ----------------------------------------
 
                     container.appendChild(itemEl);
                 });
