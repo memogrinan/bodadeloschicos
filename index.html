@@ -1129,20 +1129,21 @@
         lightbox.innerHTML = `
             <span class="lightbox-close">&times;</span>
             <button class="lightbox-btn lightbox-btn-prev" id="lightboxPrev">&#10094;</button>
-            <img class="lightbox-content" id="lightboxImg" loading="lazy">
+            <div id="lightboxTrack" style="display: flex; height: 100%; width: 100%; align-items: center; transition: transform 0.4s ease-out; cursor: grab;"></div>
             <button class="lightbox-btn lightbox-btn-next" id="lightboxNext">&#10095;</button>
         `;
         document.body.appendChild(lightbox);
 
-        const lightboxImg = document.getElementById("lightboxImg");
+        const lightboxTrack = document.getElementById("lightboxTrack");
         const btnPrev = document.getElementById("lightboxPrev");
         const btnNext = document.getElementById("lightboxNext");
 
-        // Cambiar de foto dentro del visor de forma circular
+        // Cambiar de foto dentro del visor usando el Track
         function changeGuestImage(direction) {
             if (guestImages.length === 0) return;
             currentGuestImageIndex = (currentGuestImageIndex + direction + guestImages.length) % guestImages.length;
-            lightboxImg.src = guestImages[currentGuestImageIndex];
+            lightboxTrack.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            lightboxTrack.style.transform = `translateX(-${currentGuestImageIndex * 100}vw)`;
         }
 
         // Navegación mediante clics en las flechas del lightbox
@@ -1159,7 +1160,7 @@
 
         // Cerrar visor al hacer clic fuera de la foto o botones
         lightbox.addEventListener("click", (e) => {
-            if (e.target !== lightboxImg && e.target !== btnPrev && e.target !== btnNext) {
+            if (!e.target.closest('.lightbox-content') && !e.target.closest('.lightbox-btn')) {
                 lightbox.classList.remove("active");
                 setTimeout(() => { lightbox.style.display = "none"; }, 300);
             }
