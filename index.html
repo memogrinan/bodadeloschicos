@@ -1188,7 +1188,8 @@
             if (e.target.closest('.lightbox-btn') || e.target.closest('.lightbox-close')) return;
             lbIsDragging = true;
             lbStartPos = getLbPositionX(e);
-            lightboxImg.style.transition = 'none';
+            lbPrevTranslate = -currentGuestImageIndex * window.innerWidth;
+            lightboxTrack.style.transition = 'none';
         }
 
         function lbTouchMove(e) {
@@ -1197,23 +1198,22 @@
             if (Math.abs(diff) > 5) {
                 if (e.cancelable) e.preventDefault();
             }
-            lbCurrentTranslate = diff;
-            lightboxImg.style.transform = `translateX(${lbCurrentTranslate}px)`;
+            lbCurrentTranslate = lbPrevTranslate + diff;
+            lightboxTrack.style.transform = `translateX(${lbCurrentTranslate}px)`;
         }
 
         function lbTouchEnd() {
             if (!lbIsDragging) return;
             lbIsDragging = false;
+            const diff = lbCurrentTranslate - lbPrevTranslate;
             
-            if (lbCurrentTranslate < -50) {
+            if (diff < -50) {
                 changeGuestImage(1);
-            } else if (lbCurrentTranslate > 50) {
+            } else if (diff > 50) {
                 changeGuestImage(-1);
+            } else {
+                changeGuestImage(0); // Snap back
             }
-            
-            lightboxImg.style.transition = 'transform 0.3s ease-out';
-            lbCurrentTranslate = 0;
-            lightboxImg.style.transform = 'translateX(0)';
         }
 
         // Soporte de navegación mediante teclas de dirección físicas (Izquierda / Derecha / Escape)
