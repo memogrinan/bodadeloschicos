@@ -642,8 +642,8 @@
     <section id="historia" class="fade-in-section">
         <h2>Nuestra Historia</h2>
         <div style="font-size: 0.95rem; line-height: 1.8; color: #444; margin-bottom: 40px; text-align: justify; max-width: 650px; margin-left: auto; margin-right: auto; padding: 0 15px; letter-spacing: 0.2px;">
-            <p style="margin-bottom: 25px; text-indent: 1.5rem;">Lo que empezó como coincidencia de oficina en 2018 se convirtió en pláticas diarias en 2021 que nos llevaron a la bella Puebla como novios. En 2023 encontramos nuestro hogar en Cholula y poco después llegó Maddie a ponerle patas arriba (y mucho amor) a nuestra rutina para completar nuestra familia.</p>
-            <p style="text-indent: 1.5rem;">Después de comprometernos en 2025, creemos que no hay mejor lugar que Cholula para celebrar y dar el siguiente paso en 2027 y ¡estamos muy emocionados de compartirlo con ustedes!</p>
+            <p style="margin-bottom: 25px;">Lo que empezó como coincidencia de oficina en 2018 se convirtió en pláticas diarias en 2021 que nos llevaron a la bella Puebla como novios. En 2023 encontramos nuestro hogar en Cholula y poco después llegó Maddie a ponerle patas arriba (y mucho amor) a nuestra rutina para completar nuestra familia.</p>
+            <p>Después de comprometernos en 2025, creemos que no hay mejor lugar que Cholula para celebrar y dar el siguiente paso en 2027 y ¡estamos muy emocionados de compartirlo con ustedes!</p>
         </div>
 
         <!-- LÍNEA DE TIEMPO VERTICAL ALTERNANTE EN ZIGZAG -->
@@ -736,17 +736,32 @@
     </section>
 
     <!-- REMOVIDO fade-in-section DE LOS WRAPPERS CON PARALLAX PARA EVITAR CONFLICTO -->
-    <div id="celebracion" class="parallax-section">
+    <div id="celebracion" class="parallax-section" style="padding: 100px 20px;">
         <div class="bg-fixed celebracion-bg"></div>
-        <!-- fade-in-section APLICADO DIRECTAMENTE A LA TARJETA DE CONTENIDO -->
-        <div class="glass-card fade-in-section">
-            <h2>Celebración y Fiesta</h2>
-            <h3 style="color:var(--olivo-base); font-weight: 400; font-size: 1.5rem; margin: 0;">Hacienda San José Actipan</h3>
-            <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 25px;">Cholula, Puebla</p>
-            <div style="display: flex; flex-wrap: wrap; justify-content: center;">
-                <a href="https://www.google.com/maps/dir//Hacienda+San+Jos%C3%A9+Actipan+San+Andr%C3%A9s+Cholula+Puebla/" target="_blank" class="btn" style="background-color: #4285F4; color: white;">Google Maps</a>
-                <a href="https://waze.com/ul?q=Hacienda+San+Jose+Actipan" target="_blank" class="btn" style="background-color: #33CCFF; color: white;">Waze</a>
+        <!-- Contenedor Flex para ambas locaciones -->
+        <div class="fade-in-section" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; z-index: 2; position: relative; max-width: 1000px; margin: 0 auto; width: 100%;">
+            
+            <!-- TARJETA IGLESIA -->
+            <div class="glass-card" style="flex: 1; min-width: 300px; padding: 40px 20px; margin: 0;">
+                <h2 style="font-size: 1.8rem; margin-bottom: 10px;">Ceremonia Religiosa</h2>
+                <h3 style="color:var(--olivo-base); font-weight: 400; font-size: 1.25rem; margin: 0;">Parroquia de San Andrés Apóstol</h3>
+                <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; margin-bottom: 25px; margin-top: 5px;">Cholula, Puebla</p>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                    <a href="https://www.google.com/maps/search/?api=1&query=Parroquia+de+San+Andrés+Apóstol+Cholula+Puebla" target="_blank" class="btn" style="background-color: #4285F4; color: white; min-width: 140px; margin: 0;">Google Maps</a>
+                </div>
             </div>
+
+            <!-- TARJETA FIESTA -->
+            <div class="glass-card" style="flex: 1; min-width: 300px; padding: 40px 20px; margin: 0;">
+                <h2 style="font-size: 1.8rem; margin-bottom: 10px;">Recepción y Fiesta</h2>
+                <h3 style="color:var(--olivo-base); font-weight: 400; font-size: 1.25rem; margin: 0;">Hacienda San José Actipan</h3>
+                <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; margin-bottom: 25px; margin-top: 5px;">Cholula, Puebla</p>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                    <a href="https://www.google.com/maps/dir//Hacienda+San+Jos%C3%A9+Actipan+San+Andr%C3%A9s+Cholula+Puebla/" target="_blank" class="btn" style="background-color: #4285F4; color: white; min-width: 140px; margin: 0;">Google Maps</a>
+                    <a href="https://waze.com/ul?q=Hacienda+San+Jose+Actipan" target="_blank" class="btn" style="background-color: #33CCFF; color: white; min-width: 140px; margin: 0;">Waze</a>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1443,6 +1458,13 @@
 
             const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
 
+            // Dinamizar el placeholder del input de celebración especial
+            const celebracionInput = document.getElementById("rsvpCelebracionInput");
+            if (celebracionInput && integrantes.length > 0) {
+                const primerNombre = integrantes[0].split(" ")[0]; // Extraemos solo el primer nombre
+                celebracionInput.placeholder = `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
+            }
+
             // CONTROL DEL ITINERARIO: Mostrar el Viernes 12 de Febrero en el Itinerario SOLO a invitados a la boda civil
             const itinFriday = document.getElementById("itineraryFridayBlock");
             if (itinFriday) {
@@ -1543,6 +1565,13 @@
 
             const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
             const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
+
+            // Dinamizar el placeholder del input de celebración especial
+            const celebracionInput = document.getElementById("rsvpCelebracionInput");
+            if (celebracionInput && integrantes.length > 0) {
+                const primerNombre = integrantes[0].split(" ")[0]; // Extraemos solo el primer nombre
+                celebracionInput.placeholder = `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
+            }
 
             // CONTROL DEL ITINERARIO: Mostrar el Viernes 12 de Febrero en el Itinerario SOLO a invitados a la boda civil
             const itinFriday = document.getElementById("itineraryFridayBlock");
