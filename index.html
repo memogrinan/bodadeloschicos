@@ -247,9 +247,9 @@
         h2 { font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 30px; }
 
         /* CARRUSEL DE FOTOS */
-        .carousel-container { position: relative; max-width: 600px; margin: 0 auto; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); aspect-ratio: 4/5; max-height: 80vh; }
-        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; height: 100%; align-items: stretch; }
-        .carousel-img { width: 100%; min-width: 100%; height: 100%; object-fit: cover; }
+        .carousel-container { position: relative; max-width: 600px; margin: 0 auto; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .carousel-img { width: 100%; min-width: 100%; aspect-ratio: 4/5; max-height: 70vh; object-fit: cover; }
         
         /* BOTONES DEL CARRUSEL */
         .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.7); border: none; font-size: 1.5rem; padding: 10px; cursor: pointer; border-radius: 50%; width: 45px; height: 45px; z-index: 5; color: var(--olivo-base); }
@@ -730,9 +730,9 @@
             <button class="carousel-btn prev" onclick="moveSlide(-1)">&#10094;</button>
             <div class="carousel-track" id="carouselTrack">
                 <!-- Fotos locales cargadas desde la carpeta ImagenesWeb -->
-                <img src="ImagenesWeb/Optimizadas/historia_omitlan.webp" class="carousel-img" loading="lazy">
-                <img src="ImagenesWeb/Optimizadas/historia_maddie_solita.webp" class="carousel-img" loading="lazy">
-                <img src="ImagenesWeb/Optimizadas/historia_propuesta.webp" class="carousel-img" loading="lazy">
+                <img src="ImagenesWeb/Optimizadas/historia_omitlan.webp" class="carousel-img" loading="eager">
+                <img src="ImagenesWeb/Optimizadas/historia_maddie_solita.webp" class="carousel-img" loading="eager">
+                <img src="ImagenesWeb/Optimizadas/historia_propuesta.webp" class="carousel-img" loading="eager">
             </div>
             <button class="carousel-btn next" onclick="moveSlide(1)">&#10095;</button>
         </div>
@@ -1337,7 +1337,7 @@
                     const lbImg = document.createElement("img");
                     lbImg.src = img.download_url;
                     lbImg.className = "lightbox-content";
-                    lbImg.loading = "lazy";
+                    lbImg.loading = "eager";
                     slide.appendChild(lbImg);
 
                     const filename = img.name;
