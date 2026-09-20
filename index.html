@@ -1566,7 +1566,6 @@
 
             const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
             const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
-            const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
 
             // Dinamizar el placeholder del input de celebración especial
             const celebracionInput = document.getElementById("rsvpCelebracionInput");
