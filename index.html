@@ -1484,7 +1484,7 @@
                 summaryHTML += `
                     <div style="margin-bottom: 14px;">
                         <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥂 Boda Civil (Viernes 12 de Feb):</h4>
-                        <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${data.estadoCivil || 'Sin respuesta'}</p>
+                        <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${(data.estadoCivil || 'Sin respuesta').split(' | ').join('<br>')}</p>
                     </div>
                 `;
             }
@@ -1492,7 +1492,7 @@
             summaryHTML += `
                 <div style="margin-bottom: 14px;">
                     <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">💒 Boda & Fiesta (Sábado 13 de Feb):</h4>
-                    <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${data.estadoSabado || 'Sin respuesta'}</p>
+                    <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${(data.estadoSabado || 'Sin respuesta').split(' | ').join('<br>')}</p>
                 </div>
             `;
 
