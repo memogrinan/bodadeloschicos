@@ -1903,6 +1903,32 @@
     </script>
 
 
+
+    <!-- ========================================== -->
+    <!-- NUEVA VERSIÓN: CHICOSGRAM (CON FANCYBOX) -->
+    <!-- ========================================== -->
+    <section id="fotos-invitados-chicosgram" class="fade-in-section" style="background-color: #faf9f7; border-top: 2px dashed #eaefe0; padding-top: 40px; padding-bottom: 40px;">
+        <div class="upload-section">
+            <h3 style="color: var(--olivo-base); font-size: 2.2rem; font-family: 'Prata', serif; font-style: italic; margin-bottom: 5px;">📸 Chicosgram</h3>
+            <p style="margin-top: 0;">Nuestra propia red social. Pellizca la pantalla para hacer zoom a cada detalle.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eaefe0; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Tu nombre de usuario:</label>
+                <input type="text" id="cgGuestName" placeholder="Ej. Familia Perez" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit;">
+                
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Sube tus mejores tomas:</label>
+                <input type="file" id="cgFileInput" multiple accept="image/*" style="width: 100%; margin-bottom: 15px; font-size: 0.85rem;">
+                
+                <button id="cgUploadBtn" onclick="uploadFotosCG()" class="btn btn-rsvp" style="width: 100%; padding: 12px; background-color: #3b5998; color: white; border: none;">Publicar en Chicosgram 🚀</button>
+                <p id="cgUploadStatus" style="font-size: 0.85rem; color: #555; margin-top: 10px; font-weight: bold; text-align: center; display: none;"></p>
+            </div>
+
+            <div class="gallery-grid" id="cgGalleryGrid">
+                <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando feed...</p>
+            </div>
+        </div>
+    </section>
+
     <!-- LÓGICA DE CLOUDFLARE R2 Y COMPRESIÓN -->
     <script>
         // ¡IMPORTANTE! Reemplaza esta URL con la URL final de tu Worker
