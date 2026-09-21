@@ -1987,12 +1987,11 @@
             r2lb.className = "lightbox-modal"; // Reutilizamos estilos del lightbox anterior
             r2lb.innerHTML = `
                 <!-- Overlay superior con botones de Acción -->
-                <div style="position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 20px; z-index: 2010; pointer-events: none;">
-                    <a id="r2DownloadBtn" href="#" download class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 8px 15px; text-decoration: none; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px); margin-top: 5px; pointer-events: auto;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Descargar Original
+                <div style="position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 25px; z-index: 2010; pointer-events: none;">
+                    <a id="r2DownloadBtn" href="#" download style="color: white; padding: 10px; display: flex; align-items: center; justify-content: center; pointer-events: auto; text-decoration: none; opacity: 0.85; transition: opacity 0.2s;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     </a>
-                    <button class="lightbox-close" onclick="closeR2Lightbox()" style="position: static; font-size: 3rem; line-height: 1; padding: 0; margin: 0; pointer-events: auto;">&times;</button>
+                    <span class="lightbox-close" onclick="closeR2Lightbox()" style="position: static; font-size: 2.5rem; font-weight: 300; line-height: 1; padding: 5px; margin: 0; pointer-events: auto; color: white; opacity: 0.85; text-shadow: none; cursor: pointer;">&times;</span>
                 </div>
                 
                 <button class="lightbox-btn lightbox-btn-prev" onclick="moveR2Lightbox(-1)" style="z-index: 2005;">&#10094;</button>
