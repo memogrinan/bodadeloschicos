@@ -2192,11 +2192,9 @@
                                 }
                             }
                         },
-                        // Desactivamos la animación de zoom de apertura porque causa parpadeo al no saber las dimensiones exactas de la imagen HD
-                        showClass: "f-fadeFastIn",
-                        hideClass: "f-fadeFastOut",
+                        // Desactivamos la animación de zoom de apertura porque causa parpadeo
                         Images: { 
-                            zoom: false // Desactiva la animacion inicial de abrir, pero el pinch-to-zoom manual sigue funcionando!
+                            zoom: false
                         },
                         Hash: false // Para no cambiar el URL de la página
                     });
