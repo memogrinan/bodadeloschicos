@@ -941,67 +941,37 @@
         </div>
     </div>
 
-    <!-- IDENTIFICADOR fotos-invitados PARA LA NAVEGACIÓN -->
-    <section id="fotos-invitados" class="fade-in-section">
-        <div class="upload-section">
-            <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Prata', serif; font-style: italic;">¡Comparte tus fotos!</h3>
-            <p>Sube las fotos que tomes durante la boda a nuestro álbum digital.</p>
-            <!-- ENLACE DE TALLY DEFINITIVO -->
-            <a href="https://tally.so/r/WOKvDN" target="_blank" class="btn btn-rsvp">Subir fotos</a>
-            <p style="font-size: 0.85rem; color: #777; margin-top: 20px; font-style: italic;">
-                Nota: Guarda este link. Después de la boda, podrás entrar aquí mismo para ver todas las fotos que todos compartimos.
-            </p>
-            
-            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE GITHUB -->
-            <div class="gallery-grid" id="galleryGrid">
-                <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando fotos de invitados...</p>
-            </div>
-        </div>
-    </section>
-    <!-- ========================================== -->
-    <!-- NUEVA VERSIÓN: CLOUDFLARE R2 + COMPRESIÓN LOCAL (BETA) -->
-    <!-- ========================================== -->
-    <section id="fotos-invitados-r2" class="fade-in-section" style="background-color: #f9faf7; border-top: 2px dashed #eaefe0; padding-top: 40px; padding-bottom: 40px;">
-        <div class="upload-section">
-            <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Prata', serif; font-style: italic;">¡Comparte tus fotos! (Versión R2 Beta)</h3>
-            <p>Prueba nuestra nueva subida ultra-rápida. Tus fotos se comprimirán solas.</p>
-            
-            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eaefe0; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
-                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Tu nombre / Apodo del Paparazzi:</label>
-                <input type="text" id="r2GuestName" placeholder="Ej. Memo y Mariana" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit;">
-                
-                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Selecciona tus fotos:</label>
-                <input type="file" id="r2FileInput" multiple accept="image/*" style="width: 100%; margin-bottom: 15px; font-size: 0.85rem;">
-                
-                <button id="r2UploadBtn" onclick="uploadFotosR2()" class="btn btn-rsvp" style="width: 100%; padding: 12px;">Subir Fotos 🚀</button>
-                <p id="r2UploadStatus" style="font-size: 0.85rem; color: #555; margin-top: 10px; font-weight: bold; text-align: center; display: none;"></p>
-            </div>
 
-            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE R2 -->
-            <div class="gallery-grid" id="r2GalleryGrid">
-                <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando fotos desde R2...</p>
-            </div>
-        </div>
-    </section>
+
 
 
     <!-- ========================================== -->
-    <!-- NUEVA VERSIÓN: CHICOSGRAM (CON FANCYBOX) -->
+    <!-- GALERÍA PRINCIPAL: CHICOSGRAM -->
     <!-- ========================================== -->
-    <section id="fotos-invitados-chicosgram" class="fade-in-section" style="background-color: #faf9f7; border-top: 2px dashed #eaefe0; padding-top: 40px; padding-bottom: 40px;">
+    <section id="fotos-invitados" class="fade-in-section" style="background-color: #faf9f7; border-top: 2px dashed #eaefe0; padding-top: 60px; padding-bottom: 60px;">
         <div class="upload-section">
             <h3 style="color: var(--olivo-base); font-size: 2.2rem; font-family: 'Prata', serif; font-style: italic; margin-bottom: 5px;">📸 Chicosgram</h3>
-            <p style="margin-top: 0;">Nuestra propia red social. Sube tus fotos a nuestro álbum digital.</p>
+            <p style="margin-top: 0; color: #555; font-size: 1.05rem;">Nuestra propia red social. Sube tus fotos y ayúdanos a armar el álbum más épico.</p>
             
-            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eaefe0; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Tu nombre / Apodo del Paparazzi:</label>
-                <input type="text" id="cgGuestName" placeholder="Ej. Memo y Mariana" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit;">
+            <div style="background: #ffffff; padding: 25px 20px; border-radius: 16px; margin-bottom: 30px; border: 1px solid rgba(82, 88, 47, 0.1); text-align: left; max-width: 420px; margin-left: auto; margin-right: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.04);">
                 
-                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Sube tus mejores tomas:</label>
-                <input type="file" id="cgFileInput" multiple accept="image/*" style="width: 100%; margin-bottom: 15px; font-size: 0.85rem;">
+                <div style="position: relative; margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Nombre del Paparazzi</label>
+                    <input type="text" id="cgGuestName" placeholder="Ej. Memo y Mariana" style="width: 100%; padding: 14px 16px; border: 1.5px solid #eaeaea; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 1rem; color: #333; transition: border-color 0.3s ease; outline: none;" onfocus="this.style.borderColor='var(--olivo-base)'" onblur="this.style.borderColor='#eaeaea'">
+                </div>
                 
-                <button id="cgUploadBtn" onclick="uploadFotosCG()" class="btn btn-rsvp" style="width: 100%; padding: 12px; background-color: #3b5998; color: white; border: none;">Publicar en Chicosgram 🚀</button>
-                <p id="cgUploadStatus" style="font-size: 0.85rem; color: #555; margin-top: 10px; font-weight: bold; text-align: center; display: none;"></p>
+                <div style="position: relative; margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Tus mejores tomas</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="file" id="cgFileInput" multiple accept="image/*" style="width: 100%; font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; cursor: pointer;" onchange="toggleClearPhotosBtn()">
+                        <button id="cgClearPhotosBtn" onclick="clearSelectedPhotos()" style="display: none; background: #ffebee; color: #d32f2f; border: none; border-radius: 8px; width: 42px; height: 42px; cursor: pointer; font-size: 1.2rem; align-items: center; justify-content: center; transition: background 0.2s;" title="Descartar fotos">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                
+                <button id="cgUploadBtn" onclick="uploadFotosCG()" class="btn btn-rsvp" style="width: 100%; padding: 15px; background-color: var(--olivo-base); color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(82, 88, 47, 0.25); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(82, 88, 47, 0.35)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(82, 88, 47, 0.25)'">Publicar en Chicosgram 🚀</button>
+                <p id="cgUploadStatus" style="font-size: 0.9rem; color: #555; margin-top: 15px; font-weight: bold; text-align: center; display: none;"></p>
             </div>
 
             <div class="gallery-grid" id="cgGalleryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 0;">
@@ -2026,226 +1996,29 @@
 
 
 
-        // CREAR EL R2 LIGHTBOX DINAMICAMENTE
-        if (!document.getElementById("r2Lightbox")) {
-            const r2lb = document.createElement("div");
-            r2lb.id = "r2Lightbox";
-            r2lb.className = "lightbox-modal"; // Reutilizamos estilos del lightbox anterior
-            r2lb.innerHTML = `
-                <!-- Overlay superior con botones de Acción -->
-                <div style="position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 25px; z-index: 2010; pointer-events: none;">
-                    <a id="r2DownloadBtn" href="#" onclick="triggerR2Download(event)" style="color: white; padding: 10px; display: flex; align-items: center; justify-content: center; pointer-events: auto; text-decoration: none; opacity: 0.85; transition: opacity 0.2s;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    </a>
-                    <span class="lightbox-close" onclick="closeR2Lightbox()" style="position: static; font-size: 2.5rem; font-weight: 300; line-height: 1; padding: 5px; margin: 0; pointer-events: auto; color: white; opacity: 0.85; text-shadow: none; cursor: pointer;">&times;</span>
-                </div>
-                
-                <button class="lightbox-btn lightbox-btn-prev" onclick="moveR2Lightbox(-1)" style="z-index: 2005;">&#10094;</button>
-                <div id="r2LightboxTrack" style="display: flex; height: 100%; width: 100%; align-items: center; transition: transform 0.4s ease-out; cursor: grab; will-change: transform;"></div>
-                <button class="lightbox-btn lightbox-btn-next" onclick="moveR2Lightbox(1)" style="z-index: 2005;">&#10095;</button>
-            `;
-            document.body.appendChild(r2lb);
-        }
 
-        let r2GalleryData = [];
-
-        let currentR2Index = 0;
-
-        async function loadR2Gallery() {
-            const container = document.getElementById("r2GalleryGrid");
-            const lightboxTrack = document.getElementById("r2LightboxTrack");
-            
-            try {
-                const response = await fetch(`${WORKER_URL}/api/fotos`);
-                if (!response.ok) {
-                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Error al conectar con la galería R2.</p>";
-                    return;
-                }
-                const allKeys = await response.json();
-                
-                if (allKeys.length === 0) {
-                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Aún no hay fotos en esta nueva versión. ¡Sé el primero!</p>";
-                    return;
-                }
-
-                // Agrupar las llaves. El worker ahora devolverá TODAS las llaves (originales y thumbs)
-                // Formato: 1789958791676-chico-thumb.webp y 1789958791676-chico-original.jpg
-                const mapByPrefix = {};
-                allKeys.forEach(key => {
-                    const match = key.match(/^(\d+)-(.*?)-(thumb|original)\.\w+$/);
-                    if (match) {
-                        const prefix = `${match[1]}-${match[2]}`;
-                        if (!mapByPrefix[prefix]) mapByPrefix[prefix] = { rawName: match[2], thumb: null, original: null };
-                        mapByPrefix[prefix][match[3]] = key;
-                    } else if (key.includes('-thumb.')) {
-                        // Respaldo por si el worker viejo solo mandó thumbs
-                        const prefix = key.split('-thumb.')[0];
-                        const parts = prefix.split('-');
-                        const rawName = parts.slice(1).join('-');
-                        if (!mapByPrefix[prefix]) mapByPrefix[prefix] = { rawName: rawName, thumb: key, original: key }; // Fallback a thumb si no hay original
-                    }
-                });
-
-                r2GalleryData = Object.values(mapByPrefix).filter(item => item.thumb);
-                
-                // Ordenar por timestamp descendente (más recientes primero)
-                r2GalleryData.sort((a, b) => {
-                    const tsA = parseInt(a.thumb.split('-')[0]);
-                    const tsB = parseInt(b.thumb.split('-')[0]);
-                    return tsB - tsA;
-                });
-
-                container.innerHTML = "";
-                lightboxTrack.innerHTML = "";
-                
-                r2GalleryData.forEach((item, index) => {
-                    // Formatear el nombre
-                    const cleanName = item.rawName.replace(/_/g, " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-
-                    // --- ITEM DE GALERÍA (MINIATURA) ---
-                    const itemEl = document.createElement("div");
-                    itemEl.className = "gallery-item";
-
-                    const imgEl = document.createElement("img");
-                    imgEl.src = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.thumb)}`;
-                    imgEl.loading = "lazy";
-                    
-                    imgEl.addEventListener("click", () => {
-                        openR2Lightbox(index);
-                    });
-                    
-                    itemEl.appendChild(imgEl);
-
-                    // Nombre del invitado debajo de la miniatura
-                    if (cleanName && cleanName.toLowerCase() !== "anonimo") {
-                        const textEl = document.createElement("div");
-                        textEl.className = "gallery-caption";
-                        textEl.innerText = cleanName;
-                        itemEl.appendChild(textEl);
-                    }
-                    container.appendChild(itemEl);
-
-                    // --- ITEM DEL LIGHTBOX (ORIGINAL) ---
-                    const slide = document.createElement("div");
-                    slide.style.cssText = "min-width: 100vw; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;";
-                    
-                    const lbImg = document.createElement("img");
-                    // Si encontramos el original, lo usamos. Si no (worker viejo), usamos el thumb.
-                    const originalUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.original || item.thumb)}`;
-                    lbImg.src = originalUrl;
-                    lbImg.className = "lightbox-content";
-                    lbImg.loading = "lazy";
-                    slide.appendChild(lbImg);
-
-                    if (cleanName && cleanName.toLowerCase() !== "anonimo") {
-                        const lbText = document.createElement("p");
-                        lbText.innerText = `Subida por: ${cleanName}`;
-                        lbText.style.cssText = "color: rgba(255,255,255,0.9); font-family: 'Montserrat', sans-serif; font-size: 0.95rem; margin-top: 15px; letter-spacing: 0.5px;";
-                        slide.appendChild(lbText);
-                    }
-                    lightboxTrack.appendChild(slide);
-                });
-            } catch (error) {
-                console.error("Error fetching R2 gallery", error);
-                container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos de R2 se mostrarán aquí.</p>";
-            }
-        }
-
-        function openR2Lightbox(index) {
-            currentR2Index = index;
-            const lightboxTrack = document.getElementById("r2LightboxTrack");
-            lightboxTrack.style.transition = 'none';
-            lightboxTrack.style.transform = `translateX(-${currentR2Index * 100}vw)`;
-            updateR2DownloadLink();
-            
-            const lb = document.getElementById("r2Lightbox");
-            lb.style.display = "flex";
-            setTimeout(() => { lb.classList.add("active"); }, 10);
-        }
-
-        function closeR2Lightbox() {
-            const lb = document.getElementById("r2Lightbox");
-            lb.classList.remove("active");
-            setTimeout(() => { lb.style.display = "none"; }, 300);
-        }
-
-        function moveR2Lightbox(direction) {
-            const track = document.getElementById("r2LightboxTrack");
-            const total = track.children.length;
-            currentR2Index = (currentR2Index + direction + total) % total;
-            track.style.transition = 'transform 0.4s ease-out';
-            track.style.transform = `translateX(-${currentR2Index * 100}vw)`;
-            updateR2DownloadLink();
-        }
-
-        function updateR2DownloadLink() {
-            // Ya no actualizamos el href estático porque usamos una función dinámica para forzar la descarga
-        }
-
-        async function triggerR2Download(e) {
-            e.preventDefault(); // Evita que la página salte arriba
-            const item = r2GalleryData[currentR2Index];
-            if (!item) return;
-            
-            const originalUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.original || item.thumb)}`;
-            
-            try {
-                // Cambiamos el icono temporalmente para mostrar que está descargando
-                const btn = document.getElementById("r2DownloadBtn");
-                const oldHTML = btn.innerHTML;
-                btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`; // Icono de carga simulado
-                
-                // Pedimos el archivo en crudo al Worker
-                const response = await fetch(originalUrl);
-                const blob = await response.blob();
-                
-                // Creamos un enlace interno temporal
-                const blobUrl = window.URL.createObjectURL(blob);
-                const tempLink = document.createElement("a");
-                tempLink.href = blobUrl;
-                tempLink.download = item.original || item.thumb;
-                
-                // Hacemos el clic fantasma para forzar la descarga
-                document.body.appendChild(tempLink);
-                tempLink.click();
-                
-                // Limpiamos la basura
-                document.body.removeChild(tempLink);
-                window.URL.revokeObjectURL(blobUrl);
-                
-                // Restauramos el icono original
-                btn.innerHTML = oldHTML;
-            } catch (error) {
-                console.error("Error al forzar la descarga:", error);
-                // Si algo falla (ej. bloqueos estrictos de Safari), abrimos en pestaña nueva como respaldo
-                window.open(originalUrl, '_blank');
-            }
-        }
-
-        // Lógica de Swipe para R2 Lightbox
-        let r2StartX = 0;
-        let r2EndX = 0;
-        document.addEventListener('DOMContentLoaded', () => {
-            const r2Track = document.getElementById('r2LightboxTrack');
-            if (r2Track) {
-                r2Track.addEventListener('touchstart', e => {
-                    r2StartX = e.changedTouches[0].screenX;
-                }, {passive: true});
-                
-                r2Track.addEventListener('touchend', e => {
-                    r2EndX = e.changedTouches[0].screenX;
-                    if (r2EndX < r2StartX - 40) moveR2Lightbox(1);
-                    if (r2EndX > r2StartX + 40) moveR2Lightbox(-1);
-                }, {passive: true});
-            }
-            loadR2Gallery();
-        });
 
     
 
         // ==========================================
         // LÓGICA DE CHICOSGRAM (FANCYBOX)
         // ==========================================
+        function toggleClearPhotosBtn() {
+            const input = document.getElementById("cgFileInput");
+            const btn = document.getElementById("cgClearPhotosBtn");
+            if (input.files && input.files.length > 0) {
+                btn.style.display = "flex";
+            } else {
+                btn.style.display = "none";
+            }
+        }
+
+        function clearSelectedPhotos() {
+            const input = document.getElementById("cgFileInput");
+            input.value = ""; // Limpia el selector
+            toggleClearPhotosBtn(); // Oculta el tache
+        }
+
         async function uploadFotosCG() {
             const guestNameInput = document.getElementById("cgGuestName").value.trim();
             const fileInput = document.getElementById("cgFileInput");
@@ -2290,7 +2063,7 @@
                 statusEl.style.display = "none";
                 statusEl.style.color = "#555";
                 loadCGGallery(); // Recarga Chicosgram
-                loadR2Gallery(); // Recarga la otra galeria tambien
+                
             }, 2000);
         }
 
