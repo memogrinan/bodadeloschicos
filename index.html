@@ -945,78 +945,6 @@
 
 
 
-    <!-- ========================================== -->
-    <!-- GALERÍA PRINCIPAL: CHICOSGRAM -->
-    <!-- ========================================== -->
-    <section id="fotos-invitados" class="fade-in-section" style="background-color: #faf9f7; border-top: 2px dashed #eaefe0; padding-top: 60px; padding-bottom: 60px;">
-        <div class="upload-section">
-            <h3 style="color: var(--olivo-base); font-size: 2.2rem; font-family: 'Prata', serif; font-style: italic; margin-bottom: 5px;">📸 Chicosgram</h3>
-            <p style="margin-top: 0; color: #555; font-size: 1.05rem;">Nuestra propia red social. Sube tus fotos y ayúdanos a armar el álbum más épico.</p>
-            
-            <div style="background: #ffffff; padding: 25px 20px; border-radius: 16px; margin-bottom: 30px; border: 1px solid rgba(82, 88, 47, 0.1); text-align: left; max-width: 420px; margin-left: auto; margin-right: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.04);">
-                
-                <div style="position: relative; margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Nombre del Paparazzi</label>
-                    <input type="text" id="cgGuestName" placeholder="Ej. Memo y Mariana" style="width: 100%; padding: 14px 16px; border: 1.5px solid #eaeaea; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 1rem; color: #333; transition: border-color 0.3s ease; outline: none;" onfocus="this.style.borderColor='var(--olivo-base)'" onblur="this.style.borderColor='#eaeaea'">
-                </div>
-                
-                <div style="position: relative; margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Tus mejores tomas</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="file" id="cgFileInput" multiple accept="image/*" style="width: 100%; font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; cursor: pointer;" onchange="toggleClearPhotosBtn()">
-                        <button id="cgClearPhotosBtn" onclick="clearSelectedPhotos()" style="display: none; background: #ffebee; color: #d32f2f; border: none; border-radius: 8px; width: 42px; height: 42px; cursor: pointer; font-size: 1.2rem; align-items: center; justify-content: center; transition: background 0.2s;" title="Descartar fotos">
-                            &times;
-                        </button>
-                    </div>
-                </div>
-                
-                <button id="cgUploadBtn" onclick="uploadFotosCG()" class="btn btn-rsvp" style="width: 100%; padding: 15px; background-color: var(--olivo-base); color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(82, 88, 47, 0.25); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(82, 88, 47, 0.35)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(82, 88, 47, 0.25)'">Publicar en Chicosgram 🚀</button>
-                <p id="cgUploadStatus" style="font-size: 0.9rem; color: #555; margin-top: 15px; font-weight: bold; text-align: center; display: none;"></p>
-            </div>
-
-            <div class="gallery-grid" id="cgGalleryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 0;">
-                <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando feed...</p>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- NUEVA SECCIÓN: ACCESO AL ARCADE DE JUEGOS CON FONDO RETRO ELEGANTE -->
-    <section id="juegos-acceso" class="fade-in-section retro-grid-bg" style="padding: 80px 20px; border-top: 1px solid rgba(82, 88, 47, 0.08); border-bottom: 1px solid rgba(82, 88, 47, 0.08);">
-        <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 15px;">Juegos de los Chicos</h2>
-        
-        <div style="font-size: 1.05rem; line-height: 1.8; color: #444; max-width: 650px; margin: 0 auto;">
-            <p style="font-weight: 600; color: var(--olivo-base); font-size: 1.15rem;">¿No puedes esperar a la boda? Pasa el tiempo con nuestros juegos y llévate un premio el día de la boda.</p>
-            <p style="font-style: italic; font-size: 0.92rem; margin-top: 10px; color: #666; line-height: 1.6;">
-                Supera el puntaje de los 4 juegos que diseñamos para ti. Si logras conquistar todos los retos, podrás reclamar un premio exclusivo el día del evento.
-            </p>
-        </div>
-
-        <!-- Vista previa discreta de los desafíos -->
-        <div style="max-width: 680px; margin: 35px auto 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; text-align: left;">
-            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
-                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🦖 Chicosaurio</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Ayuda al Chico a esquivar juntas, correos y alarmas, y atrapa controles de videojuegos para ganar puntos extra.</p>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
-                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">👰🏻 Atrapa el Amor</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Mueve a la Novia para recolectar corazones y anillos de compromiso antes de que caigan, esquivando las tormentas.</p>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
-                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🐶 Atrapa a Maddie</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Atrapa a Maddie cada vez que asome por su jardín antes de que termine el tiempo. ¡Cuidado con las popós!</p>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
-                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🚗 Camino a Puebla</h4>
-                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Conduce por la autopista rumbo a Puebla esquivando el tráfico y baches mientras recolectas chalupas y turbos.</p>
-            </div>
-        </div>
-
-        <div style="margin-top: 40px;">
-            <a href="juegos.html?v=5.0" onclick="const p=localStorage.getItem('bodachicos_party_id') || new URLSearchParams(window.location.search).get('p'); if(p) this.href='juegos.html?v=5.0&p='+encodeURIComponent(p);" class="btn btn-rsvp" style="background-color: var(--olivo-base); box-shadow: 0 4px 15px rgba(82, 88, 47, 0.15);">Entrar al Arcade 🎮</a>
-        </div>
-    </section>
-
     <!-- MESA DE REGALOS -->
     <section id="mesa-de-regalos" class="gifts-section fade-in-section" style="padding: 80px 20px; background-color: var(--crema-fondo); text-align: center; border-top: 1px solid rgba(82, 88, 47, 0.08);">
         <div class="gifts-header" style="max-width: 650px; margin: 0 auto;">
@@ -1915,6 +1843,78 @@
 
 
     
+
+    <!-- NUEVA SECCIÓN: ACCESO AL ARCADE DE JUEGOS CON FONDO RETRO ELEGANTE -->
+    <section id="juegos-acceso" class="fade-in-section retro-grid-bg" style="padding: 80px 20px; border-top: 1px solid rgba(82, 88, 47, 0.08); border-bottom: 1px solid rgba(82, 88, 47, 0.08);">
+        <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 15px;">Juegos de los Chicos</h2>
+        
+        <div style="font-size: 1.05rem; line-height: 1.8; color: #444; max-width: 650px; margin: 0 auto;">
+            <p style="font-weight: 600; color: var(--olivo-base); font-size: 1.15rem;">¿No puedes esperar a la boda? Pasa el tiempo con nuestros juegos y llévate un premio el día de la boda.</p>
+            <p style="font-style: italic; font-size: 0.92rem; margin-top: 10px; color: #666; line-height: 1.6;">
+                Supera el puntaje de los 4 juegos que diseñamos para ti. Si logras conquistar todos los retos, podrás reclamar un premio exclusivo el día del evento.
+            </p>
+        </div>
+
+        <!-- Vista previa discreta de los desafíos -->
+        <div style="max-width: 680px; margin: 35px auto 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; text-align: left;">
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🦖 Chicosaurio</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Ayuda al Chico a esquivar juntas, correos y alarmas, y atrapa controles de videojuegos para ganar puntos extra.</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">👰🏻 Atrapa el Amor</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Mueve a la Novia para recolectar corazones y anillos de compromiso antes de que caigan, esquivando las tormentas.</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🐶 Atrapa a Maddie</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Atrapa a Maddie cada vez que asome por su jardín antes de que termine el tiempo. ¡Cuidado con las popós!</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: 0.95rem;">🚗 Camino a Puebla</h4>
+                <p style="font-size: 0.82rem; color: #666; margin: 0; line-height: 1.5;">Conduce por la autopista rumbo a Puebla esquivando el tráfico y baches mientras recolectas chalupas y turbos.</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <a href="juegos.html?v=5.0" onclick="const p=localStorage.getItem('bodachicos_party_id') || new URLSearchParams(window.location.search).get('p'); if(p) this.href='juegos.html?v=5.0&p='+encodeURIComponent(p);" class="btn btn-rsvp" style="background-color: var(--olivo-base); box-shadow: 0 4px 15px rgba(82, 88, 47, 0.15);">Entrar al Arcade 🎮</a>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- GALERÍA PRINCIPAL: CHICOSGRAM -->
+    <!-- ========================================== -->
+    <section id="fotos-invitados" class="fade-in-section" style="background-color: #faf9f7; border-top: 2px dashed #eaefe0; padding-top: 60px; padding-bottom: 60px;">
+        <div class="upload-section">
+            <h3 style="color: var(--olivo-base); font-size: 2.2rem; font-family: 'Prata', serif; font-style: italic; margin-bottom: 5px;">📸 Chicosgram</h3>
+            <p style="margin-top: 0; color: #555; font-size: 1.05rem;">Nuestra propia red social. Sube tus fotos y ayúdanos a armar el álbum más épico.</p>
+            
+            <div style="background: #ffffff; padding: 25px 20px; border-radius: 16px; margin-bottom: 30px; border: 1px solid rgba(82, 88, 47, 0.1); text-align: left; max-width: 420px; margin-left: auto; margin-right: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.04);">
+                
+                <div style="position: relative; margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Nombre del Paparazzi</label>
+                    <input type="text" id="cgGuestName" placeholder="Ej. Memo y Mariana" style="width: 100%; padding: 14px 16px; border: 1.5px solid #eaeaea; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 1rem; color: #333; transition: border-color 0.3s ease; outline: none;" onfocus="this.style.borderColor='var(--olivo-base)'" onblur="this.style.borderColor='#eaeaea'">
+                </div>
+                
+                <div style="position: relative; margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Tus mejores tomas</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="file" id="cgFileInput" multiple accept="image/*" style="width: 100%; font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; cursor: pointer;" onchange="toggleClearPhotosBtn()">
+                        <button id="cgClearPhotosBtn" onclick="clearSelectedPhotos()" style="display: none; background: #ffebee; color: #d32f2f; border: none; border-radius: 8px; width: 42px; height: 42px; cursor: pointer; font-size: 1.2rem; align-items: center; justify-content: center; transition: background 0.2s;" title="Descartar fotos">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                
+                <button id="cgUploadBtn" onclick="uploadFotosCG()" class="btn btn-rsvp" style="width: 100%; padding: 15px; background-color: var(--olivo-base); color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(82, 88, 47, 0.25); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(82, 88, 47, 0.35)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(82, 88, 47, 0.25)'">Publicar en Chicosgram 🚀</button>
+                <p id="cgUploadStatus" style="font-size: 0.9rem; color: #555; margin-top: 15px; font-weight: bold; text-align: center; display: none;"></p>
+            </div>
+
+            <div class="gallery-grid" id="cgGalleryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 0;">
+                <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando feed...</p>
+            </div>
+        </div>
+    </section>
+
 
     <!-- LÓGICA DE CLOUDFLARE R2 Y COMPRESIÓN -->
     <script>
