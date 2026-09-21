@@ -2153,22 +2153,16 @@
                             display: {
                                 left: ["infobar"],
                                 middle: [],
-                                right: ["slideshow", "customDownload", "close"],
+                                right: ["slideshow", "downloadAction", "close"],
                             },
                             items: {
-                                customDownload: {
-                                    type: "button",
-                                    label: "Descargar",
-                                    html: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
-                                    click: async function(event) {
-                                        event.preventDefault();
+                                downloadAction: {
+                                    tpl: `<button class="f-button" title="Descargar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>`,
+                                    click: async () => {
                                         const fancybox = Fancybox.getInstance();
+                                        if (!fancybox) return;
                                         const slide = fancybox.getSlide();
                                         if (!slide) return;
-                                        
-                                        const btnEl = event.currentTarget;
-                                        const oldHtml = btnEl.innerHTML;
-                                        btnEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`;
                                         
                                         const originalUrl = slide.src;
                                         try {
@@ -2182,21 +2176,15 @@
                                             tempLink.click();
                                             document.body.removeChild(tempLink);
                                             window.URL.revokeObjectURL(blobUrl);
-                                            btnEl.innerHTML = oldHtml;
                                         } catch (e) {
-                                            console.error("Error downloading", e);
                                             window.open(originalUrl, '_blank');
-                                            btnEl.innerHTML = oldHtml;
                                         }
                                     }
                                 }
                             }
                         },
-                        // Desactivamos la animación de zoom de apertura porque causa parpadeo
-                        Images: { 
-                            zoom: false
-                        },
-                        Hash: false // Para no cambiar el URL de la página
+                        Images: { zoom: false },
+                        Hash: false 
                     });
                 }
 
