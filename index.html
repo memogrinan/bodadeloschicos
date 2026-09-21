@@ -1978,33 +1978,103 @@
             }, 2000);
         }
 
+
+        let r2GalleryData = [];
+        let currentR2Index = 0;
+
         async function loadR2Gallery() {
             const container = document.getElementById("r2GalleryGrid");
+            const lightboxTrack = document.getElementById("r2LightboxTrack");
+            
             try {
                 const response = await fetch(`${WORKER_URL}/api/fotos`);
                 if (!response.ok) {
                     container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Error al conectar con la galería R2.</p>";
                     return;
                 }
-                const thumbs = await response.json();
+                const allKeys = await response.json();
                 
-                if (thumbs.length === 0) {
+                if (allKeys.length === 0) {
                     container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Aún no hay fotos en esta nueva versión. ¡Sé el primero!</p>";
                     return;
                 }
 
+                // Agrupar las llaves. El worker ahora devolverá TODAS las llaves (originales y thumbs)
+                // Formato: 1789958791676-chico-thumb.webp y 1789958791676-chico-original.jpg
+                const mapByPrefix = {};
+                allKeys.forEach(key => {
+                    const match = key.match(/^(\d+)-(.*?)-(thumb|original)\.\w+$/);
+                    if (match) {
+                        const prefix = `${match[1]}-${match[2]}`;
+                        if (!mapByPrefix[prefix]) mapByPrefix[prefix] = { rawName: match[2], thumb: null, original: null };
+                        mapByPrefix[prefix][match[3]] = key;
+                    } else if (key.includes('-thumb.')) {
+                        // Respaldo por si el worker viejo solo mandó thumbs
+                        const prefix = key.split('-thumb.')[0];
+                        const parts = prefix.split('-');
+                        const rawName = parts.slice(1).join('-');
+                        if (!mapByPrefix[prefix]) mapByPrefix[prefix] = { rawName: rawName, thumb: key, original: key }; // Fallback a thumb si no hay original
+                    }
+                });
+
+                r2GalleryData = Object.values(mapByPrefix).filter(item => item.thumb);
+                
+                // Ordenar por timestamp descendente (más recientes primero)
+                r2GalleryData.sort((a, b) => {
+                    const tsA = parseInt(a.thumb.split('-')[0]);
+                    const tsB = parseInt(b.thumb.split('-')[0]);
+                    return tsB - tsA;
+                });
+
                 container.innerHTML = "";
-                thumbs.forEach(key => {
+                lightboxTrack.innerHTML = "";
+                
+                r2GalleryData.forEach((item, index) => {
+                    // Formatear el nombre
+                    const cleanName = item.rawName.replace(/_/g, " ").replace(/\w/g, l => l.toUpperCase());
+
+                    // --- ITEM DE GALERÍA (MINIATURA) ---
                     const itemEl = document.createElement("div");
                     itemEl.className = "gallery-item";
 
                     const imgEl = document.createElement("img");
-                    // Obtenemos la imagen usando nuestro Worker como intermediario seguro
-                    imgEl.src = `${WORKER_URL}/api/fotos/${encodeURIComponent(key)}`;
+                    imgEl.src = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.thumb)}`;
                     imgEl.loading = "lazy";
                     
+                    imgEl.addEventListener("click", () => {
+                        openR2Lightbox(index);
+                    });
+                    
                     itemEl.appendChild(imgEl);
+
+                    // Nombre del invitado debajo de la miniatura
+                    if (cleanName && cleanName.toLowerCase() !== "anonimo") {
+                        const textEl = document.createElement("div");
+                        textEl.className = "gallery-caption";
+                        textEl.innerText = cleanName;
+                        itemEl.appendChild(textEl);
+                    }
                     container.appendChild(itemEl);
+
+                    // --- ITEM DEL LIGHTBOX (ORIGINAL) ---
+                    const slide = document.createElement("div");
+                    slide.style.cssText = "min-width: 100vw; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;";
+                    
+                    const lbImg = document.createElement("img");
+                    // Si encontramos el original, lo usamos. Si no (worker viejo), usamos el thumb.
+                    const originalUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.original || item.thumb)}`;
+                    lbImg.src = originalUrl;
+                    lbImg.className = "lightbox-content";
+                    lbImg.loading = "lazy";
+                    slide.appendChild(lbImg);
+
+                    if (cleanName && cleanName.toLowerCase() !== "anonimo") {
+                        const lbText = document.createElement("p");
+                        lbText.innerText = `Subida por: ${cleanName}`;
+                        lbText.style.cssText = "color: rgba(255,255,255,0.9); font-family: 'Montserrat', sans-serif; font-size: 0.95rem; margin-top: 15px; letter-spacing: 0.5px;";
+                        slide.appendChild(lbText);
+                    }
+                    lightboxTrack.appendChild(slide);
                 });
             } catch (error) {
                 console.error("Error fetching R2 gallery", error);
@@ -2012,9 +2082,61 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        function openR2Lightbox(index) {
+            currentR2Index = index;
+            const lightboxTrack = document.getElementById("r2LightboxTrack");
+            lightboxTrack.style.transition = 'none';
+            lightboxTrack.style.transform = `translateX(-${currentR2Index * 100}vw)`;
+            updateR2DownloadLink();
+            
+            const lb = document.getElementById("r2Lightbox");
+            lb.style.display = "flex";
+            setTimeout(() => { lb.classList.add("active"); }, 10);
+        }
+
+        function closeR2Lightbox() {
+            const lb = document.getElementById("r2Lightbox");
+            lb.classList.remove("active");
+            setTimeout(() => { lb.style.display = "none"; }, 300);
+        }
+
+        function moveR2Lightbox(direction) {
+            const track = document.getElementById("r2LightboxTrack");
+            const total = track.children.length;
+            currentR2Index = (currentR2Index + direction + total) % total;
+            track.style.transition = 'transform 0.4s ease-out';
+            track.style.transform = `translateX(-${currentR2Index * 100}vw)`;
+            updateR2DownloadLink();
+        }
+
+        function updateR2DownloadLink() {
+            const item = r2GalleryData[currentR2Index];
+            const btn = document.getElementById("r2DownloadBtn");
+            if (item) {
+                const originalUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.original || item.thumb)}`;
+                btn.href = originalUrl;
+            }
+        }
+
+        // Lógica de Swipe para R2 Lightbox
+        let r2StartX = 0;
+        let r2EndX = 0;
+        document.addEventListener('DOMContentLoaded', () => {
+            const r2Track = document.getElementById('r2LightboxTrack');
+            if (r2Track) {
+                r2Track.addEventListener('touchstart', e => {
+                    r2StartX = e.changedTouches[0].screenX;
+                }, {passive: true});
+                
+                r2Track.addEventListener('touchend', e => {
+                    r2EndX = e.changedTouches[0].screenX;
+                    if (r2EndX < r2StartX - 40) moveR2Lightbox(1);
+                    if (r2EndX > r2StartX + 40) moveR2Lightbox(-1);
+                }, {passive: true});
+            }
             loadR2Gallery();
         });
+
     </script>
 
 </body>
