@@ -2131,7 +2131,7 @@
                     
                     const imgEl = document.createElement("img");
                     imgEl.src = thumbUrl;
-                    imgEl.loading = "lazy";
+                    // Quitamos loading="lazy" porque Fancybox clona este elemento para la animacion y causaba parpadeos
                     imgEl.style.width = "100%";
                     imgEl.style.height = "100%";
                     imgEl.style.objectFit = "cover"; 
