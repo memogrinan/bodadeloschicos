@@ -2186,8 +2186,24 @@
                                 }
                             }
                         },
-                        Carousel: { preload: 3 }, // Pre-carga 3 imagenes a la vez para swipe sin cortes
-                        Hash: false 
+                        Carousel: { preload: 3 },
+                        Images: { zoom: false },
+                        Hash: false,
+                        // El arma secreta: renderizamos la imagen como un bloque CSS (background)
+                        // Esto EVITA que el navegador manipule las etiquetas <img> (lo cual causa los molestos parpadeos)
+                        on: {
+                            "initLayout": (fancybox) => {
+                                const container = fancybox.container;
+                                if(container) container.style.backgroundColor = "rgba(0,0,0,0.95)";
+                            },
+                            "Carousel.createSlide": (fancybox, carousel, slide) => {
+                                const originalUrl = slide.triggerEl ? slide.triggerEl.getAttribute("href") : slide.src;
+                                if (originalUrl && !slide.html) {
+                                    slide.type = "html";
+                                    slide.html = `<div style="width: 100vw; height: 100vh; background-image: url('${originalUrl}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>`;
+                                }
+                            }
+                        }
                     });
                 }
 
