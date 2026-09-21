@@ -2124,8 +2124,6 @@
                     aEl.href = thumbUrl; 
                     // Guardamos el enlace del archivo gigante original en secreto para el boton de descarga
                     aEl.setAttribute("data-original", originalUrl); 
-                    
-                    aEl.setAttribute("data-thumb", thumbUrl); 
                     aEl.setAttribute("data-caption", cleanName && cleanName.toLowerCase() !== "anonimo" ? `📸 Subida por: ${cleanName}` : "");
                     aEl.style.display = "block";
                     aEl.style.width = "100%";
@@ -2187,7 +2185,6 @@
                             }
                         },
                         Images: { zoom: false },
-                        Carousel: { transition: "fade" }, // Suaviza la transicion entre imagenes
                         Hash: false 
                     });
                 }
