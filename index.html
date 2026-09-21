@@ -586,6 +586,20 @@
     <!-- Fancybox para Chicosgram -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+
+    <style>
+        /* Ajuste de Z-Index para que Fancybox pase por encima de la barra de navegacion */
+        .fancybox__container { z-index: 99999 !important; }
+        
+        /* Chicosgram Grid */
+        #cgGalleryGrid .gallery-item {
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+        #cgGalleryGrid .gallery-item img {
+            border-radius: 0 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -2320,20 +2334,23 @@
                     // FANCYBOX WRAPPER (EL <a> TAG)
                     const aEl = document.createElement("a");
                     aEl.setAttribute("data-fancybox", "chicosgram-gallery");
+                    const thumbUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.thumb)}`;
                     const originalUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.original || item.thumb)}`;
                     aEl.href = originalUrl;
+                    aEl.setAttribute("data-thumb", thumbUrl); // Evita el parpadeo usando el thumbnail mientras descarga el HD
                     aEl.setAttribute("data-caption", cleanName && cleanName.toLowerCase() !== "anonimo" ? `📸 Subida por: ${cleanName}` : "");
                     aEl.style.display = "block";
                     aEl.style.width = "100%";
                     aEl.style.height = "100%";
                     
                     const imgEl = document.createElement("img");
-                    imgEl.src = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.thumb)}`;
+                    imgEl.src = thumbUrl;
                     imgEl.loading = "lazy";
                     imgEl.style.width = "100%";
                     imgEl.style.height = "100%";
-                    imgEl.style.objectFit = "cover"; // Llena el cuadrado recortando los bordes
+                    imgEl.style.objectFit = "cover"; 
                     imgEl.style.display = "block";
+                    imgEl.style.borderRadius = "0"; // Quitamos esquinas redondeadas de la imagen
                     
                     aEl.appendChild(imgEl);
                     itemEl.appendChild(aEl);
@@ -2350,10 +2367,11 @@
                             display: {
                                 left: ["infobar"],
                                 middle: [],
-                                right: ["download", "close"],
+                                right: ["slideshow", "download", "close"],
                             }
                         },
-                        Images: { zoom: true }
+                        Images: { zoom: true },
+                        Hash: false // Para no cambiar el URL de la página
                     });
                 }
 
