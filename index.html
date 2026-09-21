@@ -2055,7 +2055,7 @@
                 
                 r2GalleryData.forEach((item, index) => {
                     // Formatear el nombre
-                    const cleanName = item.rawName.replace(/_/g, " ").replace(/\w/g, l => l.toUpperCase());
+                    const cleanName = item.rawName.replace(/_/g, " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
                     // --- ITEM DE GALERÍA (MINIATURA) ---
                     const itemEl = document.createElement("div");
