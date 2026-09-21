@@ -582,6 +582,7 @@
         }
 
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 </head>
 <body>
 
@@ -940,6 +941,32 @@
             </div>
         </div>
     </section>
+    <!-- ========================================== -->
+    <!-- NUEVA VERSIÓN: CLOUDFLARE R2 + COMPRESIÓN LOCAL (BETA) -->
+    <!-- ========================================== -->
+    <section id="fotos-invitados-r2" class="fade-in-section" style="background-color: #f9faf7; border-top: 2px dashed #eaefe0; padding-top: 40px; padding-bottom: 40px;">
+        <div class="upload-section">
+            <h3 style="color: var(--olivo-base); font-size: 1.8rem; font-family: 'Prata', serif; font-style: italic;">¡Comparte tus fotos! (Versión R2 Beta)</h3>
+            <p>Prueba nuestra nueva subida ultra-rápida. Tus fotos se comprimirán solas.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eaefe0; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Tu nombre / Apodo del Paparazzi:</label>
+                <input type="text" id="r2GuestName" placeholder="Ej. Memo y Mariana" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit;">
+                
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; color: var(--olivo-base);">Selecciona tus fotos:</label>
+                <input type="file" id="r2FileInput" multiple accept="image/*" style="width: 100%; margin-bottom: 15px; font-size: 0.85rem;">
+                
+                <button id="r2UploadBtn" onclick="uploadFotosR2()" class="btn btn-rsvp" style="width: 100%; padding: 12px;">Subir Fotos 🚀</button>
+                <p id="r2UploadStatus" style="font-size: 0.85rem; color: #555; margin-top: 10px; font-weight: bold; text-align: center; display: none;"></p>
+            </div>
+
+            <!-- GALERÍA DINÁMICA DE IMÁGENES DESDE R2 -->
+            <div class="gallery-grid" id="r2GalleryGrid">
+                <p style="grid-column: 1 / -1; color: #888; font-size: 0.9rem; font-style: italic;">Cargando fotos desde R2...</p>
+            </div>
+        </div>
+    </section>
+
 
     <!-- NUEVA SECCIÓN: ACCESO AL ARCADE DE JUEGOS CON FONDO RETRO ELEGANTE -->
     <section id="juegos-acceso" class="fade-in-section retro-grid-bg" style="padding: 80px 20px; border-top: 1px solid rgba(82, 88, 47, 0.08); border-bottom: 1px solid rgba(82, 88, 47, 0.08);">
@@ -1869,6 +1896,124 @@
                     setTimeout(() => successOverlay.remove(), 400);
                 });
             }
+        });
+    </script>
+
+
+    <!-- LÓGICA DE CLOUDFLARE R2 Y COMPRESIÓN -->
+    <script>
+        // ¡IMPORTANTE! Reemplaza esta URL con la URL final de tu Worker
+        // Ej: https://bodadeloschicos-fotos.tudominio.workers.dev
+        const WORKER_URL = "https://bodadeloschicos-fotos.TU_USUARIO.workers.dev";
+
+        async function uploadFotosR2() {
+            const guestNameInput = document.getElementById("r2GuestName").value.trim();
+            const fileInput = document.getElementById("r2FileInput");
+            const statusEl = document.getElementById("r2UploadStatus");
+            const btn = document.getElementById("r2UploadBtn");
+
+            if (!guestNameInput) {
+                alert("¡Por favor ingresa tu nombre de paparazzi primero!");
+                return;
+            }
+            if (fileInput.files.length === 0) {
+                alert("¡Selecciona al menos una foto para subir!");
+                return;
+            }
+
+            statusEl.style.display = "block";
+            btn.disabled = true;
+
+            const files = Array.from(fileInput.files);
+            let uploadedCount = 0;
+
+            const options = {
+                maxSizeMB: 0.3, // 300KB
+                maxWidthOrHeight: 1080,
+                useWebWorker: true,
+                fileType: "image/webp"
+            };
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                statusEl.innerText = `Comprimiendo y subiendo foto ${i + 1} de ${files.length}...`;
+
+                try {
+                    // Comprimir para crear el Thumbnail
+                    const compressedBlob = await imageCompression(file, options);
+                    const thumbFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: "image/webp" });
+
+                    // Preparar la carga útil
+                    const formData = new FormData();
+                    formData.append("guestName", guestNameInput);
+                    formData.append("original", file);
+                    formData.append("thumb", thumbFile);
+
+                    // Enviar al Worker
+                    const response = await fetch(`${WORKER_URL}/api/upload`, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        uploadedCount++;
+                    } else {
+                        console.error("Error al subir foto", await response.text());
+                    }
+                } catch (error) {
+                    console.error("Error comprimiendo/subiendo", error);
+                }
+            }
+
+            statusEl.innerText = `¡Éxito! Se subieron ${uploadedCount} fotos correctamente.`;
+            statusEl.style.color = "green";
+            fileInput.value = ""; // Limpiar input
+            btn.disabled = false;
+            
+            // Recargar la galería después de 2 segundos
+            setTimeout(() => {
+                statusEl.style.display = "none";
+                statusEl.style.color = "#555";
+                loadR2Gallery();
+            }, 2000);
+        }
+
+        async function loadR2Gallery() {
+            const container = document.getElementById("r2GalleryGrid");
+            try {
+                const response = await fetch(`${WORKER_URL}/api/fotos`);
+                if (!response.ok) {
+                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Error al conectar con la galería R2.</p>";
+                    return;
+                }
+                const thumbs = await response.json();
+                
+                if (thumbs.length === 0) {
+                    container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Aún no hay fotos en esta nueva versión. ¡Sé el primero!</p>";
+                    return;
+                }
+
+                container.innerHTML = "";
+                thumbs.forEach(key => {
+                    const itemEl = document.createElement("div");
+                    itemEl.className = "gallery-item";
+
+                    const imgEl = document.createElement("img");
+                    // Obtenemos la imagen usando nuestro Worker como intermediario seguro
+                    imgEl.src = `${WORKER_URL}/api/fotos/${encodeURIComponent(key)}`;
+                    imgEl.loading = "lazy";
+                    
+                    itemEl.appendChild(imgEl);
+                    container.appendChild(itemEl);
+                });
+            } catch (error) {
+                console.error("Error fetching R2 gallery", error);
+                container.innerHTML = "<p style='grid-column: 1 / -1; color: #888; font-size: 0.85rem; font-style: italic;'>Las fotos de R2 se mostrarán aquí.</p>";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadR2Gallery();
         });
     </script>
 
