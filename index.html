@@ -592,21 +592,6 @@
         .fancybox__container { z-index: 99999 !important; }
         
         /* Chicosgram Grid */
-        .f-carousel__slide {
-            transition: opacity 0.3s ease; /* Transicion suave al cargar */
-        }
-        .f-carousel__slide.is-loading .f-image {
-            opacity: 0;
-        }
-        .f-carousel__slide.is-ready .f-image {
-            opacity: 1;
-            animation: fadeInImage 0.4s ease-out forwards;
-        }
-        @keyframes fadeInImage {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        
         #cgGalleryGrid .gallery-item {
         #cgGalleryGrid .gallery-item img {
             border-radius: 0 !important;
@@ -2134,8 +2119,13 @@
                     aEl.setAttribute("data-fancybox", "chicosgram-gallery");
                     const thumbUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.thumb)}`;
                     const originalUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.original || item.thumb)}`;
-                    aEl.href = originalUrl;
-                    aEl.setAttribute("data-thumb", thumbUrl); // Evita el parpadeo usando el thumbnail mientras descarga el HD
+                    
+                    // CLAVE PARA VELOCIDAD: Fancybox muestra la version webp 1080p
+                    aEl.href = thumbUrl; 
+                    // Guardamos el enlace del archivo gigante original en secreto para el boton de descarga
+                    aEl.setAttribute("data-original", originalUrl); 
+                    
+                    aEl.setAttribute("data-thumb", thumbUrl); 
                     aEl.setAttribute("data-caption", cleanName && cleanName.toLowerCase() !== "anonimo" ? `📸 Subida por: ${cleanName}` : "");
                     aEl.style.display = "block";
                     aEl.style.width = "100%";
@@ -2176,7 +2166,8 @@
                                         const slide = fancybox.getSlide();
                                         if (!slide) return;
                                         
-                                        const originalUrl = slide.src;
+                                        // Leemos el URL original secreto que guardamos en el tag <a>
+                                        const originalUrl = slide.triggerEl ? slide.triggerEl.getAttribute("data-original") : slide.src;
                                         try {
                                             const response = await fetch(originalUrl);
                                             const blob = await response.blob();
