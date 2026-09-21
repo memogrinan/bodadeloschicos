@@ -2198,6 +2198,136 @@
             loadR2Gallery();
         });
 
+    
+
+        // ==========================================
+        // LÓGICA DE CHICOSGRAM (FANCYBOX)
+        // ==========================================
+        async function uploadFotosCG() {
+            const guestNameInput = document.getElementById("cgGuestName").value.trim();
+            const fileInput = document.getElementById("cgFileInput");
+            const statusEl = document.getElementById("cgUploadStatus");
+            const btn = document.getElementById("cgUploadBtn");
+
+            if (!guestNameInput) { alert("¡Por favor ingresa tu nombre primero!"); return; }
+            if (fileInput.files.length === 0) { alert("¡Selecciona al menos una foto para publicar!"); return; }
+
+            statusEl.style.display = "block";
+            btn.disabled = true;
+
+            const files = Array.from(fileInput.files);
+            let uploadedCount = 0;
+
+            const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1080, useWebWorker: true, fileType: "image/webp" };
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                statusEl.innerText = `Publicando foto ${i + 1} de ${files.length}...`;
+
+                try {
+                    const compressedBlob = await imageCompression(file, options);
+                    const thumbFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: "image/webp" });
+
+                    const formData = new FormData();
+                    formData.append("guestName", guestNameInput);
+                    formData.append("original", file);
+                    formData.append("thumb", thumbFile);
+
+                    const response = await fetch(`${WORKER_URL}/api/upload`, { method: "POST", body: formData });
+                    if (response.ok) uploadedCount++;
+                } catch (error) { console.error("Error", error); }
+            }
+
+            statusEl.innerText = `¡Éxito! Se publicaron ${uploadedCount} fotos en el feed.`;
+            statusEl.style.color = "green";
+            fileInput.value = ""; 
+            btn.disabled = false;
+            
+            setTimeout(() => {
+                statusEl.style.display = "none";
+                statusEl.style.color = "#555";
+                loadCGGallery(); // Recarga Chicosgram
+                loadR2Gallery(); // Recarga la otra galeria tambien
+            }, 2000);
+        }
+
+        async function loadCGGallery() {
+            const container = document.getElementById("cgGalleryGrid");
+            try {
+                const response = await fetch(`${WORKER_URL}/api/fotos`);
+                const allKeys = await response.json();
+                
+                const mapByPrefix = {};
+                allKeys.forEach(key => {
+                    const match = key.match(/^(\d+)-(.*?)-(thumb|original)\.\w+$/);
+                    if (match) {
+                        const prefix = `${match[1]}-${match[2]}`;
+                        if (!mapByPrefix[prefix]) mapByPrefix[prefix] = { rawName: match[2], thumb: null, original: null };
+                        mapByPrefix[prefix][match[3]] = key;
+                    } else if (key.includes('-thumb.')) {
+                        const prefix = key.split('-thumb.')[0];
+                        const rawName = prefix.split('-').slice(1).join('-');
+                        if (!mapByPrefix[prefix]) mapByPrefix[prefix] = { rawName: rawName, thumb: key, original: key };
+                    }
+                });
+
+                let galleryData = Object.values(mapByPrefix).filter(item => item.thumb);
+                galleryData.sort((a, b) => parseInt(b.thumb.split('-')[0]) - parseInt(a.thumb.split('-')[0]));
+
+                container.innerHTML = "";
+                
+                galleryData.forEach(item => {
+                    const cleanName = item.rawName.replace(/_/g, " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+                    
+                    const itemEl = document.createElement("div");
+                    itemEl.className = "gallery-item";
+
+                    // FANCYBOX WRAPPER (EL <a> TAG)
+                    const aEl = document.createElement("a");
+                    aEl.setAttribute("data-fancybox", "chicosgram-gallery");
+                    const originalUrl = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.original || item.thumb)}`;
+                    aEl.href = originalUrl;
+                    aEl.setAttribute("data-caption", cleanName && cleanName.toLowerCase() !== "anonimo" ? `Subida por: ${cleanName}` : "");
+                    
+                    const imgEl = document.createElement("img");
+                    imgEl.src = `${WORKER_URL}/api/fotos/${encodeURIComponent(item.thumb)}`;
+                    imgEl.loading = "lazy";
+                    
+                    aEl.appendChild(imgEl);
+                    itemEl.appendChild(aEl);
+
+                    if (cleanName && cleanName.toLowerCase() !== "anonimo") {
+                        const textEl = document.createElement("div");
+                        textEl.className = "gallery-caption";
+                        textEl.innerText = cleanName;
+                        itemEl.appendChild(textEl);
+                    }
+                    container.appendChild(itemEl);
+                });
+                
+                // Inicializar Fancybox para esta galeria
+                if (typeof Fancybox !== "undefined") {
+                    Fancybox.bind('[data-fancybox="chicosgram-gallery"]', {
+                        Toolbar: {
+                            display: {
+                                left: ["infobar"],
+                                middle: [],
+                                right: ["download", "close"],
+                            }
+                        },
+                        Images: { zoom: true }
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error fetching Chicosgram", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCGGallery();
+        });
+
     </script>
 
 </body>
