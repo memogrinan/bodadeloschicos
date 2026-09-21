@@ -592,8 +592,14 @@
         .fancybox__container { z-index: 99999 !important; }
         
         /* Chicosgram Grid */
-        /* Forzar que Fancybox no parpadee al asentar la imagen */
-        .f-image { transition: none !important; animation: none !important; }
+        /* Forzar aceleración por hardware en Fancybox para evitar el parpadeo (repainting) al soltar el swipe en móviles */
+        .f-carousel__track, .f-carousel__slide, .f-image {
+            -webkit-transform: translate3d(0,0,0) !important;
+            -webkit-backface-visibility: hidden !important;
+            -webkit-perspective: 1000px !important;
+            backface-visibility: hidden !important;
+            transform: translateZ(0) !important;
+        }
         
         #cgGalleryGrid .gallery-item {
         #cgGalleryGrid .gallery-item img {
@@ -2187,12 +2193,7 @@
                                 }
                             }
                         },
-                        Carousel: { 
-                            preload: 3,
-                            Panzoom: {
-                                touch: false // Desactiva el drag/swipe en movil (se navegará con tap/flechas), eliminando el origen del flicker
-                            }
-                        }, // Pre-carga 3 imagenes a la vez para swipe sin cortes
+                        Carousel: { preload: 3 }, // Pre-carga 3 imagenes a la vez para swipe sin cortes
                         Hash: false 
                     });
                 }
