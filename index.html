@@ -2208,7 +2208,9 @@
                             }
                         },
                         Carousel: { preload: 3, Panzoom: { touch: false } },
-                        // Quitamos las clases forzadas para dejar que haga su animacion de zoom nativa perfecta
+                        Images: { zoom: false }, // APAGADO el motor de zoom animado
+                        showClass: "f-fadeIn", // Animacion de entrada suave
+                        hideClass: "f-fadeOut", // Animacion de salida suave
                         Hash: false
                     });
                 }
