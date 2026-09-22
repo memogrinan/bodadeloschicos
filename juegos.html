@@ -1494,6 +1494,10 @@
         function closeActiveGame() {
             clearInterval(gameInterval);
             gameRunning = false;
+            if (typeof bgMusic !== 'undefined') {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
 
             canvas.onclick = null;
             canvas.ontouchstart = null;
