@@ -2153,6 +2153,12 @@
                     imgEl.style.display = "block";
                     imgEl.style.borderRadius = "0"; // Quitamos esquinas redondeadas de la imagen
                     
+                    // EL SECRETO: Fancybox 5 necesita saber las dimensiones exactas para que el zoom no parpadee
+                    imgEl.onload = function() {
+                        aEl.setAttribute("data-width", this.naturalWidth);
+                        aEl.setAttribute("data-height", this.naturalHeight);
+                    };
+                    
                     aEl.appendChild(imgEl);
                     itemEl.appendChild(aEl);
                     
