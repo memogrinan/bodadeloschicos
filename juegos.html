@@ -1539,6 +1539,9 @@
             } else if (activeGame === 'maddie') {
                 bgMusic.src = 'Music/juego_maddie.mp3';
                 bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
+            } else if (activeGame === 'puebla') {
+                bgMusic.src = 'Music/juego_coche.mp3';
+                bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
             } else {
                 bgMusic.pause();
             }
@@ -2423,39 +2426,6 @@
         }
 
 
-        // Efecto visual de puntuacion flotante para Maddie Game
-        function showFloatingScore(holeElement, text, isPositive) {
-            const rect = holeElement.getBoundingClientRect();
-            const floatEl = document.createElement("div");
-            floatEl.innerText = text;
-            floatEl.style.position = "fixed";
-            floatEl.style.left = (rect.left + rect.width / 2) + "px";
-            floatEl.style.top = rect.top + "px";
-            floatEl.style.transform = "translate(-50%, 0)";
-            floatEl.style.color = isPositive ? "#34d399" : "#ef4444"; // Verde o Rojo
-            floatEl.style.fontWeight = "900";
-            floatEl.style.fontSize = "1.8rem";
-            floatEl.style.fontFamily = "monospace";
-            floatEl.style.textShadow = "0px 3px 5px rgba(0,0,0,0.9), 0px 0px 3px rgba(255,255,255,0.4)";
-            floatEl.style.zIndex = "99999";
-            floatEl.style.pointerEvents = "none";
-            floatEl.style.transition = "all 0.7s cubic-bezier(0.25, 1, 0.5, 1)";
-            
-            document.body.appendChild(floatEl);
-            
-            // Forzamos el reflow leyendo una propiedad de layout (Hack de CSS puro y super seguro)
-            void floatEl.offsetWidth;
-            
-            // Disparamos la animacion
-            floatEl.style.top = (rect.top - 60) + "px";
-            floatEl.style.opacity = "0";
-            floatEl.style.transform = "translate(-50%, -20px) scale(1.3)";
-            
-            setTimeout(() => {
-                floatEl.remove();
-            }, 750);
-        }
-
         function handleHoleClick(index) {
             if (!gameRunning) return;
 
@@ -3140,7 +3110,6 @@
                     if (obj.isItem) {
                         bonusScore += obj.pts;
                         playSound('coin'); 
-                        pueblaPopups.push({ x: playerX, y: 440, text: "+" + obj.pts, life: 30 });
                         roadObjects.splice(i, 1);
                         continue;
                     } else {
@@ -3228,23 +3197,6 @@
             // CÁLCULO DE PUNTUACIÓN: 200 PTS POR DISTANCIA (120 KM) + BONUS POR POWER-UPS
             const distBaseScore = Math.floor((distanceKm / 120.0) * 200);
             score = distBaseScore + bonusScore;
-
-            // Dibujar Popups (Puebla)
-            for (let i = pueblaPopups.length - 1; i >= 0; i--) {
-                let p = pueblaPopups[i];
-                p.y -= 2.0;
-                p.life--;
-                ctx.save();
-                ctx.font = "bold 24px 'Monogram', monospace";
-                ctx.fillStyle = "#10b981"; // Verde por defecto para items
-                ctx.globalAlpha = Math.max(0, p.life / 30);
-                ctx.textAlign = "center";
-                ctx.shadowColor = "rgba(0,0,0,0.8)";
-                ctx.shadowBlur = 4;
-                ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
-                ctx.restore();
-                if (p.life <= 0) pueblaPopups.splice(i, 1);
-            }
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);
             currentGameScore.innerText = score.toString().padStart(5, '0');
