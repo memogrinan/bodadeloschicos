@@ -249,7 +249,9 @@
         /* CARRUSEL DE FOTOS */
         .carousel-container { position: relative; max-width: 600px; margin: 0 auto; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); aspect-ratio: 4/5; max-height: 80vh; background: #f0f0f0; }
         .carousel-track { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
-        .carousel-img { width: 100%; height: 100%; flex-shrink: 0; object-fit: cover; }
+        /* RESERVAR ESPACIO PARA IMAGENES PARA EVITAR SALTOS DE ANCLAS (LAYOUT SHIFT) */
+        .carousel-img { width: 100%; aspect-ratio: 4/5; flex-shrink: 0; object-fit: cover; background-color: #f0f0f0; }
+        #cgGalleryGrid { min-height: 300px; }
         
         /* BOTONES DEL CARRUSEL */
         .carousel-btn { position: absolute; top: 0; bottom: 0; margin: auto; background: rgba(255,255,255,0.85); border: none; font-size: 1.5rem; cursor: pointer; border-radius: 50%; width: 45px; height: 45px; z-index: 10; color: var(--olivo-base); display: flex; justify-content: center; align-items: center; }
@@ -2206,15 +2208,32 @@
             loadCGGallery();
             
             // Back button closes Fancybox instead of navigating back in browser
-            window.addEventListener('popstate', function (event) {
-                if (typeof Fancybox !== 'undefined' && Fancybox.getInstance()) {
-                    Fancybox.close();
+            let isFancyboxOpen = false;
+            
+            document.addEventListener('fancybox.init', () => {
+                if (!isFancyboxOpen) {
+                    isFancyboxOpen = true;
+                    // Solo agregamos un state ficticio AL ABRIR para atrapar el boton back
+                    history.pushState({ fancybox: true }, ''); 
                 }
             });
             
-            // Add history state when Fancybox opens
-            document.addEventListener('fancybox.init', () => {
-                history.pushState({ fancybox: true }, '');
+            document.addEventListener('fancybox.destroy', () => {
+                if (isFancyboxOpen) {
+                    isFancyboxOpen = false;
+                    // Si cerramos manualmente (X o swipe down), sacamos el state ficticio para no romper el historial real
+                    if (history.state && history.state.fancybox) {
+                        history.back();
+                    }
+                }
+            });
+
+            window.addEventListener('popstate', function (event) {
+                // Si el usuario presiono el boton BACK fisico y la galeria esta abierta
+                if (isFancyboxOpen && typeof Fancybox !== 'undefined' && Fancybox.getInstance()) {
+                    isFancyboxOpen = false; // prevenimos que destroy haga history.back() otra vez
+                    Fancybox.close();
+                }
             });
             
             // Detect non-dynamic swipe to change image (since touch drag is disabled)
