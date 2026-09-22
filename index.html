@@ -154,10 +154,7 @@
 
         /* EFECTO CINEMATOGRÁFICO DE ZOOM LENTO (KEN BURNS) PARA EL FONDO */
 
-        /* COMPENSACION DE BARRA DE NAVEGACION PARA ANCLAS */
-        section, .parallax-section, div[id] {
-            scroll-margin-top: 85px;
-        }
+
 
         .header-bg {
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/Optimizadas/portada.webp');
@@ -2197,8 +2194,11 @@
                         Carousel: { 
                             preload: 3,
                             Panzoom: {
-                                touch: false // Mantenemos drag desactivado para evitar el flicker de swipe
+                                touch: false
                             }
+                        },
+                        Images: {
+                            initialSize: "fit" // Asegura que no recalcule el tamaño final, evitando un parpadeo al final del zoom
                         },
                         Hash: false
                     });
@@ -2212,19 +2212,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             loadCGGallery();
 
-            // RE-SCROLL SUAVE (solo si la pagina acaba de cargar y hay un hash)
-            if (window.location.hash) {
-                setTimeout(() => {
-                    const target = document.querySelector(window.location.hash);
-                    if (target) {
-                        // usamos scroll normal, scroll-margin-top en CSS hara el resto sin tapar con el navbar
-                        window.scrollTo({
-                            top: target.offsetTop - 85,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 300);
-            }
+
 
             // Popstate global para atrapar el boton BACK y cerrar Fancybox si esta abierto
             window.addEventListener('popstate', function (event) {
