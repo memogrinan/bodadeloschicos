@@ -483,6 +483,11 @@
         let score = 0;
         let gameRunning = false;
         let gameStartTime = 0;
+        
+        // Música de Fondo (Background Music)
+        const bgMusic = new window.Audio();
+        bgMusic.loop = true; // El atributo loop del navegador conecta el final con el inicio de la cancion
+        bgMusic.volume = 0.5; // Un volumen prudente para que no sature los efectos de sonido
 
         // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
