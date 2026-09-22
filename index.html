@@ -2206,35 +2206,28 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCGGallery();
-            
-            // Back button closes Fancybox instead of navigating back in browser
-            let isFancyboxOpen = false;
-            
-            document.addEventListener('fancybox.init', () => {
-                if (!isFancyboxOpen) {
-                    isFancyboxOpen = true;
-                    // Solo agregamos un state ficticio AL ABRIR para atrapar el boton back
-                    history.pushState({ fancybox: true }, ''); 
-                }
-            });
-            
-            document.addEventListener('fancybox.destroy', () => {
-                if (isFancyboxOpen) {
-                    isFancyboxOpen = false;
-                    // Si cerramos manualmente (X o swipe down), sacamos el state ficticio para no romper el historial real
-                    if (history.state && history.state.fancybox) {
-                        history.back();
+
+            // RE-SCROLL PARA HASH LINKS (evita que el cambio de height del RSVP desajuste la vista)
+            if (window.location.hash) {
+                setTimeout(() => {
+                    const target = document.querySelector(window.location.hash);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }, 400); // 400ms da tiempo para que rsvpPaso2 o el grid de Chicosgram se dibujen completos
+            }
+
+            // Popstate global para atrapar el boton BACK y cerrar Fancybox si esta abierto
+            window.addEventListener('popstate', function (event) {
+                if (typeof Fancybox !== 'undefined') {
+                    const fbInstance = Fancybox.getInstance();
+                    if (fbInstance) {
+                        fbInstance.close();
                     }
                 }
             });
+            
 
-            window.addEventListener('popstate', function (event) {
-                // Si el usuario presiono el boton BACK fisico y la galeria esta abierta
-                if (isFancyboxOpen && typeof Fancybox !== 'undefined' && Fancybox.getInstance()) {
-                    isFancyboxOpen = false; // prevenimos que destroy haga history.back() otra vez
-                    Fancybox.close();
-                }
-            });
             
             // Detect non-dynamic swipe to change image (since touch drag is disabled)
             let touchStartX = 0;
