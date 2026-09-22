@@ -2152,6 +2152,7 @@
         function initChicaGame() {
             basketX = canvas.width / 2 - 25;
             fallObjects = [];
+            chicaPopups = [];
             lives = 3;
             chicaFrame = 0;
 
@@ -2264,9 +2265,11 @@
                     if (obj.isDanger) {
                         lives--;
                         playSound('hit');
+                        chicaPopups.push({ x: obj.x, y: 405, text: "❤️ -1", color: "#ef4444", life: 30 });
                     } else {
                         score += obj.pts;
                         playSound('coin'); 
+                        chicaPopups.push({ x: obj.x, y: 405, text: "+" + obj.pts, color: "#10b981", life: 30 });
                     }
                     fallObjects.splice(i, 1);
 
@@ -2289,6 +2292,23 @@
                         return;
                     }
                 }
+            }
+
+            // Dibujar Popups
+            for (let i = chicaPopups.length - 1; i >= 0; i--) {
+                let p = chicaPopups[i];
+                p.y -= 1.5;
+                p.life--;
+                ctx.save();
+                ctx.font = "bold 24px 'Monogram', monospace";
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life / 30);
+                ctx.textAlign = "center";
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
+                ctx.shadowBlur = 3;
+                ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
+                ctx.restore();
+                if (p.life <= 0) chicaPopups.splice(i, 1);
             }
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);
@@ -3120,6 +3140,7 @@
                     if (obj.isItem) {
                         bonusScore += obj.pts;
                         playSound('coin'); 
+                        pueblaPopups.push({ x: currentLaneX, y: obj.y, text: "+" + obj.pts, life: 30 });
                         roadObjects.splice(i, 1);
                         continue;
                     } else {
@@ -3207,6 +3228,23 @@
             // CÁLCULO DE PUNTUACIÓN: 200 PTS POR DISTANCIA (120 KM) + BONUS POR POWER-UPS
             const distBaseScore = Math.floor((distanceKm / 120.0) * 200);
             score = distBaseScore + bonusScore;
+
+            // Dibujar Popups
+            for (let i = chicaPopups.length - 1; i >= 0; i--) {
+                let p = chicaPopups[i];
+                p.y -= 1.5;
+                p.life--;
+                ctx.save();
+                ctx.font = "bold 24px 'Monogram', monospace";
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life / 30);
+                ctx.textAlign = "center";
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
+                ctx.shadowBlur = 3;
+                ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
+                ctx.restore();
+                if (p.life <= 0) chicaPopups.splice(i, 1);
+            }
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);
             currentGameScore.innerText = score.toString().padStart(5, '0');
