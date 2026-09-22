@@ -1407,6 +1407,14 @@
                     errEl.innerText = `No encontramos una invitación con la clave '${id}'. Por favor verifica e intenta de nuevo.`;
                     errEl.style.display = "block";
                 }
+                
+                // EL FIX: Re-centrar silenciosamente la página al ancla si el DOM cambió
+                if (window.location.hash) {
+                    setTimeout(() => {
+                        const target = document.querySelector(window.location.hash);
+                        if (target) target.scrollIntoView({ behavior: 'auto' });
+                    }, 20); 
+                }
             } catch (err) {
                 console.error("Error al obtener RSVP:", err);
                 document.getElementById("rsvpLoadingContainer").style.display = "none";
