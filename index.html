@@ -48,7 +48,7 @@
             --nav-texto: #ffffff;
         }
 
-        html { scroll-behavior: smooth; }
+        /* html { scroll-behavior: smooth; } Removido globalmente para evitar que el browser anime el scroll al entrar con un link directo, se manejará en JS */
         body { font-family: 'Lora', serif; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
         
         /* MENU INTELIGENTE RESPONSIVO */
@@ -2199,15 +2199,10 @@
                                 }
                             }
                         },
-                        Carousel: { 
-                            preload: 3,
-                            Panzoom: {
-                                touch: false
-                            }
-                        },
-                        Images: {
-                            initialSize: "fit" // Asegura que no recalcule el tamaño final, evitando un parpadeo al final del zoom
-                        },
+                        Carousel: { preload: 3, Panzoom: { touch: false } },
+                        showClass: "f-fadeIn", // Forzamos un fade suave en lugar del calculo matematico de zoom que causa el destello
+                        hideClass: "f-fadeOut",
+                        Images: { zoom: false }, 
                         Hash: false
                     });
                 }
