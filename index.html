@@ -153,6 +153,12 @@
         }
 
         /* EFECTO CINEMATOGRÁFICO DE ZOOM LENTO (KEN BURNS) PARA EL FONDO */
+
+        /* COMPENSACION DE BARRA DE NAVEGACION PARA ANCLAS */
+        section, .parallax-section, div[id] {
+            scroll-margin-top: 85px;
+        }
+
         .header-bg {
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('ImagenesWeb/Optimizadas/portada.webp');
             background-size: cover; background-position: center;
@@ -2191,10 +2197,9 @@
                         Carousel: { 
                             preload: 3,
                             Panzoom: {
-                                touch: false // Desactiva el drag/swipe en movil (se navegará con tap/flechas), eliminando el origen del flicker
+                                touch: false // Mantenemos drag desactivado para evitar el flicker de swipe
                             }
                         },
-                        Images: { zoom: false },
                         Hash: false
                     });
                 }
@@ -2207,14 +2212,18 @@
         document.addEventListener("DOMContentLoaded", () => {
             loadCGGallery();
 
-            // RE-SCROLL PARA HASH LINKS (evita que el cambio de height del RSVP desajuste la vista)
+            // RE-SCROLL SUAVE (solo si la pagina acaba de cargar y hay un hash)
             if (window.location.hash) {
                 setTimeout(() => {
                     const target = document.querySelector(window.location.hash);
                     if (target) {
-                        target.scrollIntoView({ behavior: 'smooth' });
+                        // usamos scroll normal, scroll-margin-top en CSS hara el resto sin tapar con el navbar
+                        window.scrollTo({
+                            top: target.offsetTop - 85,
+                            behavior: 'smooth'
+                        });
                     }
-                }, 400); // 400ms da tiempo para que rsvpPaso2 o el grid de Chicosgram se dibujen completos
+                }, 300);
             }
 
             // Popstate global para atrapar el boton BACK y cerrar Fancybox si esta abierto
