@@ -2446,10 +2446,14 @@
             // Forzamos el reflow para que la transicion funcione
             floatEl.getBoundingClientRect();
             
-            // Disparamos la animacion
-            floatEl.style.top = (rect.top - 60) + "px";
-            floatEl.style.opacity = "0";
-            floatEl.style.transform = "translate(-50%, -20px) scale(1.3)";
+            // Disparamos la animacion con un frame de retraso para que CSS procese la transición
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    floatEl.style.top = (rect.top - 60) + "px";
+                    floatEl.style.opacity = "0";
+                    floatEl.style.transform = "translate(-50%, -20px) scale(1.3)";
+                });
+            });
             
             setTimeout(() => {
                 floatEl.remove();
