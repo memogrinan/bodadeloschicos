@@ -1519,6 +1519,15 @@
 
         function startActiveGame() {
             initAudio(); 
+            
+            // Iniciar música de fondo según el juego
+            if (activeGame === 'chico') {
+                bgMusic.src = 'Music/dino.mp3';
+                bgMusic.play().catch(e => console.log('El navegador bloqueó el autoplay de audio', e));
+            } else {
+                bgMusic.pause();
+            }
+            
             gameOverlay.classList.add("hidden");
             gameRunning = true;
             gameStartTime = Date.now();
