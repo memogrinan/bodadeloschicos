@@ -487,7 +487,7 @@
         // Música de Fondo (Background Music)
         const bgMusic = new window.Audio();
         bgMusic.loop = true; // El atributo loop del navegador conecta el final con el inicio de la cancion
-        bgMusic.volume = 0.5; // Un volumen prudente para que no sature los efectos de sonido
+        bgMusic.volume = 0.2; // Un volumen prudente para que no sature los efectos de sonido
 
         // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
@@ -1527,8 +1527,14 @@
             
             // Iniciar música de fondo según el juego
             if (activeGame === 'chico') {
-                bgMusic.src = 'Music/Dino.mp3';
-                bgMusic.play().catch(e => console.log('El navegador bloqueó el autoplay de audio', e));
+                bgMusic.src = 'Music/juego_dino.mp3';
+                bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
+            } else if (activeGame === 'chica') {
+                bgMusic.src = 'Music/juego_novia.mp3';
+                bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
+            } else if (activeGame === 'maddie') {
+                bgMusic.src = 'Music/juego_maddie.mp3';
+                bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
             } else {
                 bgMusic.pause();
             }
