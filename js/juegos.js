@@ -434,7 +434,8 @@ document.addEventListener("DOMContentLoaded", () => {
             Object.keys(METAS).forEach(g => {
                 sum += getChiCoins(g);
             });
-            const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            let bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            if (isNaN(bonus)) bonus = 0;
             return sum + bonus;
         }
 
@@ -475,9 +476,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 totalScoreSum += s;
             });
 
-            const bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            let bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+            if (isNaN(bonus)) bonus = 0;
             totalCoins += bonus;
-            const timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
+            let timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
+            if (isNaN(timePlayed)) timePlayed = 0;
 
             const payload = {
                 gamerTag: playerGamertag.trim(),
@@ -911,7 +914,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function getScore(game) {
-            return parseInt(localStorage.getItem("bodachicos_score_" + game) || "0");
+            const val = parseInt(localStorage.getItem("bodachicos_score_" + game) || "0");
+            return isNaN(val) ? 0 : val;
         }
 
         function saveScore(game, newScore) {
