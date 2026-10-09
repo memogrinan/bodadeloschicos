@@ -31,6 +31,14 @@
     <meta name="twitter:image" content="https://bodadeloschicos.pages.dev/ImagenesWeb/Optimizadas/portada_preview.webp"> <!-- Imagen optimizada para iMessage -->
     <!-- ========================================== -->
 
+
+    <!-- PWA Config (App Instalable) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Boda M&M">
+    <link rel="apple-touch-icon" href="ImagenesWeb/logo.png">
+    
     <!-- Preconnect a Google Fonts para acelerar resolución DNS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1145,6 +1153,14 @@
         HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
     </footer>
 
+    <!-- Registro del Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
 <script src="js/index.js" defer></script>
 </body>
 </html>

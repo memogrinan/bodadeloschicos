@@ -1,0 +1,17 @@
+{
+  "name": "Boda Mariana & Memo",
+  "short_name": "Boda M&M",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fcfaf7",
+  "theme_color": "#52582f",
+  "description": "Itinerario, juegos y detalles de la boda de Mariana y Memo.",
+  "icons": [
+    {
+      "src": "ImagenesWeb/logo.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
