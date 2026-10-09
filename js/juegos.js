@@ -441,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
         let currentPartyId = "";
-        let partyMembers = [];
+        // let partyMembers = []; (eliminado en favor de partyMembersData)
         let selectedRealName = "";
         let playerGuestId = "";
         let partyMembersData = [];
@@ -731,7 +731,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 modal.style.display = "flex";
             }
 
-            if (currentPartyId && partyMembers.length === 0) {
+            if (currentPartyId && partyMembersData.length === 0) {
                 if (container) container.classList.remove("hidden");
                 if (buttonsList) buttonsList.innerHTML = `<p class="text-xs text-gray-400 italic py-2 text-center animate-pulse">⌛ Cargando integrantes de la invitación...</p>`;
 
@@ -752,7 +752,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.warn("No se pudo cargar la lista de integrantes del RSVP:", e);
                     if (container) container.classList.add("hidden");
                 }
-            } else if (partyMembers && partyMembers.length > 0) {
+            } else if (partyMembersData && partyMembersData.length > 0) {
                 if (container) container.classList.remove("hidden");
                 renderMemberButtons();
             } else {
@@ -766,7 +766,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const container = document.getElementById("memberSelectContainer");
             if (!buttonsList) return;
 
-            if (!partyMembers || partyMembers.length === 0) {
+            if (!partyMembersData || partyMembersData.length === 0) {
                 if (container) container.classList.add("hidden");
                 return;
             }
@@ -775,23 +775,25 @@ document.addEventListener("DOMContentLoaded", () => {
             buttonsList.innerHTML = "";
             
             let defaultIdx = -1;
-            selectedRealName = ""; // Inicialmente vacío
+            selectedRealName = "";
+            playerGuestId = "";
             
             if (playerRealName) {
-                const found = partyMembers.findIndex(m => m.toLowerCase() === playerRealName.toLowerCase());
+                const found = partyMembersData.findIndex(m => m.name.toLowerCase() === playerRealName.toLowerCase());
                 if (found >= 0) {
                     defaultIdx = found;
-                    selectedRealName = partyMembers[defaultIdx];
+                    selectedRealName = partyMembersData[defaultIdx].name;
+                    playerGuestId = partyMembersData[defaultIdx].id;
                 }
             }
 
-            partyMembers.forEach((member, idx) => {
+            partyMembersData.forEach((memberObj, idx) => {
                 const isSel = (idx === defaultIdx);
                 const btn = document.createElement("button");
                 btn.type = "button";
-                btn.onclick = () => selectMemberChoice(idx, member);
+                btn.onclick = () => selectMemberChoice(idx, memberObj.name, memberObj.id);
                 btn.className = `w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn ${isSel ? 'border-olivo-base bg-amber-50 text-olivo-base shadow-xs' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`;
-                btn.innerHTML = `<span>👤 ${member}</span><span class="check-icon ${isSel ? '' : 'hidden'} font-bold">✓</span>`;
+                btn.innerHTML = `<span>👤 ${memberObj.name}</span><span class="check-icon ${isSel ? '' : 'hidden'} font-bold">✓</span>`;
                 buttonsList.appendChild(btn);
             });
         }
@@ -844,7 +846,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const container = document.getElementById("memberSelectContainer");
             const isSelectVisible = container && !container.classList.contains("hidden");
             
-            if (isSelectVisible && partyMembers.length === 0) {
+            if (isSelectVisible && partyMembersData.length === 0) {
                 if (errorMsg) {
                     errorMsg.innerText = "⌛ Espera a que cargue la invitación o revisa tu conexión.";
                     errorMsg.classList.remove("hidden");
