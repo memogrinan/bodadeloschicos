@@ -879,24 +879,39 @@ document.addEventListener("DOMContentLoaded", () => {
                     let tagData = snap.val();
 
                     // MIGRACIÓN LEGACY Y LIMPIEZA DE FANTASMAS
+                    // 1. Limpiar por nombre real (cualquier nodo huérfano con tu nombre)
                     if (selectedRealName) {
                         const legacySnap = await db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value");
                         const legacyData = legacySnap.val();
                         if (legacyData) {
-                            // Buscar todas las llaves que le pertenecen a esta persona
-                            Object.keys(legacyData).forEach(async oldKey => {
-                                // Si la llave vieja es distinta a la nueva llave primaria
+                            // Usar for...of para esperar que termine la limpieza
+                            for (const oldKey of Object.keys(legacyData)) {
                                 if (oldKey !== keyTag) {
                                     if (!tagData) {
-                                        // Si no teniamos data nueva, adoptamos la vieja
                                         tagData = legacyData[oldKey];
                                         tagData.gamerTag = val;
                                         await db.ref("players/" + keyTag).set(tagData);
                                     }
-                                    // Borrar el nodo viejo/fantasma
                                     await db.ref("players/" + oldKey).remove();
                                 }
-                            });
+                            }
+                        }
+                    }
+                    
+                    // 2. Limpieza agresiva por el viejo Gamertag que tenías guardado localmente
+                    if (playerGamertag && playerGamertag !== val) {
+                        const directOldKey = getPlayerKey("", playerGamertag);
+                        if (directOldKey !== keyTag) {
+                            const ghostSnap = await db.ref("players/" + directOldKey).once("value");
+                            const ghostData = ghostSnap.val();
+                            if (ghostData && (!ghostData.realName || ghostData.realName === selectedRealName)) {
+                                if (!tagData) {
+                                    tagData = ghostData;
+                                    tagData.gamerTag = val;
+                                    await db.ref("players/" + keyTag).set(tagData);
+                                }
+                                await db.ref("players/" + directOldKey).remove();
+                            }
                         }
                     }
 
