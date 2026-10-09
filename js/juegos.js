@@ -221,8 +221,17 @@
             }
         }
 
-        function playSound(type) {
-            if (!audioCtx) return;
+        // FEEDBACK HÁPTICO PARA INMERSIÓN
+        function triggerHaptic(pattern) {
+            // Solo se activa si el dispositivo soporta vibración (ej. Androids)
+            if (navigator.vibrate) {
+                try {
+                    navigator.vibrate(pattern);
+                } catch(e) {}
+            }
+        }
+
+        function playSound(type) {            if (!audioCtx) return;
             try {
                 const now = audioCtx.currentTime;
 
@@ -1142,6 +1151,7 @@
                 playSound('score');
             } else {
                 playSound('hit');
+                        triggerHaptic([50, 50, 100]);
             }
 
             if (chicoKeyDownHandler) {
@@ -1271,7 +1281,8 @@
                 if (memo.isGrounded) {
                     memo.vy = memo.jumpHeight;
                     memo.isGrounded = false;
-                    playSound('jump'); 
+                    playSound('jump');
+            triggerHaptic(20); 
                 }
             };
 
@@ -1505,6 +1516,7 @@
                     obs.x + obs.width > memo.x + 6 &&
                     obs.y < memo.y + memo.height - 6 &&
                     obs.y + obs.height > memo.y + 6) {
+                    triggerHaptic(200);
                     gameOver(score);
                     return;
                 }
@@ -1534,6 +1546,7 @@
                     it.y + it.height > memo.y + 4) {
                     score += 15;
                     playSound('coin');
+                        triggerHaptic(30);
                     
                     scorePopups.push({
                         x: it.x + it.width / 2,
@@ -1797,16 +1810,19 @@
                     if (obj.isDanger) {
                         lives--;
                         playSound('hit');
+                        triggerHaptic([50, 50, 100]);
                         chicaPopups.push({ x: obj.x, y: 405, text: "❤️ -1", color: "#ef4444", life: 30 });
                     } else {
                         score += obj.pts;
-                        playSound('coin'); 
+                        playSound('coin');
+                        triggerHaptic(30); 
                         chicaPopups.push({ x: obj.x, y: 405, text: "+" + obj.pts, color: "#10b981", life: 30 });
                     }
                     fallObjects.splice(i, 1);
 
                     if (lives <= 0) {
-                        gameOver(score);
+                        triggerHaptic(200);
+                    gameOver(score);
                         return;
                     }
                     continue;
@@ -1816,11 +1832,13 @@
                     if (!obj.isDanger) {
                         lives--;
                         playSound('hit');
+                        triggerHaptic([50, 50, 100]);
                     }
                     fallObjects.splice(i, 1);
 
                     if (lives <= 0) {
-                        gameOver(score);
+                        triggerHaptic(200);
+                    gameOver(score);
                         return;
                     }
                 }
@@ -1877,6 +1895,7 @@
                 currentGameState.innerText = `Tiempo: ${timeRemaining}s`;
                 if (timeDisplay) timeDisplay.innerText = timeRemaining.toString().padStart(2, '0');
                 if (timeRemaining <= 0) {
+                    triggerHaptic(200);
                     gameOver(score);
                 }
             }, 1000);
@@ -1961,7 +1980,8 @@
             if (index === activeHole) {
                 // ACIERTO: Captura a Maddie con ladrido tierno
                 score++;
-                playSound('bark'); 
+                playSound('bark');
+                triggerHaptic(40); 
                 
                 document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
                 updateMaddieRetroScore();
@@ -1976,7 +1996,8 @@
             } else if (index === activeDistractorHole) {
                 // ERROR: Tocaste la popó
                 score = Math.max(0, score - 2); // Penalización moderada de -2 puntos
-                playSound('hit'); 
+                playSound('hit');
+                        triggerHaptic([50, 50, 100]); 
                 
                 document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
                 updateMaddieRetroScore();
@@ -2638,12 +2659,14 @@
                 if (hitX && hitY) {
                     if (obj.isItem) {
                         bonusScore += obj.pts;
-                        playSound('coin'); 
+                        playSound('coin');
+                        triggerHaptic(30); 
                         roadObjects.splice(i, 1);
                         continue;
                     } else {
                         // Impacto real por solapamiento directo
                         const currentFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
+                        triggerHaptic(250);
                         gameOver(currentFinalScore, false);
                         return;
                     }
@@ -2708,6 +2731,7 @@
                     gate.passed = true;
                     bonusScore += 5;
                     playSound('coin');
+                        triggerHaptic(30);
                 } else if (gate.y >= 540 && !gate.passed && gate.isFinal) { // Cruza completamente la pantalla antes de ganar
                     gate.passed = true;
                     const totalFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
