@@ -443,6 +443,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let currentPartyId = "";
         let partyMembers = [];
         let selectedRealName = "";
+        let playerGuestId = "";
+        let partyMembersData = [];
         let playerRealName = "";
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -484,6 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const payload = {
                 gamerTag: playerGamertag.trim(),
+                guestId: playerGuestId,
                 realName: playerRealName || selectedRealName || "",
                 partyId: currentPartyId || "general",
                 scores: scoresObj,
@@ -672,9 +675,11 @@ document.addEventListener("DOMContentLoaded", () => {
         function checkGamertag() {
             const savedTag = localStorage.getItem("bodachicos_gamertag");
             const savedReal = localStorage.getItem("bodachicos_real_name");
+            const savedGuestId = localStorage.getItem("bodachicos_guest_id");
 
             playerGamertag = savedTag || "";
             playerRealName = savedReal || "";
+            playerGuestId = savedGuestId || "";
 
             const tagDisplay = playerGamertag ? playerGamertag : "Sin registrar";
             document.getElementById("playerGamertag").innerText = tagDisplay;
@@ -733,8 +738,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(currentPartyId)}`);
                     const data = await res.json();
-                    if (data.status === "success" && data.integrantes) {
-                        partyMembers = data.integrantes.toString().split(",").map(s => s.trim());
+                    if (data.status === "success") {
+                        if (data.integrantesData) {
+                            partyMembersData = data.integrantesData;
+                        } else if (data.integrantes) {
+                            partyMembersData = data.integrantes.toString().split(",").map(s => ({ id: "", name: s.trim() }));
+                        }
                         renderMemberButtons();
                     } else {
                         if (container) container.classList.add("hidden");
@@ -787,28 +796,20 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        function selectMemberChoice(idx, memberName) {
+        function selectMemberChoice(idx, memberName, memberId) {
             selectedRealName = memberName;
+            playerGuestId = memberId || "";
 
-            // PASO 1: Autocompletado (Auto-fill) de Gamertag
-            // Busca en la base de datos si este Nombre Real ya está vinculado a un Gamertag.
-            if (db && selectedRealName) {
-                db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(snap => {
-                    const data = snap.val();
-                    if (data) {
-                        // Tomamos el primer registro encontrado (si hay varios, tomamos el más antiguo/primero)
-                        const keys = Object.keys(data);
-                        if (keys.length > 0) {
-                            const playerNode = data[keys[0]];
-                            if (playerNode && playerNode.gamerTag) {
-                                const inputEl = document.getElementById("gamertagInput");
-                                if (inputEl) {
-                                    inputEl.value = playerNode.gamerTag;
-                                    // Feedback visual opcional para que sepa que se autocompletó
-                                    inputEl.classList.add("bg-green-50");
-                                    setTimeout(() => inputEl.classList.remove("bg-green-50"), 1000);
-                                }
-                            }
+            // AUTO-FILL: Buscamos si el ID de invitado ya tiene un Gamertag
+            if (db && playerGuestId) {
+                db.ref("players/" + playerGuestId).once("value").then(snap => {
+                    const playerNode = snap.val();
+                    if (playerNode && playerNode.gamerTag) {
+                        const inputEl = document.getElementById("gamertagInput");
+                        if (inputEl) {
+                            inputEl.value = playerNode.gamerTag;
+                            inputEl.classList.add("bg-green-50");
+                            setTimeout(() => inputEl.classList.remove("bg-green-50"), 1000);
                         }
                     }
                 }).catch(e => console.warn("No se pudo pre-cargar el Gamertag:", e));
@@ -865,46 +866,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            const newKey = val.replace(/[.#$/[\]]/g, "_");
+            let keyTag = playerGuestId;
+            if (!keyTag) keyTag = val.replace(/[.#$/[\]]/g, "_");
 
-            if (db && selectedRealName) {
+            if (db) {
                 try {
-                    // 1. Buscar si ya existe este invitado con un Gamertag anterior
-                    const snap = await db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value");
+                    const snap = await db.ref("players/" + keyTag).once("value");
                     const data = snap.val();
                     
-                    if (data) {
-                        const oldKey = Object.keys(data)[0];
-                        const oldData = data[oldKey];
-                        
-                        // Renombrar: Si el Gamertag anterior es distinto al nuevo, pasamos la data y borramos la vieja
-                        if (oldKey !== newKey) {
-                            oldData.gamerTag = val;
-                            await db.ref("players/" + newKey).set(oldData);
-                            await db.ref("players/" + oldKey).remove();
-                        }
-                        
-                        // Descargar los puntos a memoria local
-                        if (oldData.scores) {
-                            Object.keys(oldData.scores).forEach(g => {
-                                localStorage.setItem("bodachicos_score_" + g, oldData.scores[g]);
-                            });
-                        }
-                        if (oldData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", oldData.bonusCoins);
-                        if (oldData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", oldData.timePlayedSeconds);
-                    } else {
-                        // 2. Si no encontró por nombre real, buscar por si acaso el Gamertag ya existe (para no borrarle sus puntos a ceros)
-                        const tagSnap = await db.ref("players/" + newKey).once("value");
-                        const tagData = tagSnap.val();
-                        if (tagData) {
-                            if (tagData.scores) {
-                                Object.keys(tagData.scores).forEach(g => {
-                                    localStorage.setItem("bodachicos_score_" + g, tagData.scores[g]);
-                                });
-                            }
-                            if (tagData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", tagData.bonusCoins);
-                            if (tagData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", tagData.timePlayedSeconds);
-                        }
+                    if (data && data.scores) {
+                        // Si ya tiene puntos en la base de datos, descargar al celular (source of truth)
+                        Object.keys(data.scores).forEach(g => {
+                            localStorage.setItem("bodachicos_score_" + g, data.scores[g]);
+                        });
+                        if (data.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", data.bonusCoins);
+                        if (data.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", data.timePlayedSeconds);
                     }
                 } catch (e) {
                     console.warn("No se pudo descargar progreso previo:", e);
@@ -920,6 +896,7 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("bodachicos_gamertag", val);
             if (selectedRealName) {
                 localStorage.setItem("bodachicos_real_name", selectedRealName);
+                if (playerGuestId) localStorage.setItem("bodachicos_guest_id", playerGuestId);
                 playerRealName = selectedRealName;
             }
             playerGamertag = val;
