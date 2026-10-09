@@ -411,13 +411,11 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     errEl.style.display = "block";
                 }
                 
-                // EL FIX: Re-centrar silenciosamente la página al ancla si el DOM cambió
-                if (window.location.hash) {
-                    setTimeout(() => {
-                        const target = document.querySelector(window.location.hash);
-                        if (target) target.scrollIntoView({ behavior: 'auto' });
-                    }, 20); 
-                }
+                // EL FIX: Siempre re-centrar el widget de RSVP porque al cambiar los display:none la página puede "brincar" al inicio
+                setTimeout(() => {
+                    const target = document.getElementById("confirmacion");
+                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 50);
             } catch (err) {
                 console.error("Error al obtener RSVP:", err);
                 document.getElementById("rsvpLoadingContainer").style.display = "none";

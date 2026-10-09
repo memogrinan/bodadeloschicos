@@ -987,8 +987,8 @@
                 </p>
                 
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; max-width: 420px; margin: 0 auto; justify-content: center;">
-                    <input type="text" id="rsvpSearchInput" placeholder="Ej. familia-perez" onkeypress="if(event.key==='Enter') searchRSVPInvitation()" style="flex: 1 1 200px; min-width: 180px; padding: 12px 16px; border: 1.5px solid #ccc; border-radius: 14px; outline: none; font-size: clamp(14px, 2vw, 18px); font-family: inherit; box-sizing: border-box;">
-                    <button onclick="searchRSVPInvitation()" class="btn btn-rsvp" style="flex: 0 0 auto; padding: 12px 24px; white-space: nowrap; font-size: clamp(0.85rem, 1.6vw, 1.05rem);">Buscar 🔍</button>
+                    <input type="text" id="rsvpSearchInput" placeholder="Ej. familia-perez" onkeypress="if(event.key==='Enter') { event.preventDefault(); searchRSVPInvitation(); }" style="flex: 1 1 200px; min-width: 180px; padding: 12px 16px; border: 1.5px solid #ccc; border-radius: 14px; outline: none; font-size: clamp(14px, 2vw, 18px); font-family: inherit; box-sizing: border-box;">
+                    <button type="button" onclick="searchRSVPInvitation()" class="btn btn-rsvp" style="flex: 0 0 auto; padding: 12px 24px; white-space: nowrap; font-size: clamp(0.85rem, 1.6vw, 1.05rem);">Buscar 🔍</button>
                 </div>
                 <p id="rsvpSearchError" style="color: #e74c3c; font-size: clamp(0.75rem, 1.3vw, 0.9rem); margin-top: 12px; display: none; font-weight: 600;"></p>
             </div>
