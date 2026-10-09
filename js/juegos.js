@@ -796,6 +796,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function selectMemberChoice(idx, memberName) {
             selectedRealName = memberName;
+            
+            // PRE-FILL: Buscar si este invitado ya tiene un Gamertag en la base de datos (con soporte a datos legacy)
+            if (db && selectedRealName) {
+                const key = getPlayerKey(selectedRealName, "");
+                const inputEl = document.getElementById("gamertagInput");
+                db.ref("players/" + key).once("value").then(snap => {
+                    if (snap.val() && snap.val().gamerTag) {
+                        if (inputEl) inputEl.value = snap.val().gamerTag;
+                    } else {
+                        // Buscar data legacy por si jugó antes del rediseño de llaves
+                        db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(legacySnap => {
+                            const lData = legacySnap.val();
+                            if (lData) {
+                                const oldKey = Object.keys(lData)[0];
+                                if (lData[oldKey] && lData[oldKey].gamerTag && inputEl) {
+                                    inputEl.value = lData[oldKey].gamerTag;
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
             const checks = document.querySelectorAll("#memberButtonsList .check-icon");
             buttons.forEach((btn, i) => {
@@ -813,21 +836,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const errorMsg = document.getElementById("gamertagErrorMsg");
             if (errorMsg) errorMsg.classList.add("hidden");
 
-            const val = document.getElementById("gamertagInput").value.trim();
+            const inputEl = document.getElementById("gamertagInput");
+            const val = inputEl ? inputEl.value.trim() : "";
+            
+            const isSelectVisible = document.getElementById("memberSelectContainer") && !document.getElementById("memberSelectContainer").classList.contains("hidden");
+
             if (!val) {
                 if (errorMsg) {
-                    errorMsg.innerText = "❌ Escribe un GamerTag (Apodo) para jugar.";
-                    errorMsg.classList.remove("hidden");
-                }
-                return;
-            }
-
-            const container = document.getElementById("memberSelectContainer");
-            const isSelectVisible = container && !container.classList.contains("hidden");
-            
-            if (isSelectVisible && partyMembers.length === 0) {
-                if (errorMsg) {
-                    errorMsg.innerText = "⌛ Espera a que cargue la invitación o revisa tu conexión.";
+                    errorMsg.innerText = "👆 Por favor ingresa un nombre o apodo.";
                     errorMsg.classList.remove("hidden");
                 }
                 return;
@@ -847,46 +863,51 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            const newKey = val.replace(/[.#$/[\]]/g, "_");
-
-            if (db && selectedRealName) {
+            if (db) {
                 try {
-                    // 1. Buscar si ya existe este invitado con un Gamertag anterior
-                    const snap = await db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value");
-                    const data = snap.val();
+                    const keyTag = getPlayerKey(selectedRealName, val);
                     
-                    if (data) {
-                        const oldKey = Object.keys(data)[0];
-                        const oldData = data[oldKey];
-                        
-                        // Renombrar: Si el Gamertag anterior es distinto al nuevo, pasamos la data y borramos la vieja
-                        if (oldKey !== newKey) {
-                            oldData.gamerTag = val;
-                            await db.ref("players/" + newKey).set(oldData);
-                            await db.ref("players/" + oldKey).remove();
-                        }
-                        
-                        // Descargar los puntos a memoria local
-                        if (oldData.scores) {
-                            Object.keys(oldData.scores).forEach(g => {
-                                localStorage.setItem("bodachicos_score_" + g, oldData.scores[g]);
+                    // WIPE LOCAL CACHE (Evitar bleeding de otros jugadores)
+                    ["dino", "maddie", "puebla", "chica"].forEach(g => localStorage.setItem("bodachicos_score_" + g, "0"));
+                    localStorage.setItem("bodachicos_bonus_chicoins", "0");
+                    localStorage.setItem("bodachicos_time_played", "0");
+                    localStorage.setItem("bodachicos_maxdist_puebla", "0");
+                    localStorage.setItem("bodachicos_puebla_won", "false");
+
+                    // Buscar datos usando la llave primaria (Nombre Real o Gamertag)
+                    const snap = await db.ref("players/" + keyTag).once("value");
+                    let tagData = snap.val();
+
+                    // MIGRACIÓN LEGACY Y LIMPIEZA DE FANTASMAS
+                    if (selectedRealName) {
+                        const legacySnap = await db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value");
+                        const legacyData = legacySnap.val();
+                        if (legacyData) {
+                            // Buscar todas las llaves que le pertenecen a esta persona
+                            Object.keys(legacyData).forEach(async oldKey => {
+                                // Si la llave vieja es distinta a la nueva llave primaria
+                                if (oldKey !== keyTag) {
+                                    if (!tagData) {
+                                        // Si no teniamos data nueva, adoptamos la vieja
+                                        tagData = legacyData[oldKey];
+                                        tagData.gamerTag = val;
+                                        await db.ref("players/" + keyTag).set(tagData);
+                                    }
+                                    // Borrar el nodo viejo/fantasma
+                                    await db.ref("players/" + oldKey).remove();
+                                }
                             });
                         }
-                        if (oldData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", oldData.bonusCoins);
-                        if (oldData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", oldData.timePlayedSeconds);
-                    } else {
-                        // 2. Si no encontró por nombre real, buscar por si acaso el Gamertag ya existe (para no borrarle sus puntos a ceros)
-                        const tagSnap = await db.ref("players/" + newKey).once("value");
-                        const tagData = tagSnap.val();
-                        if (tagData) {
-                            if (tagData.scores) {
-                                Object.keys(tagData.scores).forEach(g => {
-                                    localStorage.setItem("bodachicos_score_" + g, tagData.scores[g]);
-                                });
-                            }
-                            if (tagData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", tagData.bonusCoins);
-                            if (tagData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", tagData.timePlayedSeconds);
+                    }
+
+                    if (tagData) {
+                        if (tagData.scores) {
+                            Object.keys(tagData.scores).forEach(g => {
+                                localStorage.setItem("bodachicos_score_" + g, tagData.scores[g]);
+                            });
                         }
+                        if (tagData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", tagData.bonusCoins);
+                        if (tagData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", tagData.timePlayedSeconds);
                     }
                 } catch (e) {
                     console.warn("No se pudo descargar progreso previo:", e);
