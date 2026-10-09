@@ -802,17 +802,34 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedRealName = memberName;
             playerGuestId = memberId || "";
 
-            // AUTO-FILL: Buscamos si el ID de invitado ya tiene un Gamertag
-            if (db && playerGuestId) {
+            const inputEl = document.getElementById("gamertagInput");
+            if (inputEl) inputEl.value = ""; // Limpiar input al cambiar de persona
+
+            const fillInput = (tag) => {
+                if (inputEl) {
+                    inputEl.value = tag;
+                    inputEl.classList.add("bg-green-50");
+                    setTimeout(() => inputEl.classList.remove("bg-green-50"), 1000);
+                }
+            };
+
+            // AUTO-FILL INTELIGENTE (Busca en nueva y vieja arquitectura)
+            if (db && selectedRealName) {
                 db.ref("players/" + playerGuestId).once("value").then(snap => {
                     const playerNode = snap.val();
                     if (playerNode && playerNode.gamerTag) {
-                        const inputEl = document.getElementById("gamertagInput");
-                        if (inputEl) {
-                            inputEl.value = playerNode.gamerTag;
-                            inputEl.classList.add("bg-green-50");
-                            setTimeout(() => inputEl.classList.remove("bg-green-50"), 1000);
-                        }
+                        fillInput(playerNode.gamerTag);
+                    } else {
+                        // Fallback a arquitectura vieja
+                        db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(legacySnap => {
+                            const legacyData = legacySnap.val();
+                            if (legacyData) {
+                                const keys = Object.keys(legacyData);
+                                if (keys.length > 0 && legacyData[keys[0]].gamerTag) {
+                                    fillInput(legacyData[keys[0]].gamerTag);
+                                }
+                            }
+                        });
                     }
                 }).catch(e => console.warn("No se pudo pre-cargar el Gamertag:", e));
             }
