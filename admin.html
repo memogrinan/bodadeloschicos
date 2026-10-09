@@ -146,6 +146,17 @@
                 </div>
             </div>
         </section>
+
+        <!-- GLOBAL DANGER ZONE -->
+        <section class="max-w-2xl mx-auto mt-8 bg-red-900/20 border border-red-500/50 rounded-2xl overflow-hidden shadow-lg shadow-red-900/10">
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-red-400 mb-2">🚨 ZONA DE PELIGRO GLOBAL</h3>
+                <p class="text-sm text-red-300/80 mb-4">Esta acción eliminará todos los registros de todos los jugadores en la base de datos de manera irreversible. Úsalo solo para limpiar pruebas antes de la boda.</p>
+                <button onclick="wipeEntireDatabase()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition shadow-sm">
+                    BORRAR TODA LA BASE DE DATOS
+                </button>
+            </div>
+        </section>
     </main>
 
     <!-- FIREBASE INTERFACE & LOGIC -->

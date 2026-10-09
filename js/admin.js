@@ -25,7 +25,7 @@
         function checkAdminAuth() {
             if (sessionStorage.getItem("bodachicos_admin_auth") !== "true") {
                 const pass = prompt("🔐 Acceso Administrador - Ingresa la contraseña:");
-                if (pass && pass.trim().toLowerCase() === "souvenir") {
+                if (pass && pass.trim() === "Chicos0212") {
                     sessionStorage.setItem("bodachicos_admin_auth", "true");
                 } else {
                     alert("Acceso denegado: Contraseña incorrecta.");
@@ -198,5 +198,21 @@
                     document.getElementById("selectionState").classList.remove("flex");
                     selectedPlayerKey = null;
                 }).catch(err => alert("Error al borrar: " + err.message));
+            }
+        }
+
+        function wipeEntireDatabase() {
+            const pass = prompt("🚨 ATENCIÓN 🚨\n\nEstás a punto de BORRAR TODA LA BASE DE DATOS.\nEscribe la contraseña 'Chicos0212' para confirmar:");
+            if (pass === "Chicos0212") {
+                if (confirm("¿Estás absolutamente seguro? ESTO NO SE PUEDE DESHACER.")) {
+                    db.ref("players").remove().then(() => {
+                        alert("✅ Base de datos reseteada a ceros exitosamente.");
+                        closePlayerModal();
+                    }).catch(err => {
+                        alert("❌ Error al borrar: " + err.message);
+                    });
+                }
+            } else if (pass !== null) {
+                alert("❌ Contraseña incorrecta. Abortando.");
             }
         }

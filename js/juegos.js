@@ -666,6 +666,8 @@
                             Object.keys(data.scores).forEach(g => {
                                 const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
                                 const fbSc = data.scores[g] || 0;
+                                // SOURCE OF TRUTH: Firebase manda. Si otro celular subió un score más alto, 
+                                // aplastamos el local. Si el local es más alto (jugó offline), lo mantenemos.
                                 localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
                             });
                             updateScoresDashboard();
