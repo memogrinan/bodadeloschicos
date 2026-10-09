@@ -867,65 +867,84 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     const keyTag = getPlayerKey(selectedRealName, val);
                     
-                    // WIPE LOCAL CACHE (Evitar bleeding de otros jugadores)
+                    // WIPE LOCAL CACHE (Evitar bleeding)
                     ["dino", "maddie", "puebla", "chica"].forEach(g => localStorage.setItem("bodachicos_score_" + g, "0"));
                     localStorage.setItem("bodachicos_bonus_chicoins", "0");
                     localStorage.setItem("bodachicos_time_played", "0");
                     localStorage.setItem("bodachicos_maxdist_puebla", "0");
                     localStorage.setItem("bodachicos_puebla_won", "false");
 
-                    // Buscar datos usando la llave primaria (Nombre Real o Gamertag)
-                    const snap = await db.ref("players/" + keyTag).once("value");
-                    let tagData = snap.val();
+                    let tagData = { gamerTag: val, realName: selectedRealName || "", scores: {} };
+                    
+                    const mergeData = (source) => {
+                        if (!source) return;
+                        if (source.scores) {
+                            Object.keys(source.scores).forEach(g => {
+                                tagData.scores[g] = Math.max(tagData.scores[g] || 0, source.scores[g] || 0);
+                            });
+                        }
+                        tagData.bonusCoins = Math.max(tagData.bonusCoins || 0, source.bonusCoins || 0);
+                        tagData.timePlayedSeconds = Math.max(tagData.timePlayedSeconds || 0, source.timePlayedSeconds || 0);
+                    };
 
-                    // MIGRACIÓN LEGACY Y LIMPIEZA DE FANTASMAS
-                    // 1. Limpiar por nombre real (cualquier nodo huérfano con tu nombre)
+                    // 1. Cargar datos de la llave primaria
+                    const snap = await db.ref("players/" + keyTag).once("value");
+                    if (snap.val()) mergeData(snap.val());
+
+                    // 2. Buscar datos de MIGRACION (Legacy por RealName)
                     if (selectedRealName) {
                         const legacySnap = await db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value");
                         const legacyData = legacySnap.val();
                         if (legacyData) {
-                            // Usar for...of para esperar que termine la limpieza
                             for (const oldKey of Object.keys(legacyData)) {
                                 if (oldKey !== keyTag) {
-                                    if (!tagData) {
-                                        tagData = legacyData[oldKey];
-                                        tagData.gamerTag = val;
-                                        await db.ref("players/" + keyTag).set(tagData);
-                                    }
-                                    await db.ref("players/" + oldKey).remove();
+                                    mergeData(legacyData[oldKey]);
+                                    await db.ref("players/" + oldKey).remove(); // Borrar fantasma
                                 }
                             }
                         }
                     }
                     
-                    // 2. Limpieza agresiva por el viejo Gamertag que tenías guardado localmente
-                    if (playerGamertag && playerGamertag !== val) {
-                        const directOldKey = getPlayerKey("", playerGamertag);
+                    // 3. Buscar datos de MIGRACION (Por el gamertag viejo guardado en localStorage)
+                    const oldGamerTagMem = localStorage.getItem("bodachicos_gamertag");
+                    if (oldGamerTagMem && oldGamerTagMem !== val) {
+                        const directOldKey = getPlayerKey("", oldGamerTagMem);
                         if (directOldKey !== keyTag) {
                             const ghostSnap = await db.ref("players/" + directOldKey).once("value");
                             const ghostData = ghostSnap.val();
-                            if (ghostData && (!ghostData.realName || ghostData.realName === selectedRealName)) {
-                                if (!tagData) {
-                                    tagData = ghostData;
-                                    tagData.gamerTag = val;
-                                    await db.ref("players/" + keyTag).set(tagData);
-                                }
-                                await db.ref("players/" + directOldKey).remove();
+                            if (ghostData) {
+                                mergeData(ghostData);
+                                await db.ref("players/" + directOldKey).remove(); // Borrar fantasma agresivo
                             }
                         }
                     }
 
-                    if (tagData) {
-                        if (tagData.scores) {
-                            Object.keys(tagData.scores).forEach(g => {
-                                localStorage.setItem("bodachicos_score_" + g, tagData.scores[g]);
-                            });
+                    // 4. Buscar datos de MIGRACION (Por el gamertag NUEVO por si ya tenía cuenta)
+                    const directNewKey = getPlayerKey("", val);
+                    if (directNewKey !== keyTag) {
+                        const newGhostSnap = await db.ref("players/" + directNewKey).once("value");
+                        const newGhostData = newGhostSnap.val();
+                        if (newGhostData) {
+                            mergeData(newGhostData);
+                            await db.ref("players/" + directNewKey).remove(); // Absorber y borrar
                         }
-                        if (tagData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", tagData.bonusCoins);
-                        if (tagData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", tagData.timePlayedSeconds);
                     }
+
+                    // Guardar la data combinada con los maximos puntajes de regreso a la base de datos
+                    tagData.gamerTag = val; // Asegurar el nuevo nombre
+                    await db.ref("players/" + keyTag).set(tagData);
+
+                    // Reflejar localmente
+                    if (tagData.scores) {
+                        Object.keys(tagData.scores).forEach(g => {
+                            localStorage.setItem("bodachicos_score_" + g, tagData.scores[g]);
+                        });
+                    }
+                    if (tagData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", tagData.bonusCoins);
+                    if (tagData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", tagData.timePlayedSeconds);
+
                 } catch (e) {
-                    console.warn("No se pudo descargar progreso previo:", e);
+                    console.error("Error crítico migrando puntajes:", e);
                 }
             }
 
