@@ -381,10 +381,10 @@ if (!document.getElementById('cg-dynamic-styles')) {
         function searchRSVPInvitation() {
             const val = document.getElementById("rsvpSearchInput").value.trim().toLowerCase().replace(/\s+/g, "-");
             if (!val) return;
-            fetchRSVPData(val);
+            fetchRSVPData(val, true);
         }
 
-        async function fetchRSVPData(id) {
+        async function fetchRSVPData(id, autoScroll = false) {
             document.getElementById("rsvpSearchContainer").style.display = "none";
             document.getElementById("rsvpFormContainer").style.display = "none";
             document.getElementById("rsvpSuccessContainer").style.display = "none";
@@ -412,10 +412,12 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 }
                 
                 // EL FIX: Siempre re-centrar el widget de RSVP porque al cambiar los display:none la página puede "brincar" al inicio
-                setTimeout(() => {
-                    const target = document.getElementById("confirmacion");
-                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 50);
+                if (autoScroll) {
+                    setTimeout(() => {
+                        const target = document.getElementById("confirmacion");
+                        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 50);
+                }
             } catch (err) {
                 console.error("Error al obtener RSVP:", err);
                 document.getElementById("rsvpLoadingContainer").style.display = "none";

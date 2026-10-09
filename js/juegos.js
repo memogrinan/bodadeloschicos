@@ -457,6 +457,14 @@ document.addEventListener("DOMContentLoaded", () => {
         let rawPlayersData = {};
         let isLeaderboardListening = false;
 
+        
+        // Retorna la llave principal: Primero usa Nombre Real (para que mantengan puntos si cambian de apodo), 
+        // si no, usa el Gamertag.
+        function getPlayerKey(realName, gamertag) {
+            const base = realName || gamertag;
+            return base ? base.trim().replace(/[.#$/[\]]/g, "_").replace(/\s+/g, "_") : "anonymous";
+        }
+
         function syncPlayerToFirebase() {
             if (!db || !playerGamertag || !playerGamertag.trim()) return;
             const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
@@ -678,8 +686,8 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("bottomGamerTag").innerText = tagDisplay;
 
             // Restaurar puntuaciones de Firebase al cargar la página si existen
-            if (db && playerGamertag) {
-                const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+            if (db && (playerGamertag || playerRealName)) {
+                const keyTag = getPlayerKey(playerRealName, playerGamertag);
                 db.ref("players/" + keyTag).once("value").then(snapshot => {
                     const data = snapshot.val();
                     if (data) {
