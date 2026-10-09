@@ -789,6 +789,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function selectMemberChoice(idx, memberName) {
             selectedRealName = memberName;
+
+            // PASO 1: Autocompletado (Auto-fill) de Gamertag
+            // Busca en la base de datos si este Nombre Real ya está vinculado a un Gamertag.
+            if (db && selectedRealName) {
+                db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(snap => {
+                    const data = snap.val();
+                    if (data) {
+                        // Tomamos el primer registro encontrado (si hay varios, tomamos el más antiguo/primero)
+                        const keys = Object.keys(data);
+                        if (keys.length > 0) {
+                            const playerNode = data[keys[0]];
+                            if (playerNode && playerNode.gamerTag) {
+                                const inputEl = document.getElementById("gamertagInput");
+                                if (inputEl) {
+                                    inputEl.value = playerNode.gamerTag;
+                                    // Feedback visual opcional para que sepa que se autocompletó
+                                    inputEl.classList.add("bg-green-50");
+                                    setTimeout(() => inputEl.classList.remove("bg-green-50"), 1000);
+                                }
+                            }
+                        }
+                    }
+                }).catch(e => console.warn("No se pudo pre-cargar el Gamertag:", e));
+            }
+
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
             const checks = document.querySelectorAll("#memberButtonsList .check-icon");
             buttons.forEach((btn, i) => {
