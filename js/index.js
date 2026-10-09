@@ -1,3 +1,28 @@
+
+// GLOBAL URL PARAMETER PRESERVER
+// Asegura que el parámetro '?p=' (Party ID) viaje a todas las páginas internas.
+document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const partyId = urlParams.get('p') || localStorage.getItem('bodachicos_party_id');
+    
+    if (partyId) {
+        // Guardamos o actualizamos en cache
+        localStorage.setItem('bodachicos_party_id', partyId);
+        
+        document.querySelectorAll('a').forEach(link => {
+            const href = link.getAttribute('href');
+            // Solo inyectar en links que apunten a htmls internos o al root
+            if (href && (href.includes('.html') || href === '/') && !href.startsWith('http') && !href.startsWith('tel') && !href.startsWith('javascript')) {
+                try {
+                    const urlObj = new URL(link.href, window.location.origin);
+                    urlObj.searchParams.set('p', partyId);
+                    link.href = urlObj.toString();
+                } catch(e) {}
+            }
+        });
+    }
+});
+
 // INYECCION DE ESTILOS GLOBALES (SKELETON)
 if (!document.getElementById('cg-dynamic-styles')) {
     const styleEl = document.createElement('style');
