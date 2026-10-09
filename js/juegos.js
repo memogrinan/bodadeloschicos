@@ -691,8 +691,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             Object.keys(data.scores).forEach(g => {
                                 const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
                                 const fbSc = data.scores[g] || 0;
-                                // SOURCE OF TRUTH: Firebase manda. Si otro celular subió un score más alto, 
-                                // aplastamos el local. Si el local es más alto (jugó offline), lo mantenemos.
                                 localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
                             });
                             updateScoresDashboard();
@@ -788,21 +786,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function selectMemberChoice(idx, memberName) {
             selectedRealName = memberName;
-
-            // PRE-FILL: Buscar automáticamente si este invitado ya tiene un Gamertag en la base de datos
-            if (db && selectedRealName) {
-                db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(snap => {
-                    const data = snap.val();
-                    if (data) {
-                        const oldKey = Object.keys(data)[0];
-                        if (data[oldKey] && data[oldKey].gamerTag) {
-                            const inputEl = document.getElementById("gamertagInput");
-                            if (inputEl) inputEl.value = data[oldKey].gamerTag;
-                        }
-                    }
-                }).catch(e => console.warn("No se pudo autocompletar el Gamertag", e));
-            }
-
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
             const checks = document.querySelectorAll("#memberButtonsList .check-icon");
             buttons.forEach((btn, i) => {
