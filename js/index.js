@@ -1,3 +1,20 @@
+// INYECCION DE ESTILOS GLOBALES (SKELETON)
+if (!document.getElementById('cg-dynamic-styles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'cg-dynamic-styles';
+    styleEl.innerHTML = `
+        @keyframes skeletonPulse {
+            0% { background-color: #e5e7eb; }
+            50% { background-color: #f3f4f6; }
+            100% { background-color: #e5e7eb; }
+        }
+        .skeleton-loader-bg {
+            animation: skeletonPulse 1.5s ease-in-out infinite;
+        }
+    `;
+    document.head.appendChild(styleEl);
+}
+
 // VARIABLES GLOBALES PARA LA GALERÍA DE INVITADOS
         let guestImages = []; // Almacena las URLs de las fotos cargadas
         let currentGuestImageIndex = 0; // Índice de la foto activa
@@ -1012,19 +1029,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     aEl.style.width = "100%";
                     aEl.style.height = "100%";
                     
+                    // --- SKELETON LOADER UI ---
+                    // Generamos un fondo gris que pulsa suavemente mediante animacion CSS nativa
+                    itemEl.classList.add("skeleton-loader-bg");
+                    
                     const imgEl = document.createElement("img");
                     imgEl.src = thumbUrl;
-                    // Quitamos loading="lazy" porque Fancybox clona este elemento para la animacion y causaba parpadeos
                     imgEl.style.width = "100%";
                     imgEl.style.height = "100%";
                     imgEl.style.objectFit = "cover"; 
                     imgEl.style.display = "block";
-                    imgEl.style.borderRadius = "0"; // Quitamos esquinas redondeadas de la imagen
+                    imgEl.style.borderRadius = "0";
+                    imgEl.style.opacity = "0"; // Escondida hasta que cargue
+                    imgEl.style.transition = "opacity 0.4s ease-in";
                     
-                    // EL SECRETO: Fancybox 5 necesita saber las dimensiones exactas para que el zoom no parpadee
                     imgEl.onload = function() {
                         aEl.setAttribute("data-width", this.naturalWidth);
                         aEl.setAttribute("data-height", this.naturalHeight);
+                        // Cuando la foto esta lista, apagamos el skeleton y mostramos la foto suavemente
+                        itemEl.classList.remove("skeleton-loader-bg");
+                        this.style.opacity = "1";
                     };
                     
                     aEl.appendChild(imgEl);
