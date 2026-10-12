@@ -47,20 +47,136 @@ if (!document.getElementById('cg-dynamic-styles')) {
         // LÓGICA DE CONTROL DEL MENÚ HAMBURGUESA DESPLEGABLE (MOBILE)
         const menuToggle = document.getElementById("menuToggle");
         const mobileDrawer = document.getElementById("mobileDrawer");
+        const drawerOverlay = document.getElementById("drawerOverlay");
 
-        menuToggle.addEventListener("click", () => {
-            mobileDrawer.classList.toggle("is-active");
-            // Cambiar dinámicamente el icono de hamburguesa a un icono 'X'
-            const isOpen = mobileDrawer.classList.contains("is-active");
-            menuToggle.innerHTML = isOpen 
-                ? `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"/></svg>`
-                : `<svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="white"/></svg>`;
-        });
+        function openDrawer() {
+            if (mobileDrawer) mobileDrawer.classList.add("is-active");
+            if (drawerOverlay) drawerOverlay.classList.add("is-active");
+            if (menuToggle) {
+                menuToggle.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"/></svg>`;
+                menuToggle.setAttribute("aria-label", "Cerrar Menú");
+            }
+        }
 
         function closeDrawer() {
-            mobileDrawer.classList.remove("is-active");
-            menuToggle.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="white"/></svg>`;
+            if (mobileDrawer) mobileDrawer.classList.remove("is-active");
+            if (drawerOverlay) drawerOverlay.classList.remove("is-active");
+            if (menuToggle) {
+                menuToggle.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="white"/></svg>`;
+                menuToggle.setAttribute("aria-label", "Abrir Menú");
+            }
         }
+
+        if (menuToggle) {
+            menuToggle.addEventListener("click", () => {
+                const isOpen = mobileDrawer && mobileDrawer.classList.contains("is-active");
+                if (isOpen) {
+                    closeDrawer();
+                } else {
+                    openDrawer();
+                }
+            });
+        }
+
+        // Cierre garantizado al hacer clic o tocar fuera del menú
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener("click", closeDrawer);
+        }
+        document.addEventListener("click", (e) => {
+            if (mobileDrawer && mobileDrawer.classList.contains("is-active")) {
+                if (!mobileDrawer.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
+                    closeDrawer();
+                }
+            }
+        });
+
+        // ==========================================
+        // LÓGICA PWA CROSS-PLATFORM (INSTALACIÓN DE APP)
+        // ==========================================
+        let deferredInstallPrompt = null;
+        const installAppBtn = document.getElementById("installAppBtn");
+        const iosInstallModal = document.getElementById("iosInstallModal");
+
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            console.log("PWA: Evento de instalación nativo disponible.");
+            updateInstallButtonState();
+        });
+
+        function isRunningStandalone() {
+            return (window.matchMedia('(display-mode: standalone)').matches) || 
+                   (window.navigator.standalone === true);
+        }
+
+        function isIOSDevice() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        function updateInstallButtonState() {
+            if (!installAppBtn) return;
+            if (isRunningStandalone()) {
+                installAppBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="currentColor"/></svg>
+                    <span>App Instalada ✓</span>
+                `;
+                installAppBtn.style.opacity = "0.8";
+                installAppBtn.style.cursor = "default";
+            }
+        }
+
+        async function handleInstallApp() {
+            if (isRunningStandalone()) {
+                alert("¡Ya estás navegando desde la App de los Chicos! ✨");
+                closeDrawer();
+                return;
+            }
+
+            // 1. Caso Android / Navegador con prompt nativo directo
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                const choiceResult = await deferredInstallPrompt.userChoice;
+                if (choiceResult.outcome === "accepted") {
+                    console.log("El usuario aceptó la instalación de la app.");
+                }
+                deferredInstallPrompt = null;
+                closeDrawer();
+                return;
+            }
+
+            // 2. Caso iPhone / iPad (iOS Safari)
+            if (isIOSDevice()) {
+                closeDrawer();
+                setTimeout(() => openIosModal(), 200);
+                return;
+            }
+
+            // 3. Caso general / Desktop / Navegador sin evento disparado
+            alert("Para agregar la App de los Chicos a tu pantalla de inicio:\n\n• En celular: Toca el menú de tu navegador (⋮ o Compartir) y elige 'Añadir a pantalla de inicio'.\n• En computadora: Toca el icono de instalar (+) en la barra de direcciones.");
+            closeDrawer();
+        }
+
+        function openIosModal() {
+            if (iosInstallModal) {
+                iosInstallModal.classList.add("is-active");
+            }
+        }
+
+        function closeIosModal() {
+            if (iosInstallModal) {
+                iosInstallModal.classList.remove("is-active");
+            }
+        }
+
+        window.addEventListener("appinstalled", () => {
+            console.log("PWA instalada exitosamente por el usuario.");
+            deferredInstallPrompt = null;
+            updateInstallButtonState();
+        });
+
+        // Verificar estado al cargar
+        updateInstallButtonState();
 
         // Contador en tiempo real
         const targetDate = new Date("Feb 13, 2027 16:00:00").getTime();

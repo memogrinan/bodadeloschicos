@@ -1,0 +1,7 @@
+name = "bodadeloschicos-fotos"
+main = "src/index.js"
+compatibility_date = "2023-10-30"
+
+[[r2_buckets]]
+binding = "FOTOS_BUCKET" # El nombre de la variable en tu código
+bucket_name = "fotos-boda" # El nombre de tu bucket en Cloudflare
