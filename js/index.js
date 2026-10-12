@@ -68,7 +68,9 @@ if (!document.getElementById('cg-dynamic-styles')) {
         }
 
         if (menuToggle) {
-            menuToggle.addEventListener("click", () => {
+            menuToggle.addEventListener("click", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
                 const isOpen = mobileDrawer && mobileDrawer.classList.contains("is-active");
                 if (isOpen) {
                     closeDrawer();
@@ -78,10 +80,22 @@ if (!document.getElementById('cg-dynamic-styles')) {
             });
         }
 
-        // Cierre garantizado al hacer clic o tocar fuera del menú
+        // Cierre táctil cuando se toca el fondo oscuro (overlay)
         if (drawerOverlay) {
-            drawerOverlay.addEventListener("click", closeDrawer);
+            drawerOverlay.addEventListener("click", (e) => {
+                e.stopPropagation();
+                closeDrawer();
+            });
         }
+
+        // Evitar que toques dentro del menú lateral lo cierren accidentalmente
+        if (mobileDrawer) {
+            mobileDrawer.addEventListener("click", (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        // Respaldo global para cerrar al hacer clic fuera del panel
         document.addEventListener("click", (e) => {
             if (mobileDrawer && mobileDrawer.classList.contains("is-active")) {
                 if (!mobileDrawer.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
@@ -95,7 +109,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
         // ==========================================
         let deferredInstallPrompt = null;
         const installAppBtn = document.getElementById("installAppBtn");
-        const iosInstallModal = document.getElementById("iosInstallModal");
+        const pwaStatusModal = document.getElementById("pwaStatusModal");
+        const pwaModalDynamicBody = document.getElementById("pwaModalDynamicBody");
 
         window.addEventListener("beforeinstallprompt", (e) => {
             e.preventDefault();
@@ -121,52 +136,132 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="currentColor"/></svg>
                     <span>App Instalada ✓</span>
                 `;
-                installAppBtn.style.opacity = "0.8";
-                installAppBtn.style.cursor = "default";
+                installAppBtn.style.opacity = "0.9";
+                installAppBtn.style.background = "rgba(255, 255, 255, 0.25)";
             }
         }
 
+        function closePwaStatusModal() {
+            if (pwaStatusModal) {
+                pwaStatusModal.classList.remove("is-active");
+            }
+        }
+
+        function showPwaStatusModal(mode) {
+            if (!pwaStatusModal || !pwaModalDynamicBody) return;
+
+            let html = "";
+            if (mode === "installed") {
+                html = `
+                    <img src="ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='ImagenesWeb/logo_solid.png'">
+                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 8px 0; color: var(--olivo-base);">¡App Oficial Instalada! ✨</h3>
+                    <p style="font-size: 0.88rem; color: #555; margin: 0 0 16px 0; line-height: 1.5;">
+                        Ya estás disfrutando del acceso directo exclusivo de la boda en tu pantalla de inicio.
+                    </p>
+                    <div class="pwa-tip-box" style="text-align: center; margin-bottom: 16px;">
+                        <span>📱 Tienes el itinerario, confirmación, minijuegos y fotos a un toque de distancia sin barras de navegador.</span>
+                    </div>
+                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">¡Continuar Navegando!</button>
+                `;
+            } else if (mode === "ios") {
+                html = `
+                    <img src="ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='ImagenesWeb/logo_solid.png'">
+                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 6px 0; color: var(--olivo-base);">Instalar App de los Chicos</h3>
+                    <p style="font-size: 0.85rem; color: #666; margin: 0 0 16px 0; line-height: 1.4;">
+                        Agrega el acceso directo exclusivo a la pantalla de inicio de tu iPhone:
+                    </p>
+
+                    <div class="pwa-step">
+                        <div class="pwa-step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                        </div>
+                        <div>
+                            <strong>1. Toca Compartir</strong><br>
+                            En la barra inferior de Safari, presiona el botón del recuadro con la flecha arriba.
+                        </div>
+                    </div>
+
+                    <div class="pwa-step">
+                        <div class="pwa-step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        </div>
+                        <div>
+                            <strong>2. Añadir a pantalla de inicio</strong><br>
+                            Desliza hacia abajo en las opciones y presiona <em>"Añadir a pantalla de inicio"</em>.
+                        </div>
+                    </div>
+
+                    <div class="pwa-tip-box">
+                        <strong>💡 ¿Ya la habías instalado antes?</strong><br>
+                        Si ya la añadiste previamente a tu iPhone, ¡simplemente búscala en tu pantalla de inicio con el icono de los chicos para abrirla directo!
+                    </div>
+
+                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">¡Entendido!</button>
+                `;
+            } else {
+                html = `
+                    <img src="ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='ImagenesWeb/logo_solid.png'">
+                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 6px 0; color: var(--olivo-base);">Instalar App de los Chicos</h3>
+                    <p style="font-size: 0.85rem; color: #666; margin: 0 0 16px 0; line-height: 1.4;">
+                        Agrega el acceso directo para abrir la boda como una app nativa:
+                    </p>
+
+                    <div class="pwa-step">
+                        <div class="pwa-step-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z"/></svg>
+                        </div>
+                        <div>
+                            <strong>En Celular Android</strong><br>
+                            Toca los tres puntos (⋮) arriba a la derecha y selecciona <em>"Instalar aplicación"</em> o <em>"Añadir a pantalla de inicio"</em>.
+                        </div>
+                    </div>
+
+                    <div class="pwa-step">
+                        <div class="pwa-step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        </div>
+                        <div>
+                            <strong>En Computadora</strong><br>
+                            Haz clic en el icono ⊕ o de instalación situado a la derecha de la barra de direcciones.
+                        </div>
+                    </div>
+
+                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">¡Entendido!</button>
+                `;
+            }
+
+            pwaModalDynamicBody.innerHTML = html;
+            pwaStatusModal.classList.add("is-active");
+        }
+
         async function handleInstallApp() {
+            closeDrawer();
+
+            // 1. Si la app ya corre en modo standalone
             if (isRunningStandalone()) {
-                alert("¡Ya estás navegando desde la App de los Chicos! ✨");
-                closeDrawer();
+                setTimeout(() => showPwaStatusModal("installed"), 220);
                 return;
             }
 
-            // 1. Caso Android / Navegador con prompt nativo directo
+            // 2. Si es Android o navegador con prompt nativo directo
             if (deferredInstallPrompt) {
                 deferredInstallPrompt.prompt();
                 const choiceResult = await deferredInstallPrompt.userChoice;
                 if (choiceResult.outcome === "accepted") {
-                    console.log("El usuario aceptó la instalación de la app.");
+                    console.log("El usuario aceptó la instalación.");
                 }
                 deferredInstallPrompt = null;
-                closeDrawer();
                 return;
             }
 
-            // 2. Caso iPhone / iPad (iOS Safari)
+            // 3. Si es iPhone o iPad
             if (isIOSDevice()) {
-                closeDrawer();
-                setTimeout(() => openIosModal(), 200);
+                setTimeout(() => showPwaStatusModal("ios"), 220);
                 return;
             }
 
-            // 3. Caso general / Desktop / Navegador sin evento disparado
-            alert("Para agregar la App de los Chicos a tu pantalla de inicio:\n\n• En celular: Toca el menú de tu navegador (⋮ o Compartir) y elige 'Añadir a pantalla de inicio'.\n• En computadora: Toca el icono de instalar (+) en la barra de direcciones.");
-            closeDrawer();
-        }
-
-        function openIosModal() {
-            if (iosInstallModal) {
-                iosInstallModal.classList.add("is-active");
-            }
-        }
-
-        function closeIosModal() {
-            if (iosInstallModal) {
-                iosInstallModal.classList.remove("is-active");
-            }
+            // 4. En cualquier otro dispositivo / navegador
+            setTimeout(() => showPwaStatusModal("other"), 220);
         }
 
         window.addEventListener("appinstalled", () => {
