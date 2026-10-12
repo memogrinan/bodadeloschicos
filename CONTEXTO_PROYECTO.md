@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=15.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=16.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
 
 ---
 
@@ -143,7 +143,21 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 
 ---
 
-## 7. Temas Pendientes para Futuras Sesiones
+## 7. Menú Móvil y Acceso Directo PWA Cross-Platform (`v=16.0`)
+
+- **Cierre Táctil al Dar Clic Fuera:**
+  - Se implementó un overlay difuso (`#drawerOverlay`) con `backdrop-filter: blur(4px)` y fondo semi-transparente oscuro.
+  - Al hacer clic o tocar fuera de `#mobileDrawer` y `#menuToggle`, se cierra automáticamente el menú y el icono vuelve a alternar a hamburguesa.
+- **Botón "Instalar App de los Chicos" Anclado al Fondo:**
+  - Vive dentro de un contenedor `.drawer-bottom` con `margin-top: auto` y respeta `env(safe-area-inset-bottom)` de iPhones.
+- **Estrategia Adaptativa Cross-Platform:**
+  - **Android / Chromium:** Utiliza el evento `beforeinstallprompt` para abrir el diálogo nativo de instalación con 1 clic.
+  - **iOS (iPhone/iPad Safari):** Abre el modal interactivo `#iosInstallModal` con guía visual paso a paso (Compartir -> Añadir a inicio).
+  - **Modo Standalone:** Detecta si la web ya corre como app instalada y actualiza el botón a *"App Instalada ✓"*.
+
+---
+
+## 8. Temas Pendientes para Futuras Sesiones
 
 1. **Mesa de Regalos & Stripe (`regalos.html`):**
    - El frontend cuenta con carrito dinámico funcional en diseño (suma productos, desglose y dedicatoria).
