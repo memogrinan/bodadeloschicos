@@ -367,14 +367,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
         // ==========================================
         // SISTEMA DE CONFIRMACIÓN RSVP DIVERSIFICADO (GOOGLE SHEETS)
         // ==========================================
-        let isNavigatingToBottomSection = false;
-        document.addEventListener("DOMContentLoaded", () => {
-            document.querySelectorAll('a[href="#juegos-acceso"], a[href="#fotos-invitados"]').forEach(link => {
-                link.addEventListener("click", () => {
-                    isNavigatingToBottomSection = true;
-                });
-            });
-        });
+
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
         let currentRSVPData = null;
 
@@ -403,11 +396,13 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(id)}`);
                 const data = await res.json();
 
-                // COMPENSACIÓN SINCRÓNICA INVISIBLE:
-                // Medir la posición en pantalla de la sección de Juegos antes de alterar el DOM
-                const refEl = document.getElementById("juegos-acceso");
-                const prevTop = refEl ? refEl.getBoundingClientRect().top : 0;
-                const prevScroll = window.scrollY;
+                // COMPENSACIÓN MATEMÁTICA UNIVERSAL (Cero condicionales por sección):
+                // Identifica qué elemento está observando el usuario (o al que navegó mediante el menú)
+                const hashTarget = (window.location.hash && window.location.hash !== "#inicio")
+                    ? document.querySelector(window.location.hash)
+                    : null;
+                const anchorEl = hashTarget || (window.scrollY > 150 ? document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 3) : null);
+                const prevTop = anchorEl ? anchorEl.getBoundingClientRect().top : 0;
 
                 if (data.status === "success") {
                     currentRSVPData = data;
@@ -425,17 +420,10 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     errEl.style.display = "block";
                 }
 
-                // COMPENSACIÓN EXCLUSIVA PARA SECCIONES INFERIORES (Juegos o Fotos):
-                // Solo compensar si el usuario seleccionó Juegos o Fotos, o si ya estaba físicamente en esas secciones.
-                // Si está en Inicio, Historia, Lugar o hizo un pequeño scroll, NO se altera su vista en lo absoluto.
-                const isBottomTarget = isNavigatingToBottomSection || (
-                    window.location.hash === "#juegos-acceso" ||
-                    window.location.hash === "#fotos-invitados" ||
-                    (refEl && prevTop <= window.innerHeight + 100)
-                );
-
-                if (refEl && isBottomTarget) {
-                    const newTop = refEl.getBoundingClientRect().top;
+                // Si cualquier elemento superior (Itinerario, RSVP, etc.) creció o cambió de tamaño,
+                // compensamos sincrónicamente la diferencia exacta para que la pantalla no se mueva:
+                if (anchorEl) {
+                    const newTop = anchorEl.getBoundingClientRect().top;
                     const delta = newTop - prevTop;
                     if (delta !== 0) {
                         window.scrollBy(0, delta);
