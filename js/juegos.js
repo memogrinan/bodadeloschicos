@@ -462,7 +462,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function syncPlayerToFirebase() {
             if (!db || !playerGamertag || !playerGamertag.trim()) return;
-            const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+            const cleanGuestId = playerGuestId ? playerGuestId.trim().replace(/[.#$/[\]]/g, "_") : "";
+            const cleanGamertag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+            const keyTag = cleanGuestId || cleanGamertag;
             
             const scoresObj = {};
             const coinsObj = {};
@@ -486,7 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const payload = {
                 gamerTag: playerGamertag.trim(),
-                guestId: playerGuestId,
+                guestId: playerGuestId || keyTag,
                 realName: playerRealName || selectedRealName || "",
                 partyId: currentPartyId || "general",
                 scores: scoresObj,
@@ -587,7 +589,24 @@ document.addEventListener("DOMContentLoaded", () => {
             if (colTitle && tabInfo[currentLeaderboardTab]) colTitle.innerText = tabInfo[currentLeaderboardTab].col;
             if (subtitle && tabInfo[currentLeaderboardTab]) subtitle.innerText = tabInfo[currentLeaderboardTab].sub;
 
-            const list = Object.values(rawPlayersData);
+            // Deduplicación por guestId o key única para que NUNCA aparezcan registros dobles
+            const uniqueMap = {};
+            Object.keys(rawPlayersData).forEach(k => {
+                const p = rawPlayersData[k];
+                if (!p || !p.gamerTag) return;
+                const dedupeKey = p.guestId || k;
+                if (!uniqueMap[dedupeKey]) {
+                    uniqueMap[dedupeKey] = p;
+                } else {
+                    const existing = uniqueMap[dedupeKey];
+                    const existingScore = typeof existing.totalScore === "number" ? existing.totalScore : 0;
+                    const pScore = typeof p.totalScore === "number" ? p.totalScore : 0;
+                    if (pScore > existingScore || (p.lastUpdated && p.lastUpdated > (existing.lastUpdated || 0))) {
+                        uniqueMap[dedupeKey] = p;
+                    }
+                }
+            });
+            const list = Object.values(uniqueMap);
 
             if (list.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Aún no hay récords registrados. ¡Sé el primero!</td></tr>`;
@@ -686,11 +705,17 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("bottomGamerTag").innerText = tagDisplay;
 
             // Restaurar puntuaciones de Firebase al cargar la página si existen
-            if (db && playerGamertag) {
-                const keyTag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
-                db.ref("players/" + keyTag).once("value").then(snapshot => {
+            const localKey = (playerGuestId || playerGamertag || "").trim().replace(/[.#$/[\]]/g, "_");
+            if (db && localKey) {
+                db.ref("players/" + localKey).once("value").then(snapshot => {
                     const data = snapshot.val();
                     if (data) {
+                        if (data.gamerTag) {
+                            playerGamertag = data.gamerTag;
+                            localStorage.setItem("bodachicos_gamertag", playerGamertag);
+                            document.getElementById("playerGamertag").innerText = playerGamertag;
+                            document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                        }
                         if (data.realName && !playerRealName) {
                             playerRealName = data.realName;
                             localStorage.setItem("bodachicos_real_name", playerRealName);
@@ -698,7 +723,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (data.scores) {
                             Object.keys(data.scores).forEach(g => {
                                 const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
-                                const fbSc = data.scores[g] || 0;
+                                const fbSc = parseInt(data.scores[g] || 0);
                                 localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
                             });
                             updateScoresDashboard();
@@ -813,25 +838,52 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-            // AUTO-FILL INTELIGENTE (Busca en nueva y vieja arquitectura)
-            if (db && selectedRealName) {
-                db.ref("players/" + playerGuestId).once("value").then(snap => {
+            // AUTO-FILL INTELIGENTE:
+            // 1. Busca directamente bajo la llave inmutable players/[playerGuestId]
+            // 2. Si no, busca un nodo que tenga la propiedad guestId == playerGuestId
+            // 3. Si no, busca por realName (para cuentas viejas previas a esta migración)
+            if (db && playerGuestId) {
+                const cleanGuestId = playerGuestId.trim().replace(/[.#$/[\]]/g, "_");
+                db.ref("players/" + cleanGuestId).once("value").then(snap => {
                     const playerNode = snap.val();
                     if (playerNode && playerNode.gamerTag) {
                         fillInput(playerNode.gamerTag);
                     } else {
-                        // Fallback a arquitectura vieja
-                        db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(legacySnap => {
-                            const legacyData = legacySnap.val();
-                            if (legacyData) {
-                                const keys = Object.keys(legacyData);
-                                if (keys.length > 0 && legacyData[keys[0]].gamerTag) {
-                                    fillInput(legacyData[keys[0]].gamerTag);
+                        // 2. Búsqueda por propiedad guestId
+                        db.ref("players").orderByChild("guestId").equalTo(playerGuestId).once("value").then(guestSnap => {
+                            const gData = guestSnap.val();
+                            if (gData) {
+                                const keys = Object.keys(gData);
+                                if (keys.length > 0 && gData[keys[0]].gamerTag) {
+                                    fillInput(gData[keys[0]].gamerTag);
+                                    return;
                                 }
+                            }
+                            // 3. Fallback histórico por realName
+                            if (selectedRealName) {
+                                db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(legacySnap => {
+                                    const legacyData = legacySnap.val();
+                                    if (legacyData) {
+                                        const keys = Object.keys(legacyData);
+                                        if (keys.length > 0 && legacyData[keys[0]].gamerTag) {
+                                            fillInput(legacyData[keys[0]].gamerTag);
+                                        }
+                                    }
+                                });
                             }
                         });
                     }
                 }).catch(e => console.warn("No se pudo pre-cargar el Gamertag:", e));
+            } else if (db && selectedRealName) {
+                db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(legacySnap => {
+                    const legacyData = legacySnap.val();
+                    if (legacyData) {
+                        const keys = Object.keys(legacyData);
+                        if (keys.length > 0 && legacyData[keys[0]].gamerTag) {
+                            fillInput(legacyData[keys[0]].gamerTag);
+                        }
+                    }
+                });
             }
 
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
@@ -885,24 +937,50 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            let keyTag = playerGuestId;
-            if (!keyTag) keyTag = val.replace(/[.#$/[\]]/g, "_");
+            const cleanGuestId = playerGuestId ? playerGuestId.trim().replace(/[.#$/[\]]/g, "_") : "";
+            const cleanGamertag = val.trim().replace(/[.#$/[\]]/g, "_");
+            const keyTag = cleanGuestId || cleanGamertag;
 
             if (db) {
                 try {
+                    // Descargar puntajes existentes de la llave oficial a local (la BD es la fuente de verdad)
                     const snap = await db.ref("players/" + keyTag).once("value");
                     const data = snap.val();
                     
                     if (data && data.scores) {
-                        // Si ya tiene puntos en la base de datos, descargar al celular (source of truth)
                         Object.keys(data.scores).forEach(g => {
                             localStorage.setItem("bodachicos_score_" + g, data.scores[g]);
                         });
                         if (data.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", data.bonusCoins);
                         if (data.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", data.timePlayedSeconds);
+                    } else {
+                        // Si la llave de guestId aún no tenía scores, pero el jugador tenía un nodo con su gamertag viejo:
+                        const previousTag = (playerGamertag || val).trim().replace(/[.#$/[\]]/g, "_");
+                        if (previousTag && previousTag !== keyTag) {
+                            const oldSnap = await db.ref("players/" + previousTag).once("value");
+                            const oldData = oldSnap.val();
+                            if (oldData && oldData.scores) {
+                                Object.keys(oldData.scores).forEach(g => {
+                                    localStorage.setItem("bodachicos_score_" + g, oldData.scores[g]);
+                                });
+                                if (oldData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", oldData.bonusCoins);
+                                if (oldData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", oldData.timePlayedSeconds);
+                                // Borrar el nodo viejo inmediatamente
+                                await db.ref("players/" + previousTag).remove();
+                            }
+                        }
+                    }
+
+                    // Limpieza proactiva: si existe un nodo nombrado como el gamertag previo que no coincida con keyTag, eliminarlo
+                    const oldTagKey = (playerGamertag || "").trim().replace(/[.#$/[\]]/g, "_");
+                    if (oldTagKey && oldTagKey !== keyTag) {
+                        db.ref("players/" + oldTagKey).remove().catch(() => {});
+                    }
+                    if (cleanGamertag && cleanGamertag !== keyTag) {
+                        db.ref("players/" + cleanGamertag).remove().catch(() => {});
                     }
                 } catch (e) {
-                    console.warn("No se pudo descargar progreso previo:", e);
+                    console.warn("No se pudo descargar progreso previo o limpiar:", e);
                 }
             }
 
