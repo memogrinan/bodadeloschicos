@@ -395,6 +395,12 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(id)}`);
                 const data = await res.json();
 
+                // COMPENSACIÓN SINCRÓNICA INVISIBLE:
+                // Medir la posición en pantalla de la sección de Juegos antes de alterar el DOM
+                const refEl = document.getElementById("juegos-acceso");
+                const prevTop = refEl ? refEl.getBoundingClientRect().top : 0;
+                const prevScroll = window.scrollY;
+
                 if (data.status === "success") {
                     currentRSVPData = data;
                     const hasAnswered = (data.estadoSabado && data.estadoSabado.toString().trim() !== "");
@@ -410,8 +416,19 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     errEl.innerText = `No encontramos una invitación con la clave '${id}'. Por favor verifica e intenta de nuevo.`;
                     errEl.style.display = "block";
                 }
+
+                // Si el usuario ya se había desplazado por la página hacia abajo (ej. hizo clic en Juegos),
+                // compensar de inmediato el cambio de altura generado por el itinerario del viernes y el RSVP,
+                // de modo que la vista permanezca 100% estática sin saltos ni animaciones raras:
+                if (refEl && prevScroll > 100) {
+                    const newTop = refEl.getBoundingClientRect().top;
+                    const delta = newTop - prevTop;
+                    if (delta !== 0) {
+                        window.scrollBy(0, delta);
+                    }
+                }
                 
-                // EL FIX: Siempre re-centrar el widget de RSVP porque al cambiar los display:none la página puede "brincar" al inicio
+                // Solo si el usuario hizo clic manual en "Buscar", enfocar suavemente la tarjeta de RSVP:
                 if (autoScroll) {
                     setTimeout(() => {
                         const target = document.getElementById("confirmacion");
