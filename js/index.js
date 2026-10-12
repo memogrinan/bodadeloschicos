@@ -365,6 +365,21 @@ if (!document.getElementById('cg-dynamic-styles')) {
         document.addEventListener("DOMContentLoaded", loadGithubGallery);
 
         // ==========================================
+        let activeNavTarget = window.location.hash || null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('a[href^="#"]').forEach(link => {
+                link.addEventListener('click', function() {
+                    const targetId = this.getAttribute('href');
+                    if (!targetId || targetId === '#' || targetId === '#inicio') {
+                        activeNavTarget = null;
+                        return;
+                    }
+                    activeNavTarget = targetId;
+                });
+            });
+        });
+
         // SISTEMA DE CONFIRMACIÓN RSVP DIVERSIFICADO (GOOGLE SHEETS)
         // ==========================================
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
@@ -411,8 +426,17 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     errEl.style.display = "block";
                 }
                 
-                // EL FIX: Siempre re-centrar el widget de RSVP porque al cambiar los display:none la página puede "brincar" al inicio
-                if (autoScroll) {
+                // FIX ANTI-SALTO: Si el usuario seleccionó una sección (ej. Juegos) antes de que terminara de cargar la invitación,
+                // o si la URL traía un hash, re-anclar al destino deseado tras la expansión del DOM del itinerario/RSVP.
+                const targetHash = activeNavTarget || (window.location.hash && window.location.hash !== "#inicio" ? window.location.hash : null);
+                if (targetHash) {
+                    setTimeout(() => {
+                        const target = document.querySelector(targetHash);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 80);
+                } else if (autoScroll) {
                     setTimeout(() => {
                         const target = document.getElementById("confirmacion");
                         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
