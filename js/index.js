@@ -299,7 +299,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 "DTSTART:20270213T213000Z", // 15:30 CST en formato UTC
                 "DTEND:20270214T053000Z",   // 23:30 CST en formato UTC
                 "SUMMARY:Boda Mariana & Memo",
-                "DESCRIPTION:¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.pages.dev/",
+                "DESCRIPTION:¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.com/",
                 "LOCATION:Ceremonia en Parroquia de San Andrés Apóstol / Recepción en Hacienda San José Actipan",
                 "END:VEVENT",
                 "END:VCALENDAR"

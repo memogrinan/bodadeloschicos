@@ -6,7 +6,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 
 ## 1. Infraestructura y Enlaces Principales
 
-- **URL de Producción:** [https://bodadeloschicos.pages.dev/](https://bodadeloschicos.pages.dev/) (Alojado en Cloudflare Pages).
+- **URL de Producción:** [https://bodadeloschicos.com/](https://bodadeloschicos.com/) (Dominio oficial personalizado) / `https://bodadeloschicos.pages.dev/` (Cloudflare Pages).
 - **Repositorio de GitHub:** `https://github.com/memogrinan/bodadeloschicos.git` (Rama: `main`).
   *Cada `git push origin main` despliega automáticamente la nueva versión en Cloudflare Pages en segundos.*
 - **Backend Google Apps Script (Trix / Google Sheets):**
@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=19.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=20.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
 
 ---
 
