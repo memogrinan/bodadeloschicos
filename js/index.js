@@ -705,14 +705,46 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 </div>
             `;
 
-            if (data.alergias && data.alergias.trim() !== "" && data.alergias.trim().toLowerCase() !== "ninguna") {
-                summaryHTML += `
-                    <div style="margin-bottom: 14px;">
-                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥗 Restricciones alimenticias:</h4>
-                        <p style="margin: 0; color: #555;">${data.alergias}</p>
-                    </div>
-                `;
+            // SECCIÓN RESTRICCIONES ALIMENTICIAS POR INTEGRANTE
+            const alergiasSummaryLines = [];
+            const alergiasMap = {};
+            if (data.alergias && typeof data.alergias === 'string') {
+                const parts = data.alergias.split("|").map(p => p.trim());
+                parts.forEach(part => {
+                    const kv = part.split(":").map(s => s.trim());
+                    if (kv.length >= 2) {
+                        const mName = kv[0];
+                        let mVal = kv.slice(1).join(":").trim();
+                        // Prevenir contaminación cruzada histórica si mVal contenía el nombre de otro integrante
+                        const isCrossAssigned = integrantes.some(other => 
+                            other.toLowerCase() !== mName.toLowerCase() && 
+                            mVal.toLowerCase().startsWith(other.toLowerCase() + ":")
+                        );
+                        if (!isCrossAssigned) {
+                            alergiasMap[mName.toLowerCase()] = mVal;
+                        }
+                    } else if (kv.length === 1 && integrantes.length === 1) {
+                        alergiasMap[integrantes[0].toLowerCase()] = kv[0];
+                    }
+                });
             }
+
+            integrantes.forEach(member => {
+                const rawVal = alergiasMap[member.toLowerCase()] || "";
+                const isNone = (!rawVal || rawVal.toLowerCase() === "ninguna" || rawVal.toLowerCase() === "n/a" || rawVal.toLowerCase() === "none" || rawVal.toLowerCase() === "nones");
+                if (isNone) {
+                    alergiasSummaryLines.push(`${member}: <span style="font-weight: 400; color: #777;">Ninguna</span>`);
+                } else {
+                    alergiasSummaryLines.push(`${member}: <span style="font-weight: 600; color: #2b2b2b;">${rawVal}</span>`);
+                }
+            });
+
+            summaryHTML += `
+                <div style="margin-bottom: 14px;">
+                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🍽️ Restricciones alimenticias:</h4>
+                    <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${alergiasSummaryLines.join('<br>')}</p>
+                </div>
+            `;
 
             if (data.celebracion && data.celebracion.trim() !== "") {
                 summaryHTML += `
@@ -847,11 +879,25 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     const kv = part.split(":").map(s => s.trim());
                     if (kv.length >= 2) {
                         const mName = kv[0];
-                        const mVal = kv.slice(1).join(":");
+                        let mVal = kv.slice(1).join(":").trim();
                         integrantes.forEach((member, idx) => {
                             if (member.toLowerCase() === mName.toLowerCase()) {
                                 const input = document.getElementById(`alergia_${idx}`);
-                                if (input) input.value = mVal;
+                                if (input) {
+                                    // Limpiar si accidentalmente contenía el nombre de otro integrante (corrupción histórica)
+                                    const isCrossAssigned = integrantes.some(other => 
+                                        other.toLowerCase() !== member.toLowerCase() && 
+                                        mVal.toLowerCase().startsWith(other.toLowerCase() + ":")
+                                    );
+                                    if (isCrossAssigned) mVal = "";
+
+                                    // Si no tiene restricción o dice "Ninguna", DEJAR EL CAMPO COMPLETAMENTE VACÍO (no rellenar con "Ninguna")
+                                    if (!mVal || mVal.toLowerCase() === "ninguna" || mVal.toLowerCase() === "n/a" || mVal.toLowerCase() === "none" || mVal.toLowerCase() === "nones") {
+                                        input.value = "";
+                                    } else {
+                                        input.value = mVal;
+                                    }
+                                }
                             }
                         });
                     }
@@ -889,10 +935,11 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     estadoCivilList.push(`${member}: ${civVal}`);
                 }
 
-                const algVal = document.getElementById(`alergia_${idx}`)?.value.trim() || "";
-                if (algVal) {
-                    alergiasList.push(`${member}: ${algVal}`);
-                }
+                const rawAlg = document.getElementById(`alergia_${idx}`)?.value.trim() || "";
+                // Si el campo está vacío o dice "Ninguna", se almacena como string vacío para no ensuciar la trix
+                const isNone = (!rawAlg || rawAlg.toLowerCase() === "ninguna" || rawAlg.toLowerCase() === "n/a" || rawAlg.toLowerCase() === "none" || rawAlg.toLowerCase() === "nones");
+                const cleanAlg = isNone ? "" : rawAlg;
+                alergiasList.push(`${member}: ${cleanAlg}`);
             });
 
             const celebracionVal = document.getElementById("rsvpCelebracionInput").value.trim();
@@ -901,7 +948,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 id: currentRSVPData.id,
                 estadoSabado: estadoSabadoList.join(" | "),
                 estadoCivil: isCivil ? estadoCivilList.join(" | ") : "N/A",
-                alergias: alergiasList.length > 0 ? alergiasList.join(" | ") : "Ninguna",
+                alergias: alergiasList.join(" | "),
                 celebracion: celebracionVal
             };
 

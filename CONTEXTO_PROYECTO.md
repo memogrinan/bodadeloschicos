@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=23.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=24.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
 
 ---
 
@@ -199,7 +199,20 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 
 ---
 
-## 11. Temas Pendientes para Futuras Sesiones
+## 11. Corrección de Restricciones Alimenticias y Resumen RSVP (`v=24.0`)
+
+- **Prevención de Contaminación Cruzada y Duplicados:**
+  - Se eliminó el bug donde si solo un integrante tenía restricciones, el fallback de Apps Script o el split asignaba la restricción del otro integrante a quien no tenía nada (ej. *Guillermo: Mariana: Alergica al gluten*).
+  - Al cargar el formulario (`renderRSVPForm`), se verifica y limpia cualquier prefijo cruzado. Si el integrante no tiene restricción o dice "Ninguna", el campo `<textarea>` queda **estrictamente vacío** mostrando su placeholder limpio (evitando autollenar con "Ninguna").
+- **Envío Pareado y Escritura Limpia en Google Sheets (Trix):**
+  - Al enviar (`submitRSVPForm`), se envía siempre el par `Nombre: Restricción` para cada integrante. Si el campo está vacío, se envía vacío y Apps Script guarda la celda en blanco `""` en lugar de la palabra "Ninguna", evitando registros fantasmas.
+- **Formato Editorial en Resumen de Confirmación:**
+  - El resumen (`renderRSVPSummaryView`) adopta el mismo patrón de las confirmaciones de asistencia: desglosa a cada invitado en una línea con su nombre y restricción (o `Ninguna` en tipografía sutil por defecto).
+  - Se actualizó el emoji a **🍽️ (Plato con cubiertos)** reemplazando a `🥗` para una estética nítida y elegante.
+
+---
+
+## 12. Temas Pendientes para Futuras Sesiones
 
 1. **Mesa de Regalos & Stripe (`regalos.html`):**
    - El frontend cuenta con carrito dinámico funcional en diseño (suma productos, desglose y dedicatoria).
