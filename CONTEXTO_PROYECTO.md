@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=21.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=22.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
 
 ---
 
@@ -174,12 +174,12 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 
 ---
 
-## 9. Actualización del Carrusel "Nuestra Historia en Fotos" (`v=21.0`)
+## 9. Actualización del Carrusel "Nuestra Historia en Fotos" (`v=22.0`)
 
 - **Incorporación y Optimización de Fotografías:**
-  - Se convirtieron `foto_bimbo.jpeg` y `foto_casa_puebla.jpeg` a formato WebP optimizado en `ImagenesWeb/Optimizadas/` (`foto_bimbo.webp` con 84.5 KB y `foto_casa_puebla.webp` con 223.8 KB) preservando orientación EXIF y resolución nítida.
+  - Se convirtieron `foto_bimbo.jpeg` y `foto_casa_puebla.jpeg` a formato WebP optimizado en `ImagenesWeb/Optimizadas/` (`foto_bimbo.webp` con 88.1 KB tras ajuste de recorte y `foto_casa_puebla.webp` con 223.8 KB) preservando orientación EXIF y resolución nítida.
 - **Orden Oficial de las 5 Fotografías en `index.html`:**
-  1. `ImagenesWeb/Optimizadas/foto_bimbo.webp` (Nuestros inicios / Oficina Bimbo 2018)
+  1. `ImagenesWeb/Optimizadas/foto_bimbo.webp?v=22.0` (Nuestros inicios / Oficina Bimbo 2018)
   2. `ImagenesWeb/Optimizadas/historia_omitlan.webp` (Viaje a Omitlán 2021)
   3. `ImagenesWeb/Optimizadas/foto_casa_puebla.webp` (Casa en Puebla 2023)
   4. `ImagenesWeb/Optimizadas/historia_maddie_solita.webp` (Llegada de Maddie)
