@@ -2,8 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Boda Mariana & Memo</title>
+    
+    <!-- Canvas Confetti para celebración RSVP -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     
     <!-- ========================================== -->
     <!-- FAVICON (Icono de la pestaña cargado desde tu carpeta de diseño) -->
@@ -54,6 +57,13 @@
             --olivo-acento: #a3ad73;
             --crema-fondo: #fcfaf7;
             --nav-texto: #ffffff;
+            
+            /* SOMBRAS EDITORIALES SUAVES MULTICAPA */
+            --shadow-subtle: 0 2px 8px -2px rgba(82, 88, 47, 0.08), 0 1px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-card: 0 12px 32px -8px rgba(82, 88, 47, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+            --shadow-elevated: 0 20px 48px -12px rgba(82, 88, 47, 0.18), 0 8px 18px -4px rgba(0, 0, 0, 0.05);
+            --shadow-btn: 0 4px 14px -2px rgba(82, 88, 47, 0.25);
+            --shadow-btn-hover: 0 8px 22px -4px rgba(82, 88, 47, 0.35);
         }
 
         /* html { scroll-behavior: smooth; } Removido globalmente para evitar que el browser anime el scroll al entrar con un link directo, se manejará en JS */
@@ -468,17 +478,63 @@
         h2 { font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 30px; }
 
         /* CARRUSEL DE FOTOS */
-        .carousel-container { position: relative; max-width: 600px; margin: 0 auto; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); aspect-ratio: 4/5; max-height: 80vh; background: #f0f0f0; }
+        .carousel-container { 
+            position: relative; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            overflow: hidden; 
+            border-radius: 22px; 
+            box-shadow: var(--shadow-card); 
+            border: 1px solid rgba(82, 88, 47, 0.08);
+            aspect-ratio: 4/5; 
+            max-height: 80vh; 
+            background: #f0f0f0; 
+        }
         .carousel-track { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
         /* RESERVAR ESPACIO PARA IMAGENES PARA EVITAR SALTOS DE ANCLAS (LAYOUT SHIFT) */
         .carousel-img { width: 100%; aspect-ratio: 4/5; flex-shrink: 0; object-fit: cover; background-color: #f0f0f0; }
         #cgGalleryGrid { min-height: 300px; }
         
-        /* BOTONES DEL CARRUSEL */
-        .carousel-btn { position: absolute; top: 0; bottom: 0; margin: auto; background: rgba(255,255,255,0.85); border: none; font-size: clamp(1.3rem, 3.5vw, 1.9rem); cursor: pointer; border-radius: 50%; width: 45px; height: 45px; z-index: 10; color: var(--olivo-base); display: flex; justify-content: center; align-items: center; }
-        .prev { left: 10px; } .next { right: 10px; }
+        /* BOTONES DEL CARRUSEL CON FEEDBACK TÁCTIL */
+        .carousel-btn { 
+            position: absolute; 
+            top: 0; bottom: 0; 
+            margin: auto; 
+            background: rgba(255,255,255,0.9); 
+            border: 1px solid rgba(82, 88, 47, 0.12); 
+            font-size: clamp(1.3rem, 3.5vw, 1.9rem); 
+            cursor: pointer; 
+            border-radius: 50%; 
+            width: 46px; height: 46px; 
+            z-index: 10; 
+            color: var(--olivo-base); 
+            display: flex; justify-content: center; align-items: center; 
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, box-shadow 0.18s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .carousel-btn:hover {
+            background: #ffffff;
+            box-shadow: var(--shadow-card);
+        }
+        .carousel-btn:active {
+            transform: scale(0.92);
+        }
+        .prev { left: 12px; } .next { right: 12px; }
 
-        .glass-card { background: rgba(255, 255, 255, 0.94); padding: 50px 30px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 50px 30px; 
+            border-radius: 24px; 
+            max-width: 500px; 
+            width: 90%; 
+            text-align: center; 
+            box-shadow: var(--shadow-card); 
+            border: 1px solid rgba(82, 88, 47, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
 
         /* ITINERARIO */
         .timeline-wrapper { text-align: left; max-width: 450px; margin: 0 auto; position: relative; padding-left: 45px; border-left: 1.5px solid #ddd; }
@@ -503,20 +559,26 @@
             color: var(--olivo-base);
             border: 1px solid rgba(82, 88, 47, 0.25);
             border-radius: 20px;
-            padding: 6px 14px;
+            padding: 7px 15px;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.3s ease;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
             background-color: transparent;
             cursor: pointer;
             font-family: 'Lora', serif;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-cal:hover {
-            background-color: rgba(82, 88, 47, 0.05);
+            background-color: rgba(82, 88, 47, 0.08);
             border-color: var(--olivo-base);
+            transform: translateY(-1px);
+        }
+        .btn-cal:active {
+            transform: scale(0.96);
+            background-color: rgba(82, 88, 47, 0.12);
         }
         .cal-icon {
             width: 14px;
@@ -560,15 +622,62 @@
             white-space: nowrap;
         }
 
-        /* BOTONES */
-        .btn { padding: 12px 25px; text-decoration: none; border-radius: 30px; font-size: clamp(0.7rem, 1.1vw, 0.85rem); font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; margin: 10px 5px; min-width: 140px; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-rsvp { background-color: var(--olivo-base); color: white; padding: 16px 45px; font-size: clamp(0.9rem, 1.8vw, 1.1rem); border: none; margin-top: 20px; }
-        .btn-hotel { border: 1px solid var(--olivo-base); color: var(--olivo-base); }
-        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+        /* BOTONES CON FEEDBACK TÁCTIL Y SOMBRAS ESTRATIFICADAS */
+        .btn { 
+            padding: 12px 26px; 
+            text-decoration: none; 
+            border-radius: 9999px; 
+            font-size: clamp(0.72rem, 1.1vw, 0.85rem); 
+            font-weight: 600; 
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background-color 0.2s ease, opacity 0.2s ease; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 10px 5px; 
+            min-width: 140px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            box-shadow: var(--shadow-btn);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+        .btn-rsvp { 
+            background-color: var(--olivo-base); 
+            color: white; 
+            padding: 16px 45px; 
+            font-size: clamp(0.9rem, 1.8vw, 1.1rem); 
+            border: none; 
+            margin-top: 20px; 
+            box-shadow: var(--shadow-btn);
+        }
+        .btn-hotel { 
+            border: 1.5px solid var(--olivo-base); 
+            color: var(--olivo-base); 
+            background: transparent;
+            box-shadow: var(--shadow-subtle);
+        }
+        .btn:hover { 
+            box-shadow: var(--shadow-btn-hover);
+            transform: translateY(-2px); 
+        }
+        .btn:active {
+            transform: scale(0.97) translateY(0);
+            box-shadow: var(--shadow-subtle);
+        }
+        .btn-hotel:hover {
+            background-color: rgba(82, 88, 47, 0.06);
+        }
 
         .upload-section { margin-top: 50px; padding: 40px; border: 2px dashed var(--olivo-base); border-radius: 20px; background-color: rgba(82, 88, 47, 0.05); }
 
-        footer { padding: 60px 20px; font-size: clamp(0.7rem, 1.1vw, 0.85rem); opacity: 0.8; text-align: center; background: #fff; }
+        footer { 
+            padding: 60px 20px calc(60px + env(safe-area-inset-bottom, 0px)) 20px; 
+            font-size: clamp(0.7rem, 1.1vw, 0.85rem); 
+            opacity: 0.85; 
+            text-align: center; 
+            background: #fff; 
+        }
 
         /* VISOR DE FOTOS (LIGHTBOX MODAL) */
         .lightbox-modal {
@@ -675,22 +784,22 @@
         }
         .hz-icon-wrapper {
             background-color: #ffffff; /* Fondo blanco sólido para tapar la línea de fondo */
-            border: none;
+            border: 1px solid rgba(82, 88, 47, 0.08);
             border-radius: 50%;
             width: 72px; 
             height: 72px;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+            box-shadow: var(--shadow-subtle);
             overflow: hidden;
             padding: 6px; /* Ajusta los iconos para que no toquen la orilla */
             box-sizing: border-box; /* Evita que el círculo se agrande con el padding */
         }
         .vt-item:hover .hz-icon-wrapper {
-            transform: scale(1.1);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            transform: scale(1.08);
+            box-shadow: var(--shadow-card);
         }
         .hz-icon-wrapper img {
             display: block;
@@ -732,10 +841,14 @@
             gap: 15px;
             outline: none;
             text-shadow: 0 1px 1px rgba(255, 255, 255, 0.85); /* Sombra suave para legibilidad sobre textura */
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
         }
         .faq-question:hover {
-            background-color: rgba(82, 88, 47, 0.03);
+            background-color: rgba(82, 88, 47, 0.04);
+        }
+        .faq-question:active {
+            transform: scale(0.99);
         }
         
         /* Símbolo + animado a la izquierda */
@@ -1200,7 +1313,7 @@
 
     <!-- SECCIÓN: CONFIRMACIÓN RSVP PERSONALIZADA (CONECTADA A GOOGLE SHEETS) -->
     <div id="confirmacion" style="background-color: #eef2e6; padding: 60px 15px; text-align: center;" class="fade-in-section">
-        <div style="max-width: 600px; margin: 0 auto; background: white; padding: clamp(22px, 5vw, 35px) clamp(14px, 4vw, 25px); border-radius: 24px; box-shadow: 0 10px 30px rgba(82, 88, 47, 0.08); border: 1px solid rgba(82, 88, 47, 0.12); box-sizing: border-box; min-height: 380px; display: flex; flex-direction: column; justify-content: center;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: clamp(22px, 5vw, 35px) clamp(14px, 4vw, 25px); border-radius: 26px; box-shadow: var(--shadow-card); border: 1px solid rgba(82, 88, 47, 0.12); box-sizing: border-box; min-height: 380px; display: flex; flex-direction: column; justify-content: center;">
             
             <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.4rem, 7vw, 3.8rem); color: var(--olivo-base); margin: 0 0 8px 0;">RSVP</h2>
 
@@ -1399,6 +1512,6 @@
             });
         }
     </script>
-<script src="js/index.js?v=17.0" defer></script>
+<script src="js/index.js?v=18.0" defer></script>
 </body>
 </html>

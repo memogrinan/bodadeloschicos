@@ -919,6 +919,12 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 currentRSVPData.celebracion = payload.celebracion;
 
                 renderRSVPSummaryView(currentRSVPData);
+
+                // CELEBRACIÓN CON CONFETTI EDITORIAL (Solo si confirmaron al menos un 'SI')
+                const confirmedAnyYes = (payload.estadoSabado.includes(": SI") || (isCivil && payload.estadoCivil.includes(": SI")));
+                if (confirmedAnyYes) {
+                    triggerRSVPConfetti();
+                }
             } catch (err) {
                 console.error("Error al enviar RSVP:", err);
                 alert("Ocurrió un inconveniente al guardar. Por favor intenta de nuevo.");
@@ -926,6 +932,42 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Confirmar Asistencia 💌";
             }
+        }
+
+        // Ráfaga elegante de confetti en la paleta de la boda (oro, olivo, crema, champagne)
+        function triggerRSVPConfetti() {
+            if (typeof confetti !== "function") return;
+
+            const weddingPalette = ["#52582f", "#a3ad73", "#d4af37", "#f3e8c8", "#ffffff"];
+            
+            // Primer disparo central
+            confetti({
+                particleCount: 50,
+                spread: 70,
+                origin: { y: 0.65 },
+                colors: weddingPalette,
+                disableForReducedMotion: true
+            });
+
+            // Pequeños fuegos artificiales laterales suaves
+            setTimeout(() => {
+                confetti({
+                    particleCount: 35,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0.2, y: 0.7 },
+                    colors: weddingPalette,
+                    disableForReducedMotion: true
+                });
+                confetti({
+                    particleCount: 35,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 0.8, y: 0.7 },
+                    colors: weddingPalette,
+                    disableForReducedMotion: true
+                });
+            }, 250);
         }
 
         function resetRSVPView() {

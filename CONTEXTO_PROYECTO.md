@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=17.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=18.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
 
 ---
 
@@ -157,10 +157,27 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 
 ---
 
-## 8. Temas Pendientes para Futuras Sesiones
+## 8. Acabado Editorial y Mejoras Estéticas Profesionales (`v=18.0`)
+
+- **Sistema de Sombras Multicapa (Layered Soft Shadows):**
+  - Implementación de variables CSS (`--shadow-subtle`, `--shadow-card`, `--shadow-elevated`, `--shadow-btn`, `--shadow-btn-hover`) con tintes olivo translúcidos que reemplazan las sombras oscuras duras.
+  - Aplicadas en tarjetas de ceremonia y recepción (`.glass-card`), carrusel principal (`.carousel-container`), tarjeta de confirmación (`#confirmacion`) e hitos del timeline (`.hz-icon-wrapper`).
+- **Microinteracciones y Feedback Táctil Háptico:**
+  - Botones (`.btn`, `.btn-rsvp`, `.btn-hotel`, `.btn-cal`, `.carousel-btn`, acordeones del FAQ) con respuesta inmediata al tacto: `:active { transform: scale(0.96-0.97); }` con curvas cúbicas suaves y supresión del resaltado gris del navegador.
+- **Celebración con Confetti post-RSVP (`canvas-confetti`):**
+  - Al completar la confirmación con al menos un "Sí asistirá", se dispara automáticamente una ráfaga con la paleta de la boda (dorado `#d4af37`, olivo `#52582f`, crema `#f3e8c8`, champagne).
+- **Adaptación a Áreas Seguras de iPhone:**
+  - `viewport-fit=cover` en la meta etiqueta viewport y `padding-bottom: calc(... + env(safe-area-inset-bottom))` en el footer para evitar interferencias con la barra de inicio de iOS.
+
+---
+
+## 9. Temas Pendientes para Futuras Sesiones
 
 1. **Mesa de Regalos & Stripe (`regalos.html`):**
    - El frontend cuenta con carrito dinámico funcional en diseño (suma productos, desglose y dedicatoria).
    - Falta conectar el Cloudflare Worker (`worker/`) para balancear los pagos 50/50 entre las cuentas de Stripe de Memo y Mariana según el plan en `BodaWebpage/TODO_STRIPE.md`.
-2. **Galería Final:**
+2. **Optimizaciones Técnicas para 200 Invitados (Opcional):**
+   - Caché local en `localStorage` para pases de Google Sheets (0ms de carga en visitas recurrentes).
+   - Límite de 5 fotos por lote en Chicosgram para protección de memoria RAM en móviles.
+3. **Galería Final:**
    - Carga y compresión de las fotografías oficiales en alta resolución hacia la carpeta `ImagenesWeb/Optimizadas/`.
