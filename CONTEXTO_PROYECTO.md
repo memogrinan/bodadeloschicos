@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=18.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=19.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
 
 ---
 
@@ -168,6 +168,9 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
   - Al completar la confirmación con al menos un "Sí asistirá", se dispara automáticamente una ráfaga con la paleta de la boda (dorado `#d4af37`, olivo `#52582f`, crema `#f3e8c8`, champagne).
 - **Adaptación a Áreas Seguras de iPhone:**
   - `viewport-fit=cover` en la meta etiqueta viewport y `padding-bottom: calc(... + env(safe-area-inset-bottom))` en el footer para evitar interferencias con la barra de inicio de iOS.
+- **Protección de Rendimiento y Memoria en Chicosgram:**
+  - Límite de hasta **10 fotos por turno** tanto al seleccionar archivos como al procesar la subida, garantizando alta velocidad de compresión sin riesgo de saturar la memoria RAM en celulares de invitados.
+  - Indicador visual explícito `(Hasta 10 por turno)` junto a la etiqueta de selección.
 
 ---
 
@@ -176,8 +179,7 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 1. **Mesa de Regalos & Stripe (`regalos.html`):**
    - El frontend cuenta con carrito dinámico funcional en diseño (suma productos, desglose y dedicatoria).
    - Falta conectar el Cloudflare Worker (`worker/`) para balancear los pagos 50/50 entre las cuentas de Stripe de Memo y Mariana según el plan en `BodaWebpage/TODO_STRIPE.md`.
-2. **Optimizaciones Técnicas para 200 Invitados (Opcional):**
-   - Caché local en `localStorage` para pases de Google Sheets (0ms de carga en visitas recurrentes).
-   - Límite de 5 fotos por lote en Chicosgram para protección de memoria RAM en móviles.
-3. **Galería Final:**
+2. **Galería Final:**
    - Carga y compresión de las fotografías oficiales en alta resolución hacia la carpeta `ImagenesWeb/Optimizadas/`.
+3. **Decisión sobre RSVP y Google Sheets:**
+   - Se mantiene la consulta directa y en vivo a Google Sheets (sin caché local forzado) para garantizar que cualquier cambio manual en la lista de invitados o en sus pases se refleje siempre con la información más actualizada.

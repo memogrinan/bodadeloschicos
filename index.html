@@ -1452,7 +1452,10 @@
                 </div>
                 
                 <div style="position: relative; margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 8px; font-size: clamp(0.75rem, 1.3vw, 0.9rem); font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Tus mejores tomas</label>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                        <label style="font-size: clamp(0.75rem, 1.3vw, 0.9rem); font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Tus mejores tomas</label>
+                        <span style="font-size: 0.75rem; color: #888; font-style: italic;">(Hasta 10 por turno)</span>
+                    </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="file" id="cgFileInput" multiple accept="image/*" style="display: none;" onchange="toggleClearPhotosBtn()">
                         <label for="cgFileInput" id="cgFileLabel" style="cursor: pointer; background: #f9f9f9; border: 1.5px dashed #ccc; color: #666; font-weight: 600; padding: 12px 15px; border-radius: 10px; flex-grow: 1; text-align: center; transition: all 0.2s; font-size: clamp(0.8rem, 1.5vw, 0.95rem); display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='#f0f2f5'; this.style.borderColor='var(--olivo-base)'" onmouseout="this.style.background='#f9f9f9'; this.style.borderColor='#ccc'">
@@ -1512,6 +1515,6 @@
             });
         }
     </script>
-<script src="js/index.js?v=18.0" defer></script>
+<script src="js/index.js?v=19.0" defer></script>
 </body>
 </html>

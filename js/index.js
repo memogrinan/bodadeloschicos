@@ -1205,6 +1205,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const btn = document.getElementById("cgClearPhotosBtn");
             const labelText = document.getElementById("cgFileText");
             if (input.files && input.files.length > 0) {
+                if (input.files.length > 10) {
+                    showCGError("Para que suban rápido y no sature tu celular, selecciona máximo 10 fotos por turno 📸");
+                    input.value = "";
+                    btn.style.display = "none";
+                    labelText.innerText = "Elegir fotos...";
+                    return;
+                }
                 btn.style.display = "flex";
                 labelText.innerText = `${input.files.length} foto(s) seleccionada(s)`;
             } else {
@@ -1223,7 +1230,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const err = document.getElementById("cgErrorAlert");
             err.innerText = msg;
             err.style.display = "block";
-            setTimeout(() => { err.style.display = "none"; }, 4000);
+            setTimeout(() => { err.style.display = "none"; }, 5000);
         }
 
         async function uploadFotosCG() {
@@ -1234,6 +1241,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!guestNameInput) { showCGError("¡Falta tu nombre de Paparazzi!"); return; }
             if (fileInput.files.length === 0) { showCGError("¡Selecciona al menos una foto para publicar!"); return; }
+            if (fileInput.files.length > 10) { 
+                showCGError("Para que suban rápido y no sature tu celular, sube hasta 10 fotos por turno 📸"); 
+                return; 
+            }
 
             statusEl.style.display = "block";
             btn.disabled = true;
