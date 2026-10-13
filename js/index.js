@@ -1512,3 +1512,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         });
+
+// CONTROL DE VOLTEO 3D PARA TARJETAS DE HOSPEDAJE RECOMENDADO
+window.toggleHotelFlip = function(card) {
+    if (!card) return;
+    card.classList.toggle('flipped');
+};
