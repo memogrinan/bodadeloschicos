@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=22.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=23.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
 
 ---
 
@@ -187,7 +187,19 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 
 ---
 
-## 10. Temas Pendientes para Futuras Sesiones
+## 10. Reordenamiento de Menús y Botones Editoriales de Navegación (`v=23.0`)
+
+- **Sincronización del Menú Web (Escritorio):**
+  - Se reordenó `.nav-links` para respetar estrictamente la secuencia vertical de la página:
+    `Inicio` → `Historia` → `Lugar` → `Itinerario` → `Hospedaje` → `Regalos` → `RSVP` → `Juegos` → `Fotos`.
+  - Ahora coincide al 100% con la navegación del drawer móvil `.mobile-drawer`.
+- **Botones Píldora de Navegación (Google Maps & Waze):**
+  - Se reemplazaron los antiguos botones rectangulares azules (#4285F4 y #33CCFF) en las tarjetas de Ceremonia y Fiesta por botones con silueta de píldora redondeada (`border-radius: 9999px`) en tono verde olivo institucional (`#4a4e30`).
+  - Cuentan con tipografía en mayúsculas con espaciado editorial, iconos vectoriales SVG precisos (Pin clásico de Maps y contorno de Waze con rostro y ruedas) y feedback táctil `:active` con microelevación en `:hover`.
+
+---
+
+## 11. Temas Pendientes para Futuras Sesiones
 
 1. **Mesa de Regalos & Stripe (`regalos.html`):**
    - El frontend cuenta con carrito dinámico funcional en diseño (suma productos, desglose y dedicatoria).

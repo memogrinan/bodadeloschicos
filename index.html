@@ -669,6 +669,53 @@
             background-color: rgba(82, 88, 47, 0.06);
         }
 
+        /* BOTONES DE MAPAS Y NAVEGACIÓN ESTILO PÍLDORA OLIVO (SEGÚN DISEÑO) */
+        .location-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .btn-location {
+            background-color: #4a4e30;
+            color: #ffffff !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 9999px;
+            font-size: clamp(0.72rem, 1.1vw, 0.82rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(74, 78, 48, 0.22);
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+        .btn-location:hover {
+            background-color: #3b3f26;
+            box-shadow: 0 6px 18px rgba(74, 78, 48, 0.35);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-location:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 6px rgba(74, 78, 48, 0.2);
+        }
+        .btn-location svg {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
         .upload-section { margin-top: 50px; padding: 40px; border: 2px dashed var(--olivo-base); border-radius: 20px; background-color: rgba(82, 88, 47, 0.05); }
 
         footer { 
@@ -951,10 +998,10 @@
                 <a href="#celebracion">Lugar</a>
                 <a href="#itinerario">Itinerario</a>
                 <a href="#hospedaje">Hospedaje</a>
-                <a href="#fotos-invitados">Fotos</a>
-                <a href="#juegos-acceso">Juegos</a>
                 <a href="#mesa-de-regalos">Regalos</a>
                 <a href="#confirmacion">RSVP</a>
+                <a href="#juegos-acceso">Juegos</a>
+                <a href="#fotos-invitados">Fotos</a>
             </div>
 
             <!-- Botón Hamburguesa de Navegación Móvil -->
@@ -1116,11 +1163,24 @@
             <!-- TARJETA IGLESIA -->
             <div class="glass-card" style="flex: 1; min-width: 300px; padding: 40px 20px; margin: 0;">
                 <h2 style="font-size: clamp(1.6rem, 4.5vw, 2.4rem); margin-bottom: 10px;">Ceremonia Religiosa</h2>
-                <h3 style="color:var(--olivo-base); font-weight: 400; font-size: clamp(1.15rem, 2.8vw, 1.5rem); margin: 0;">Parroquia de San Andrés Apóstol</h3>
-                <p style="text-transform: uppercase; letter-spacing: 2px; font-size: clamp(0.7rem, 1vw, 0.8rem); margin-bottom: 25px; margin-top: 5px;">Cholula, Puebla</p>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-                    <a href="https://www.google.com/maps/search/?api=1&query=Parroquia+de+San+Andrés+Apóstol+Cholula+Puebla" target="_blank" class="btn" style="background-color: #4285F4; color: white; min-width: 130px; margin: 0;">Google Maps</a>
-                    <a href="https://waze.com/ul?q=Parroquia+de+San+Andrés+Apóstol+Cholula+Puebla" target="_blank" class="btn" style="background-color: #33CCFF; color: white; min-width: 130px; margin: 0;">Waze</a>
+                <h3 style="color: #2b2b2b; font-weight: 500; font-size: clamp(1.15rem, 2.8vw, 1.5rem); margin: 0;">Parroquia de San Andrés Apóstol</h3>
+                <p style="text-transform: uppercase; letter-spacing: 2.5px; font-size: clamp(0.7rem, 1vw, 0.8rem); margin-bottom: 25px; margin-top: 8px; color: #555;">Cholula, Puebla</p>
+                <div class="location-btn-group">
+                    <a href="https://www.google.com/maps/search/?api=1&query=Parroquia+de+San+Andrés+Apóstol+Cholula+Puebla" target="_blank" class="btn-location">
+                        <span>Google Maps</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+                    </a>
+                    <a href="https://waze.com/ul?q=Parroquia+de+San+Andrés+Apóstol+Cholula+Puebla" target="_blank" class="btn-location">
+                        <span>Waze</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6.66 17.66a9 9 0 1 1 10.68 0" />
+                            <path d="M6 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                            <path d="M14 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                            <path d="M9 10h.01" stroke-width="3" />
+                            <path d="M15 10h.01" stroke-width="3" />
+                            <path d="M9.5 15a3.5 3.5 0 0 0 5 0" />
+                        </svg>
+                    </a>
                 </div>
                 <p style="font-size: clamp(0.7rem, 1.1vw, 0.85rem); color: #666; margin-top: 15px; margin-bottom: 0; line-height: 1.4;">
                     * La entrada al estacionamiento es por la calle Maximino A. Camacho.<br>
@@ -1131,11 +1191,24 @@
             <!-- TARJETA FIESTA -->
             <div class="glass-card" style="flex: 1; min-width: 300px; padding: 40px 20px; margin: 0;">
                 <h2 style="font-size: clamp(1.6rem, 4.5vw, 2.4rem); margin-bottom: 10px;">Recepción y Fiesta</h2>
-                <h3 style="color:var(--olivo-base); font-weight: 400; font-size: clamp(1.15rem, 2.8vw, 1.5rem); margin: 0;">Hacienda San José Actipan</h3>
-                <p style="text-transform: uppercase; letter-spacing: 2px; font-size: clamp(0.7rem, 1vw, 0.8rem); margin-bottom: 25px; margin-top: 5px;">Cholula, Puebla</p>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-                    <a href="https://www.google.com/maps/search/?api=1&query=Hacienda+San+Jos%C3%A9+Actipan+Cholula+Puebla" target="_blank" class="btn" style="background-color: #4285F4; color: white; min-width: 140px; margin: 0;">Google Maps</a>
-                    <a href="https://waze.com/ul?q=Hacienda+San+Jose+Actipan" target="_blank" class="btn" style="background-color: #33CCFF; color: white; min-width: 140px; margin: 0;">Waze</a>
+                <h3 style="color: #2b2b2b; font-weight: 500; font-size: clamp(1.15rem, 2.8vw, 1.5rem); margin: 0;">Hacienda San José Actipan</h3>
+                <p style="text-transform: uppercase; letter-spacing: 2.5px; font-size: clamp(0.7rem, 1vw, 0.8rem); margin-bottom: 25px; margin-top: 8px; color: #555;">Cholula, Puebla</p>
+                <div class="location-btn-group">
+                    <a href="https://www.google.com/maps/search/?api=1&query=Hacienda+San+Jos%C3%A9+Actipan+Cholula+Puebla" target="_blank" class="btn-location">
+                        <span>Google Maps</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+                    </a>
+                    <a href="https://waze.com/ul?q=Hacienda+San+Jose+Actipan" target="_blank" class="btn-location">
+                        <span>Waze</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6.66 17.66a9 9 0 1 1 10.68 0" />
+                            <path d="M6 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                            <path d="M14 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                            <path d="M9 10h.01" stroke-width="3" />
+                            <path d="M15 10h.01" stroke-width="3" />
+                            <path d="M9.5 15a3.5 3.5 0 0 0 5 0" />
+                        </svg>
+                    </a>
                 </div>
             </div>
 
@@ -1517,6 +1590,6 @@
             });
         }
     </script>
-<script src="js/index.js?v=22.0" defer></script>
+<script src="js/index.js?v=23.0" defer></script>
 </body>
 </html>
