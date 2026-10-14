@@ -276,7 +276,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const customCard = document.createElement('div');
             customCard.className = 'gift-card custom-gift-card';
             const stepAmount = currentCurrency === 'MXN' ? '100' : '10';
-            const minPlaceholder = currentCurrency === 'MXN' ? 'Mín. $100' : 'Min. $5';
+            const placeholderText = currentCurrency === 'MXN' ? 'Ej. 500' : 'Ej. 25';
+            const minVal = currentCurrency === 'MXN' ? '10' : '1';
             customCard.innerHTML = `
                 <div class="gift-img-wrapper">
                     <div class="price-badge">Monto Libre</div>
@@ -293,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label class="custom-input-label" for="customAmountInput">Monto a regalar (${currentCurrency})</label>
                             <div class="custom-amount-wrapper">
                                 <span class="custom-amount-prefix">$</span>
-                                <input type="number" id="customAmountInput" class="custom-input custom-amount-input" placeholder="${minPlaceholder}" min="5" step="${stepAmount}">
+                                <input type="number" id="customAmountInput" class="custom-input custom-amount-input" placeholder="${placeholderText}" min="${minVal}" step="${stepAmount}">
                                 <span class="custom-amount-currency">${currentCurrency}</span>
                             </div>
                         </div>
@@ -320,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!amountInput) return;
             
             const rawAmount = parseFloat(amountInput.value);
-            const minAmount = currentCurrency === 'MXN' ? 50 : 5;
+            const minAmount = currentCurrency === 'MXN' ? 10 : 1;
             
             if (isNaN(rawAmount) || rawAmount < minAmount) {
                 alert(`Por favor ingresa un monto válido (mínimo $${minAmount} ${currentCurrency}).`);
