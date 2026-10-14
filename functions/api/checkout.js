@@ -2,55 +2,60 @@ export async function onRequestPost(context) {
   try {
     const { request, env } = context;
     
-    // Claves de Stripe (Prioridad: Variables de Entorno en Cloudflare Pages, Fallback: strings)
-    const KEY_MEMO = env.STRIPE_KEY_MEMO || ("sk_live_" + "51UGXPTRImZ5jxbiLXcOuscGzuQvUcoLirNxMvoT7X7btJysv7jTZktnYeb90aGW7Qo440JENikZ0dWVXKCjg324a000QXi6JxZ");
-    const KEY_MARIANA = env.STRIPE_KEY_MARIANA || ("rk_live_" + "51UQJwyFAnusJk3NicnQCO5F65719Yl02H4sJxTWdlECCm44CVMlWPuy2kTlvJCBX33TfDgZS4L1tSdw7SRi4sCLX00C52SmTgy");
+    // Claves secretas de Stripe (leídas de forma segura desde las Variables de Entorno de Cloudflare Pages)
+    const KEY_MEMO = env.STRIPE_KEY_MEMO || env.STRIPE_SECRET_KEY;
+    const KEY_MARIANA = env.STRIPE_KEY_MARIANA;
+
+    if (!KEY_MEMO && !KEY_MARIANA) {
+      return new Response(JSON.stringify({ error: 'Configuración de Stripe no encontrada en el servidor' }), { status: 500 });
+    }
 
     // LÓGICA DE BALANCEO INTELIGENTE 50/50
-    // Consultamos el saldo acumulado de ambas cuentas en Stripe para depositarle al que lleve menos
-    let selectedKey = KEY_MEMO;
-    let fallbackKey = KEY_MARIANA;
+    let selectedKey = KEY_MEMO || KEY_MARIANA;
+    let fallbackKey = KEY_MARIANA || KEY_MEMO;
 
-    try {
-      const [resMemo, resMariana] = await Promise.all([
-        fetch('https://api.stripe.com/v1/balance', { headers: { 'Authorization': `Bearer ${KEY_MEMO}` } }),
-        fetch('https://api.stripe.com/v1/balance', { headers: { 'Authorization': `Bearer ${KEY_MARIANA}` } })
-      ]);
+    if (KEY_MEMO && KEY_MARIANA) {
+      try {
+        const [resMemo, resMariana] = await Promise.all([
+          fetch('https://api.stripe.com/v1/balance', { headers: { 'Authorization': `Bearer ${KEY_MEMO}` } }),
+          fetch('https://api.stripe.com/v1/balance', { headers: { 'Authorization': `Bearer ${KEY_MARIANA}` } })
+        ]);
 
-      if (resMemo.ok && resMariana.ok) {
-        const dataMemo = await resMemo.json();
-        const dataMariana = await resMariana.json();
+        if (resMemo.ok && resMariana.ok) {
+          const dataMemo = await resMemo.json();
+          const dataMariana = await resMariana.json();
 
-        const getBalance = (data) => {
-          let total = 0;
-          if (data.available) data.available.forEach(a => total += (a.amount || 0));
-          if (data.pending) data.pending.forEach(p => total += (p.amount || 0));
-          return total;
-        };
+          const getBalance = (data) => {
+            let total = 0;
+            if (data.available) data.available.forEach(a => total += (a.amount || 0));
+            if (data.pending) data.pending.forEach(p => total += (p.amount || 0));
+            return total;
+          };
 
-        const totalMemo = getBalance(dataMemo);
-        const totalMariana = getBalance(dataMariana);
+          const totalMemo = getBalance(dataMemo);
+          const totalMariana = getBalance(dataMariana);
 
-        // Si Mariana tiene menor saldo acumulado, se le asigna el cobro a Mariana
-        if (totalMariana <= totalMemo) {
-          selectedKey = KEY_MARIANA;
-          fallbackKey = KEY_MEMO;
+          // Si Mariana tiene menor saldo acumulado, se le asigna el cobro a Mariana
+          if (totalMariana <= totalMemo) {
+            selectedKey = KEY_MARIANA;
+            fallbackKey = KEY_MEMO;
+          } else {
+            selectedKey = KEY_MEMO;
+            fallbackKey = KEY_MARIANA;
+          }
         } else {
-          selectedKey = KEY_MEMO;
-          fallbackKey = KEY_MARIANA;
+          // Fallback round-robin 50/50 aleatorio si la API de balance no responde
+          if (Math.random() < 0.5) {
+            selectedKey = KEY_MARIANA;
+            fallbackKey = KEY_MEMO;
+          }
         }
-      } else {
-        // Fallback round-robin 50/50 aleatorio si la API de balance no responde
+      } catch (e) {
+        // Si falla la verificación de saldo, balanceo 50/50
         if (Math.random() < 0.5) {
           selectedKey = KEY_MARIANA;
           fallbackKey = KEY_MEMO;
         }
-      }
-    } catch (e) {
-      // Si falla la verificación de saldo, balanceo 50/50
-      if (Math.random() < 0.5) {
-        selectedKey = KEY_MARIANA;
-        fallbackKey = KEY_MEMO;
       }
     }
 
