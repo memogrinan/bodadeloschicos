@@ -519,7 +519,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         cart: shoppingCart,
-                        giftsConfig: giftsConfig 
+                        giftsConfig: giftsConfig,
+                        currency: currentCurrency
                     })
                 });
                 
