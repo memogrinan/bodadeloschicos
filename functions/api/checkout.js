@@ -84,7 +84,6 @@ export async function onRequestPost(context) {
 
     const buildPayload = () => {
       const payload = new URLSearchParams({
-        'payment_method_types[0]': 'card',
         'mode': 'payment',
         'success_url': new URL('/?pago=exito', request.url).toString(),
         'cancel_url': new URL('/regalos.html', request.url).toString(),
