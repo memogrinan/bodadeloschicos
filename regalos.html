@@ -96,6 +96,105 @@
         .card-qty-ctrl .qty-btn:hover { background: var(--olivo-base); color: white; border-color: var(--olivo-base); }
         .card-qty-ctrl .qty-num { font-size: 1.1rem; font-weight: 600; width: 30px; text-align: center; color: var(--olivo-base); }
 
+        /* REGALO PERSONALIZADO */
+        .custom-gift-card {
+            border: 2px dashed var(--olivo-base);
+            background: linear-gradient(180deg, #ffffff 0%, #fafbf7 100%);
+            position: relative;
+        }
+        .custom-gift-card:hover {
+            box-shadow: 0 10px 30px rgba(82, 88, 47, 0.18);
+        }
+        .custom-gift-card .price-badge {
+            background: var(--olivo-base);
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        .custom-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .custom-input-label {
+            font-size: 0.76rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: -4px;
+        }
+        .custom-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(82, 88, 47, 0.25);
+            border-radius: 12px;
+            font-family: 'Lora', serif;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            background: white;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .custom-input:focus {
+            border-color: var(--olivo-base);
+            box-shadow: 0 0 0 3px rgba(82, 88, 47, 0.15);
+        }
+        .custom-amount-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .custom-amount-prefix {
+            position: absolute;
+            left: 14px;
+            font-weight: 700;
+            color: var(--olivo-base);
+            font-size: 1.05rem;
+            pointer-events: none;
+        }
+        .custom-amount-input {
+            padding-left: 30px;
+            padding-right: 58px;
+            font-weight: 600;
+        }
+        .custom-amount-currency {
+            position: absolute;
+            right: 14px;
+            font-weight: 700;
+            color: var(--olivo-base);
+            font-size: 0.82rem;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+        .btn-custom-gift {
+            background-color: var(--olivo-base);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(82, 88, 47, 0.25);
+            margin-top: 10px;
+        }
+        .btn-custom-gift:hover {
+            background-color: #3f4422;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(82, 88, 47, 0.35);
+        }
+        .btn-custom-gift:active {
+            transform: scale(0.98);
+        }
+
         /* FLOATING CART BUTTON */
         .cart-float-btn {
             position: fixed; bottom: 30px; right: 30px; width: 75px; height: 75px;
@@ -217,6 +316,6 @@
         HECHO CON ♡ POR LOS CHICOS PARA NUESTROS INVITADOS.
     </footer>
 
-<script src="js/regalos.js?v=15.0" defer></script>
+<script src="js/regalos.js?v=16.0" defer></script>
 </body>
 </html>

@@ -37,170 +37,199 @@ document.addEventListener("DOMContentLoaded", () => {
         let currentCurrency = 'MXN';
         let shoppingCart = {}; // { giftId: quantity }
         
-        // CONFIGURACIÓN EXPANDIDA DE REGALOS
+        // CONFIGURACIÓN EXPANDIDA DE REGALOS (LUNA DE MIEL JAPÓN)
         const giftsConfigRaw = [
             {
-                id: 'prueba-sistema', title: '🛠️ Regalo de Prueba',
-                description: 'Tarjeta temporal para verificar que el sistema de cobros con Stripe funcione a la perfección.',
-                imagePath: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 10, priceUSD: 1
-            },
-            
-            {
-                id: 'desayuno', title: 'Desayuno en la cama',
-                description: 'Invítanos un rico desayuno para recuperar energía después de la boda.',
-                imagePath: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 500, priceUSD: 30
+                id: 'prueba-sistema',
+                title: 'Regalo de Prueba',
+                description: 'Un detallito para verificar que el sistema de cobro en línea funciona a la perfección.',
+                imagePath: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 10,
+                priceUSD: 1
             },
             {
-                id: 'botella-vino', title: 'Botella de Vino',
-                description: 'Para brindar en nuestra primera cena de recién casados.',
-                imagePath: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 800, priceUSD: 45
-            },
-            {
-                id: 'masaje', title: 'Masaje Relajante',
-                description: 'Una sesión de spa en pareja durante nuestra luna de miel.',
-                imagePath: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2000, priceUSD: 110
-            },
-            {
-                id: 'cena-luna-miel', title: 'Cena Romántica',
-                description: 'Nuestra primera cena elegante a la luz de las velas.',
-                imagePath: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 1500, priceUSD: 85
-            },
-            {
-                id: 'vuelo-globo', title: 'Vuelo en Globo',
-                description: 'Una aventura inolvidable por los aires durante nuestro viaje.',
-                imagePath: 'https://images.unsplash.com/photo-1507608158173-1dcec673a2e5?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 4500, priceUSD: 250
-            },
-            {
-                id: 'juego-maletas', title: 'Juego de Maletas',
-                description: 'Para acompañarnos en todas nuestras futuras aventuras.',
-                imagePath: 'https://images.unsplash.com/photo-1553531384-397c80973a0b?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 3500, priceUSD: 200
-            },
-            {
-                id: 'tour-ciudad', title: 'Tour Turístico',
-                description: 'Ayúdanos a explorar y conocer la cultura de nuestro destino.',
-                imagePath: 'https://images.unsplash.com/photo-1522851480922-0d12579ee5e4?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 1200, priceUSD: 70
-            },
-            {
-                id: 'clase-cocina', title: 'Clase de Cocina en Pareja',
-                description: 'Para aprender a preparar un platillo tradicional del lugar que visitemos.',
-                imagePath: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2500, priceUSD: 140
-            },
-            {
-                id: 'noches-hotel', title: 'Noche de Hotel',
-                description: 'Un upgrade a nuestra suite para tener la mejor vista.',
-                imagePath: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 6000, priceUSD: 330
-            },
-            {
-                id: 'robot-aspiradora', title: 'Robot Aspiradora',
-                description: 'Para mantener la casa impecable sin esfuerzo y poder jugar más con Maddie.',
-                imagePath: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 5000, priceUSD: 280
-            },
-            {
-                id: 'cafetera-hogar', title: 'Cafetera Espresso',
-                description: 'Para despertar siempre con un buen café en nuestro nuevo hogar.',
-                imagePath: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 4000, priceUSD: 220
-            },
-            {
-                id: 'juego-sartenes', title: 'Juego de Sartenes Pro',
-                description: 'Para cocinar juntos nuestras recetas favoritas.',
-                imagePath: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2800, priceUSD: 155
-            },
-            {
-                id: 'juegos-mesa', title: 'Juego de Mesa',
-                description: 'Para las noches de diversión con amigos y familia.',
-                imagePath: 'https://images.unsplash.com/photo-1610890716175-349be88a9cce?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 600, priceUSD: 35
-            },
-            {
-                id: 'juguete-maddie', title: 'Juguete para Maddie',
-                description: 'Consiente a nuestra perrita con un juguete nuevo o unos premios deliciosos.',
+                id: 'juguete-maddie',
+                title: 'Juguete para Maddie',
+                description: 'Consiente a Maddie con un juguete nuevo (o unos premios deliciosos).',
                 imagePath: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 300, priceUSD: 15
+                priceMXN: 300,
+                priceUSD: 15
             },
             {
-                id: 'juego-copas', title: 'Juego de Copas',
-                description: 'Un set de cristal elegante para nuestros brindis.',
-                imagePath: 'https://images.unsplash.com/photo-1582239611204-7cd50393f9c6?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 1000, priceUSD: 55
+                id: 'cafe-kyoto',
+                title: 'Café de Especialidad en Kyoto',
+                description: 'Para que Chico compare contra sus granos de Oaxaca y Chiapas.',
+                imagePath: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 400,
+                priceUSD: 20
             },
             {
-                id: 'suscripcion-flores', title: 'Suscripción de Flores',
-                description: 'Un detalle romántico mensual para decorar nuestro hogar.',
-                imagePath: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 1800, priceUSD: 100
+                id: 'ramen-tokyo',
+                title: 'Ramen de medianoche en Tokyo',
+                description: 'Porque sabemos que vamos a terminar cenando fideos en un callejón iluminado por neón a las 2 AM.',
+                imagePath: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 500,
+                priceUSD: 25
             },
             {
-                id: 'clases-baile', title: 'Clases de Baile',
+                id: 'juego-mesa',
+                title: 'Juego de Mesa',
+                description: 'Para una gran adición a la colección de juegos.',
+                imagePath: 'https://images.unsplash.com/photo-1610890716175-349be88a9cce?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 600,
+                priceUSD: 30
+            },
+            {
+                id: 'spa-maddie',
+                title: 'Paquete Spa de Relajación para Maddie',
+                description: 'Para que Maddie nos perdone por dejarla mientras nosotros estamos del otro lado del mundo.',
+                imagePath: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 700,
+                priceUSD: 35
+            },
+            {
+                id: 'matcha-uji',
+                title: 'Matcha Ceremonial en Uji',
+                description: 'Ayúdanos a probar el matcha más auténtico y puro del mundo directo desde Uji, la capital histórica del té en Japón.',
+                imagePath: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 800,
+                priceUSD: 40
+            },
+            {
+                id: 'vinilo-coleccion',
+                title: 'Un Vinilo de Colección',
+                description: 'Prometemos escucharlo con un vino en mano.',
+                imagePath: 'https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 800,
+                priceUSD: 40
+            },
+            {
+                id: 'ciervos-nara',
+                title: 'Galletas para los ciervos de Nara',
+                description: 'Ayúdanos a pagar el tren a Nara y comprar suficientes galletas para que los ciervos nos hagan reverencias.',
+                imagePath: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1000,
+                priceUSD: 50
+            },
+            {
+                id: 'comida-dotonbori',
+                title: 'Tour de comida callejera en Dotonbori, Osaka',
+                description: 'Dicen que Osaka es la cocina de Japón. Este es el fondo oficial para atascarnos de takoyaki (bolitas de pulpo) y okonomiyaki.',
+                imagePath: 'https://images.unsplash.com/photo-1590559899731-a382839e5549?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1000,
+                priceUSD: 50
+            },
+            {
+                id: 'sake-premium',
+                title: 'Botella de Sake Premium',
+                description: 'Para brindar por nosotros (y por ustedes) con un buen sake en nuestra primera cena japonesa de recién casados.',
+                imagePath: 'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1000,
+                priceUSD: 50
+            },
+            {
+                id: 'clases-baile',
+                title: 'Clases de Baile',
                 description: 'Para prepararnos y no pisarnos durante el primer baile.',
                 imagePath: 'https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2200, priceUSD: 120
+                priceMXN: 1200,
+                priceUSD: 60
             },
             {
-                id: 'aportacion-auto', title: 'Aportación para Automóvil',
-                description: 'Apóyanos a dar el enganche de nuestro futuro coche familiar.',
-                imagePath: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 8000, priceUSD: 440
+                id: 'sushi-toyosu',
+                title: 'Desayuno de Sushi en el Mercado de Toyosu',
+                description: 'Para madrugar con gusto y desayunar el sushi y sashimi más fresco del planeta justo al lado de donde hacen las subastas de atún.',
+                imagePath: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1500,
+                priceUSD: 75
             },
             {
-                id: 'paseo-bote', title: 'Paseo Romántico en Bote',
-                description: 'Una escapada relajante por el lago.',
-                imagePath: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 3000, priceUSD: 165
+                id: 'super-nintendo-world',
+                title: 'Entradas para Super Nintendo World',
+                description: 'Para por fin conocer en vivo a Mario y Peach.',
+                imagePath: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 1800,
+                priceUSD: 90
             },
             {
-                id: 'juego-blancos', title: 'Juego de Sábanas Finas',
-                description: 'Sábanas de muchos hilos para descansar increíble.',
-                imagePath: 'https://images.unsplash.com/photo-1616422285623-14ff7d6a5fcc?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 2600, priceUSD: 145
+                id: 'vuelo-japon',
+                title: 'Aportación para Vuelo a Japón',
+                description: 'El empujón maestro para nuestros boletos de avión a la luna de miel de nuestros sueños del otro lado del charco.',
+                imagePath: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 2000,
+                priceUSD: 100
             },
             {
-                id: 'kit-herramientas', title: 'Kit de Herramientas',
-                description: 'Para poder armar los muebles sin que sobren tornillos.',
-                imagePath: 'https://images.unsplash.com/photo-1540356501755-a010076a4cb9?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 1600, priceUSD: 90
+                id: 'shinkansen',
+                title: 'Tickets para el Shinkansen (Tren Bala)',
+                description: 'Ayúdanos a viajar a 300 km/h viendo el Monte Fuji por la ventana sin perder el estilo.',
+                imagePath: 'https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 2000,
+                priceUSD: 100
             },
             {
-                id: 'licuadora', title: 'Licuadora de Alta Potencia',
-                description: 'Para los jugos verdes de la mañana y los frappés del fin de semana.',
-                imagePath: 'https://images.unsplash.com/photo-1585515320310-259814833e62?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 3200, priceUSD: 175
+                id: 'kobe-wagyu',
+                title: 'Cena de auténtico Kobe Wagyu en Japón',
+                description: 'Porque no todo en la luna de miel puede ser comida de las tiendas de conveniencia japonesas. Una noche de lujo culinario.',
+                imagePath: 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 2500,
+                priceUSD: 125
             },
             {
-                id: 'velas-aromaticas', title: 'Set de Velas Aromáticas',
-                description: 'Para darle un toque relajante a nuestro nuevo hogar.',
-                imagePath: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=800&auto=format&fit=crop',
-                priceMXN: 400, priceUSD: 22
+                id: 'hotel-japon',
+                title: 'Noche de Hotel en Japón',
+                description: 'Un descanso reparador para los chicos después de caminar 20 kilómetros diarios por la ciudad.',
+                imagePath: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 3000,
+                priceUSD: 150
+            },
+            {
+                id: 'tokyo-disneyland',
+                title: 'Entradas a Tokyo Disneyland',
+                description: 'El clásico de los castillos y la magia, versión otaku. Para subirnos a las montañas rusas, comer mochis de alien y regresar con orejas de Mickey para Maddie.',
+                imagePath: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 4000,
+                priceUSD: 200
+            },
+            {
+                id: 'tokyo-disneysea',
+                title: 'Entradas a Tokyo DisneySea',
+                description: 'Considerado el mejor parque temático del mundo. Cubre las entradas, pases rápidos para saltar filas, y comida temática mientras exploramos el parque náutico.',
+                imagePath: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 5000,
+                priceUSD: 250
+            },
+            {
+                id: 'fotos-kyoto',
+                title: 'Sesión de Fotos Profesional en Kyoto',
+                description: 'Un recuerdo para toda la vida. Ayúdanos a contratar un fotógrafo local para una sesión espectacular con kimonos por las calles antiguas y templos.',
+                imagePath: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 6000,
+                priceUSD: 300
             }
         ];
         
-        // Sort items by price
-        const giftsConfig = giftsConfigRaw.sort((a, b) => a.priceMXN - b.priceMXN);
+        // Ordenar por precio
+        let giftsConfig = giftsConfigRaw.sort((a, b) => a.priceMXN - b.priceMXN);
         
 
         function renderGiftCards() {
             const container = document.getElementById('giftsGridContainer');
             if (!container) return;
             
+            // Preservar valores del input si el usuario estaba escribiendo
+            const savedConcept = document.getElementById('customConceptInput')?.value || '';
+            const savedAmount = document.getElementById('customAmountInput')?.value || '';
+            
             container.innerHTML = '';
             
-            giftsConfig.forEach(gift => {
+            // 1. Renderizar regalos estándar ordenados
+            const standardGifts = giftsConfig.filter(g => !g.isCustom);
+            standardGifts.forEach(gift => {
                 const card = document.createElement('div');
                 card.className = `gift-card`;
                 
-                const fallbackImg = `https://source.unsplash.com/800x600/?wedding,gift,${gift.id}`;
+                const fallbackImg = `https://source.unsplash.com/800x600/?japan,travel,${gift.id}`;
                 const price = currentCurrency === 'MXN' ? `$${gift.priceMXN.toLocaleString('en-US')} MXN` : `$${gift.priceUSD.toLocaleString('en-US')} USD`;
                 const priceHtml = `<div class="price-badge">${price}</div>`;
                 
@@ -210,9 +239,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     const minusIcon = qtyInCart === 1 ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>' : '-';
                     actionHtml = `
                         <div class="card-qty-ctrl">
-                            <button class="qty-btn" onclick="updateCartQty('${gift.id}', -1)">${minusIcon}</button>
+                            <button class="qty-btn" onclick="updateCartQty('${gift.id}', -1)" aria-label="Disminuir">${minusIcon}</button>
                             <span class="qty-num">${qtyInCart}</span>
-                            <button class="qty-btn" onclick="updateCartQty('${gift.id}', 1)">+</button>
+                            <button class="qty-btn" onclick="updateCartQty('${gift.id}', 1)" aria-label="Aumentar">+</button>
                         </div>
                     `;
                 } else {
@@ -234,17 +263,106 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 container.appendChild(card);
             });
+
+            // 2. Renderizar tarjeta especial de REGALO PERSONALIZADO
+            const customCard = document.createElement('div');
+            customCard.className = 'gift-card custom-gift-card';
+            const minPlaceholder = currentCurrency === 'MXN' ? 'Mín. $50' : 'Min. $5';
+            customCard.innerHTML = `
+                <div class="gift-img-wrapper">
+                    <div class="price-badge">Monto Libre</div>
+                    <img src="https://images.unsplash.com/photo-1513885535751-8b9238bd345a?q=80&w=800&auto=format&fit=crop" alt="Regalo Personalizado" loading="lazy">
+                </div>
+                <div class="gift-content">
+                    <div>
+                        <h3 class="gift-title">Regalo Personalizado</h3>
+                        <p class="gift-desc">¿Deseas consentirnos con algo especial o un monto libre? Escribe tu idea y el importe con el que deseas aportar a nuestra luna de miel.</p>
+                        <div class="custom-input-group">
+                            <label class="custom-input-label" for="customConceptInput">¿Qué te gustaría regalarnos?</label>
+                            <input type="text" id="customConceptInput" class="custom-input" placeholder="Ej. Un helado en Tokio, un recuerdo..." maxlength="60">
+                            
+                            <label class="custom-input-label" for="customAmountInput">Monto a regalar (${currentCurrency})</label>
+                            <div class="custom-amount-wrapper">
+                                <span class="custom-amount-prefix">$</span>
+                                <input type="number" id="customAmountInput" class="custom-input custom-amount-input" placeholder="${minPlaceholder}" min="5" step="10">
+                                <span class="custom-amount-currency">${currentCurrency}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-custom-gift" onclick="addCustomGiftToCart()">Agregar al Carrito 🎁</button>
+                </div>
+            `;
+            container.appendChild(customCard);
+
+            // Restaurar textos si los había
+            if (savedConcept) {
+                const cInput = document.getElementById('customConceptInput');
+                if (cInput) cInput.value = savedConcept;
+            }
+            if (savedAmount) {
+                const aInput = document.getElementById('customAmountInput');
+                if (aInput) aInput.value = savedAmount;
+            }
+        }
+
+        function addCustomGiftToCart() {
+            const conceptInput = document.getElementById('customConceptInput');
+            const amountInput = document.getElementById('customAmountInput');
+            if (!amountInput) return;
+            
+            const rawAmount = parseFloat(amountInput.value);
+            const minAmount = currentCurrency === 'MXN' ? 50 : 5;
+            
+            if (isNaN(rawAmount) || rawAmount < minAmount) {
+                alert(`Por favor ingresa un monto válido (mínimo $${minAmount} ${currentCurrency}).`);
+                amountInput.focus();
+                return;
+            }
+            
+            const concept = (conceptInput && conceptInput.value.trim()) 
+                ? conceptInput.value.trim() 
+                : 'Regalo Personalizado';
+                
+            const customId = 'custom-' + Date.now();
+            const newGift = {
+                id: customId,
+                title: concept,
+                description: 'Aportación libre personalizada de un invitado con mucho cariño.',
+                imagePath: 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?q=80&w=800&auto=format&fit=crop',
+                priceMXN: currentCurrency === 'MXN' ? rawAmount : Math.round(rawAmount * 18),
+                priceUSD: currentCurrency === 'USD' ? rawAmount : Math.max(1, Math.round(rawAmount / 18)),
+                isCustom: true
+            };
+            
+            giftsConfig.push(newGift);
+            shoppingCart[customId] = 1;
+            
+            if (conceptInput) conceptInput.value = '';
+            amountInput.value = '';
+            
+            updateCartUI();
+            renderGiftCards();
+            
+            const btn = document.querySelector('.cart-float-btn');
+            if (btn) {
+                btn.style.transform = 'scale(1.25)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 250);
+            }
+            
+            const drawer = document.getElementById('cartDrawer');
+            if (drawer && !drawer.classList.contains('active')) {
+                toggleCart();
+            }
         }
 
         function setCurrency(currency) {
-            // Si el carrito tiene elementos, advertir o limpiar
             if (Object.keys(shoppingCart).length > 0) {
                 if(!confirm("Cambiar de moneda limpiará tu carrito actual. ¿Deseas continuar?")) {
-                    // Revertir el toggle visualmente
                     document.getElementById('currencyToggle').checked = (currentCurrency === 'USD');
                     return; 
                 }
-                shoppingCart = {}; // Limpiar
+                shoppingCart = {};
+                giftsConfig = giftsConfig.filter(g => !g.isCustom);
                 updateCartUI();
             }
 
@@ -260,6 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return; 
                 }
                 shoppingCart = {};
+                giftsConfig = giftsConfig.filter(g => !g.isCustom);
                 updateCartUI();
             }
 
@@ -285,10 +404,11 @@ document.addEventListener("DOMContentLoaded", () => {
             updateCartUI();
             renderGiftCards();
             
-            // Animación feedback visual
             const btn = document.querySelector('.cart-float-btn');
-            btn.style.transform = 'scale(1.2)';
-            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+            if (btn) {
+                btn.style.transform = 'scale(1.2)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 200);
+            }
         }
 
         function updateCartQty(giftId, delta) {
@@ -297,9 +417,13 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (shoppingCart[giftId] <= 0) {
                 delete shoppingCart[giftId];
+                if (giftId.startsWith('custom-')) {
+                    const idx = giftsConfig.findIndex(g => g.id === giftId);
+                    if (idx !== -1) giftsConfig.splice(idx, 1);
+                }
             }
             updateCartUI();
-            renderGiftCards(); // Re-render card buttons
+            renderGiftCards();
         }
 
         function updateCartUI() {
@@ -333,6 +457,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     totalItems += qty;
                     totalPrice += itemTotal;
                     
+                    const minusIcon = qty === 1 
+                        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>' 
+                        : '-';
+
                     const el = document.createElement('div');
                     el.className = 'cart-item';
                     el.innerHTML = `
@@ -341,9 +469,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             <h4 class="cart-item-title">${gift.title}</h4>
                             <p class="cart-item-price">$${price.toLocaleString()} ${currentCurrency} c/u</p>
                             <div class="cart-qty-ctrl">
-                                <button class="qty-btn" onclick="updateCartQty('${id}', -1)">-</button>
+                                <button class="qty-btn" onclick="updateCartQty('${id}', -1)" aria-label="Eliminar o disminuir">${minusIcon}</button>
                                 <span class="qty-num">${qty}</span>
-                                <button class="qty-btn" onclick="updateCartQty('${id}', 1)">+</button>
+                                <button class="qty-btn" onclick="updateCartQty('${id}', 1)" aria-label="Aumentar">+</button>
                             </div>
                         </div>
                     `;
