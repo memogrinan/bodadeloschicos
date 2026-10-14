@@ -168,6 +168,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 priceUSD: 100
             },
             {
+                id: 'clases-barre',
+                title: 'Clases de Barre para Chica',
+                description: 'Para que Chica se mantenga en forma, llena de energía y lista para recorrer Japón a pie.',
+                imagePath: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=800&auto=format&fit=crop',
+                priceMXN: 2200,
+                priceUSD: 110
+            },
+            {
                 id: 'kobe-wagyu',
                 title: 'Cena de auténtico Kobe Wagyu en Japón',
                 description: 'Porque no todo en la luna de miel puede ser comida de las tiendas de conveniencia japonesas. Una noche de lujo culinario.',
@@ -267,7 +275,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // 2. Renderizar tarjeta especial de REGALO PERSONALIZADO
             const customCard = document.createElement('div');
             customCard.className = 'gift-card custom-gift-card';
-            const minPlaceholder = currentCurrency === 'MXN' ? 'Mín. $50' : 'Min. $5';
+            const stepAmount = currentCurrency === 'MXN' ? '100' : '10';
+            const minPlaceholder = currentCurrency === 'MXN' ? 'Mín. $100' : 'Min. $5';
             customCard.innerHTML = `
                 <div class="gift-img-wrapper">
                     <div class="price-badge">Monto Libre</div>
@@ -284,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label class="custom-input-label" for="customAmountInput">Monto a regalar (${currentCurrency})</label>
                             <div class="custom-amount-wrapper">
                                 <span class="custom-amount-prefix">$</span>
-                                <input type="number" id="customAmountInput" class="custom-input custom-amount-input" placeholder="${minPlaceholder}" min="5" step="10">
+                                <input type="number" id="customAmountInput" class="custom-input custom-amount-input" placeholder="${minPlaceholder}" min="5" step="${stepAmount}">
                                 <span class="custom-amount-currency">${currentCurrency}</span>
                             </div>
                         </div>
