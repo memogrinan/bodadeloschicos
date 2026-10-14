@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
             {
                 id: 'clases-barre',
                 title: 'Clases de Barre para Chica',
-                description: 'Para que Chica se mantenga en forma, llena de energía y lista para recorrer Japón a pie.',
+                description: 'Para que Chica se prepare, llena de energía y lista para recorrer Japón a pie.',
                 imagePath: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=800&auto=format&fit=crop',
                 priceMXN: 2200,
                 priceUSD: 110
