@@ -110,6 +110,68 @@
         .nav-links a:hover {
             opacity: 0.8;
         }
+
+        /* SELECTOR DE IDIOMA EDITORIAL */
+        .lang-selector-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 3px 8px;
+            border-radius: 9999px;
+            margin-left: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+        }
+        .lang-selector-nav a {
+            padding: 2px 4px !important;
+            font-size: 11px !important;
+            opacity: 0.65;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .lang-selector-nav a.active {
+            opacity: 1;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .lang-selector-nav a:hover {
+            opacity: 1;
+        }
+        .lang-sep {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 10px;
+            user-select: none;
+        }
+
+        .drawer-lang-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 12px;
+        }
+        .drawer-lang-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 9999px;
+            text-decoration: none;
+            color: white;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s ease;
+        }
+        .drawer-lang-btn.active {
+            background: rgba(255, 255, 255, 0.32);
+            border-color: rgba(255, 255, 255, 0.7);
+            font-weight: 700;
+        }
         
         /* Botón de Hamburguesa para celular con hitbox amplio y táctil */
         .menu-toggle {
@@ -1385,6 +1447,11 @@
                 <a href="#confirmacion">RSVP</a>
                 <a href="#juegos-acceso">Juegos</a>
                 <a href="#fotos-invitados">Fotos</a>
+                <div class="lang-selector-nav">
+                    <a href="/" class="active" title="Español">🇲🇽 ES</a>
+                    <span class="lang-sep">|</span>
+                    <a href="/en/" title="English">🇺🇸 EN</a>
+                </div>
             </div>
 
             <!-- Botón Hamburguesa de Navegación Móvil -->
@@ -1401,6 +1468,12 @@
 
     <!-- Panel Lateral Desplegable Móvil -->
     <div class="mobile-drawer" id="mobileDrawer">
+        <!-- Selector de idioma móvil -->
+        <div class="drawer-lang-container">
+            <a href="/" class="drawer-lang-btn active">🇲🇽 Español</a>
+            <a href="/en/" class="drawer-lang-btn">🇺🇸 English</a>
+        </div>
+
         <div class="drawer-nav-links">
             <a href="#inicio" onclick="closeDrawer()">Inicio</a>
             <a href="#historia" onclick="closeDrawer()">Historia</a>
@@ -2019,7 +2092,7 @@
     <section id="mesa-de-regalos" class="gifts-section fade-in-section" style="padding: 80px 20px; background-color: var(--crema-fondo); text-align: center; border-top: 1px solid rgba(82, 88, 47, 0.08);">
         <div class="gifts-header" style="max-width: 650px; margin: 0 auto;">
             <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 10px;">Mesa de Regalos</h2>
-            <p style="font-size: clamp(0.95rem, 2vw, 1.15rem); color: #555; line-height: 1.6; margin-bottom: 30px;">El mejor regalo es su presencia, pero si desean tener un detalle con nosotros, hemos creado esta lista de experiencias para nuestra luna de miel y futuro hogar.</p>
+            <p style="font-size: clamp(0.95rem, 2vw, 1.15rem); color: #555; line-height: 1.6; margin-bottom: 30px;">El mejor regalo es su presencia, pero si desean tener un detalle con nosotros, hemos creado esta lista de experiencias para nuestra luna de miel.</p>
             <a href="https://evento.uniko.co/bodadeloschicos/" target="_blank" rel="noopener noreferrer" class="btn btn-rsvp" style="background-color: var(--olivo-base); color: white; padding: 16px 45px; font-size: clamp(0.9rem, 1.8vw, 1.1rem); border-radius: 30px; text-decoration: none; display: inline-block;">Ver Mesa de Regalos 🎁</a>
         </div>
     </section>
@@ -2232,6 +2305,6 @@
             card.classList.toggle('flipped');
         }
     </script>
-<script src="js/index.js?v=28.2" defer></script>
+<script src="js/index.js?v=30.0" defer></script>
 </body>
 </html>

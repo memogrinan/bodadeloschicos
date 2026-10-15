@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=29.0` en favicons e imágenes clave / `v=28.2` en scripts de `index.html`.
+- **Versión de Cache-Buster Actual:** `v=29.0` en favicons e imágenes clave / `v=30.0` en scripts de `index.html` y `en/index.html`.
 
 ---
 
@@ -234,11 +234,33 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 
 ---
 
-## 13. Directrices Operativas Obligatorias para Nuevas Sesiones
+## 13. Arquitectura Multi-Idioma & Versión en Inglés (`v=30.0`)
+
+1. **Estructura de Directorio y Enrutamiento:**
+   - La versión en inglés vive en el subdirectorio físico `/en/` (`en/index.html`), aprovechando el enrutamiento nativo de Cloudflare Pages.
+   - Permite compartir enlaces directos como `https://bodadeloschicos.com/en/?p=smith` con Open Graph tags dedicados en inglés (título y descripción para WhatsApp / iMessage sin flash de traducción).
+2. **Selector de Idioma Bilingüe:**
+   - **Escritorio:** Píldora estética en `.nav-links` (`🇲🇽 ES | 🇺🇸 EN`) con estado activo resaltado.
+   - **Móvil:** Botones interactivos con banderas (`🇲🇽 Español` / `🇺🇸 English`) dentro de `.mobile-drawer`.
+3. **Persistencia de Parámetro `?p=` y Lenguaje:**
+   - El script `js/index.js` detecta si el usuario está en `/en/` o `/` y persiste su preferencia en `localStorage.getItem('bodachicos_lang')`.
+   - El inyector de enlaces `GLOBAL URL PARAMETER PRESERVER` propaga transparentemente el `partyId` tanto a enlaces en español como en inglés (`/en/` y `/`).
+4. **Traducción Contextual Completa:**
+   - Portada, contador, Nuestra Historia (anécdota de oficina 2018, Puebla 2021, Cholula 2023, Maddie 2024, compromiso 2025).
+   - Locaciones, mapas, itinerario completo con botones dinámicos para Google Calendar y Apple Calendar (generando `.ics` en inglés).
+   - Hospedaje con tarifas en MXN y notas para reservación preferencial.
+   - Código de vestimenta, FAQ contextualizado (con equivalencias °C / °F para temperatura).
+   - Mesa de regalos oficial apuntando directamente a Uniko (se removió "y futuro hogar" de todos los textos).
+   - RSVP dinámico: títulos, alertas, opciones (*"Will attend" / "Will not attend"*), placeholders de restricciones alimenticias y resumen de confirmación en inglés con compatibilidad directa hacia Google Sheets.
+   - Sección de Arcade y Chicosgram (paparazzi upload, validaciones de lote y mensajes de estado).
+
+---
+
+## 14. Directrices Operativas Obligatorias para Nuevas Sesiones
 
 1. **Gestión de Git y Despliegue en Cloudflare Pages:**
    - El repositorio usa **sparse-checkout**.
-   - Al agregar archivos con `git add`, especificar siempre las rutas explícitas (ej. `git add index.html ImagenesWeb/Optimizadas/archivo.webp`). **Nunca** usar `git add .` o patrones globales que incluyan `img/` (carpeta excluida del sparse-checkout).
+   - Al agregar archivos con `git add`, especificar siempre las rutas explícitas (ej. `git add index.html en/index.html js/index.js`). **Nunca** usar `git add .` o patrones globales que incluyan `img/` (carpeta excluida del sparse-checkout).
    - Siempre hacer `git push origin main` al terminar cualquier cambio (requiere `BypassSandbox: true` por política de red). Cloudflare Pages compila y despliega en producción automáticamente.
 2. **Manejo de Imágenes y Pillow en Python:**
    - Toda imagen nueva (.png, .jpg) que se suba debe ser convertida a `.webp` optimizado en `ImagenesWeb/Optimizadas/` antes de enlazarse en el HTML.
@@ -249,14 +271,15 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
      from PIL import Image
      ```
    - Al ejecutar scripts con Pillow o comandos con red, ejecutar con `BypassSandbox: true`.
-3. **Cache-Busting:**
+3. **Cache-Busting & Paridad de Idiomas:**
    - Cada vez que se modifique un archivo `.js`, `.css` o imagen compartida, incrementar el sufijo de versión en los archivos HTML correspondientes (ej. `?v=30.0`).
+   - **Regla de Paridad:** Todo cambio visual, estructural o de contenido realizado en `index.html` debe replicarse en `en/index.html` para mantener ambas versiones 100% alineadas.
 4. **Preservación del Código y Comentarios:**
-   - Mantener la integridad de los comentarios existentes en `index.html`, `js/index.js` y `CONTEXTO_PROYECTO.md`.
+   - Mantener la integridad de los comentarios existentes en `index.html`, `en/index.html`, `js/index.js` y `CONTEXTO_PROYECTO.md`.
 
 ---
 
-## 14. Temas Pendientes para Futuras Sesiones
+## 15. Temas Pendientes para Futuras Sesiones
 
 1. **Galería Final:**
    - Carga y compresión de las fotografías oficiales en alta resolución hacia la carpeta `ImagenesWeb/Optimizadas/`.

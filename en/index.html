@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mariana & Memo's Wedding</title>
+    
+    <!-- Canvas Confetti para celebración RSVP -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    
+    <!-- ========================================== -->
+    <!-- FAVICON (Icono de la pestaña cargado desde tu carpeta de diseño) -->
+    <link class="favicon" rel="icon" href="../ImagenesWeb/Optimizadas/favicon.webp?v=29.0" type="image/webp">
+    <!-- ========================================== -->
+
+    <!-- ========================================== -->
+    <!-- META ETIQUETAS DE PREVISUALIZACIÓN (Social Share & SEO) -->
+    <meta name="description" content="We are getting married! Join us in celebrating this special day on February 13, 2027 in Cholula, Puebla. Find the itinerary, accommodations, and all wedding details here.">
+    
+    <!-- Open Graph / Facebook / WhatsApp (Dominio Oficial) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bodadeloschicos.com/en/">
+    <meta property="og:title" content="Mariana & Memo's Wedding — Feb 13, 2027">
+    <meta property="og:description" content="We are getting married! Join us in celebrating this special day in Cholula, Puebla. Find the itinerary, accommodations, and all wedding details here.">
+    <meta property="og:image" content="https://bodadeloschicos.com/ImagenesWeb/Optimizadas/portada_preview.webp"> <!-- Imagen optimizada para WhatsApp -->
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter / iMessage -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://bodadeloschicos.com/en/">
+    <meta name="twitter:title" content="Mariana & Memo's Wedding — Feb 13, 2027">
+    <meta name="twitter:description" content="We are getting married! Join us in celebrating this special day in Cholula, Puebla. Find the itinerary, accommodations, and all wedding details here.">
+    <meta name="twitter:image" content="https://bodadeloschicos.com/ImagenesWeb/Optimizadas/portada_preview.webp"> <!-- Imagen optimizada para iMessage -->
+    <!-- ========================================== -->
+
+
+    <!-- PWA Config (App Instalable) -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Boda M&M">
+    <link rel="apple-touch-icon" href="../ImagenesWeb/logo_solid.png">
+    
+    <!-- Preconnect a Google Fonts para acelerar resolución DNS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Preload de imagen principal de portada para render instantáneo -->
+    <link rel="preload" as="image" href="../ImagenesWeb/Optimizadas/portada.webp">
+
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,600;1,6..96,400;1,6..96,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --olivo-base: #52582f;      
+            --olivo-trans: rgba(82, 88, 47, 0.75); 
+            --olivo-acento: #a3ad73;
+            --crema-fondo: #fcfaf7;
+            --nav-texto: #ffffff;
+            
+            /* SOMBRAS EDITORIALES SUAVES MULTICAPA */
+            --shadow-subtle: 0 2px 8px -2px rgba(82, 88, 47, 0.08), 0 1px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-card: 0 12px 32px -8px rgba(82, 88, 47, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+            --shadow-elevated: 0 20px 48px -12px rgba(82, 88, 47, 0.18), 0 8px 18px -4px rgba(0, 0, 0, 0.05);
+            --shadow-btn: 0 4px 14px -2px rgba(82, 88, 47, 0.25);
+            --shadow-btn-hover: 0 8px 22px -4px rgba(82, 88, 47, 0.35);
+        }
+
+        /* html { scroll-behavior: smooth; } Removido globalmente para evitar que el browser anime el scroll al entrar con un link directo, se manejará en JS */
+        body { font-family: 'Lora', serif; margin: 0; padding: 0; color: #444; background-color: var(--crema-fondo); line-height: 1.6; overflow-x: hidden; }
+        
+        /* MENU INTELIGENTE RESPONSIVO */
+        nav {
+            position: fixed; top: 0; width: 100%; 
+            background: var(--olivo-trans);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 1100; padding: 14px 0; /* Capa más alta que el menú lateral para mantener el botón visible */
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .nav-container { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 90%; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+        .nav-logo {
+            font-family: 'Prata', serif; font-style: italic;
+            font-size: clamp(1.3rem, 3.5vw, 1.9rem);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-links { 
+            display: flex; 
+            gap: 15px;
+        }
+        .nav-links a { 
+            text-decoration: none; 
+            color: var(--nav-texto); 
+            font-size: 11px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            padding: 4px 8px; 
+            transition: 0.3s ease; 
+            white-space: nowrap; 
+        }
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* SELECTOR DE IDIOMA EDITORIAL */
+        .lang-selector-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 3px 8px;
+            border-radius: 9999px;
+            margin-left: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+        }
+        .lang-selector-nav a {
+            padding: 2px 4px !important;
+            font-size: 11px !important;
+            opacity: 0.65;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .lang-selector-nav a.active {
+            opacity: 1;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .lang-selector-nav a:hover {
+            opacity: 1;
+        }
+        .lang-sep {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 10px;
+            user-select: none;
+        }
+
+        .drawer-lang-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 12px;
+        }
+        .drawer-lang-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 9999px;
+            text-decoration: none;
+            color: white;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s ease;
+        }
+        .drawer-lang-btn.active {
+            background: rgba(255, 255, 255, 0.32);
+            border-color: rgba(255, 255, 255, 0.7);
+            font-weight: 700;
+        }
+        
+        /* Botón de Hamburguesa para celular con hitbox amplio y táctil */
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 1200; /* Asegura su posición clickeable */
+            padding: 12px;
+            margin: -10px -10px -10px 0;
+            min-width: 48px;
+            min-height: 48px;
+            border-radius: 10px;
+            transition: background-color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+        .menu-toggle:active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .menu-toggle svg {
+            width: 26px;
+            height: 26px;
+            fill: white;
+            pointer-events: none; /* Asegura que el clic siempre caiga en el botón */
+            display: block;
+        }
+
+        /* Overlay difuso para cerrar el menú al hacer clic fuera */
+        .drawer-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+            z-index: 1040;
+        }
+        .drawer-overlay.is-active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Panel Lateral Desplegable Móvil */
+        .mobile-drawer {
+            position: fixed;
+            top: 0; right: 0;
+            width: clamp(230px, 72vw, 290px);
+            height: 100vh;
+            height: 100dvh;
+            background: var(--olivo-trans);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow: -8px 0 30px rgba(0,0,0,0.3);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            padding: 75px 22px calc(24px + env(safe-area-inset-bottom, 0px)) 22px;
+            box-sizing: border-box;
+            transform: translateX(100%);
+            transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mobile-drawer.is-active {
+            transform: translateX(0);
+        }
+        .drawer-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .mobile-drawer a {
+            text-decoration: none;
+            color: white;
+            font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            transition: color 0.2s ease, padding-left 0.2s ease;
+        }
+        .mobile-drawer a:active {
+            color: #d4caa3;
+            padding-left: 4px;
+        }
+        .drawer-bottom {
+            margin-top: auto;
+            padding-top: 18px;
+        }
+        .drawer-install-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.38);
+            color: #ffffff;
+            padding: 12px 14px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .drawer-install-btn:hover {
+            background: rgba(255, 255, 255, 0.26);
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+        .drawer-install-btn:active {
+            transform: scale(0.97);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .drawer-install-btn svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            fill: currentColor;
+        }
+
+        /* Modal Universal PWA Elegante (Cero alerts feos del navegador) */
+        .pwa-status-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.68);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pwa-status-modal.is-active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .pwa-status-card {
+            background: #ffffff;
+            border-radius: 26px;
+            max-width: 380px;
+            width: 100%;
+            padding: 30px 24px 26px 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(82, 88, 47, 0.08);
+            text-align: center;
+            position: relative;
+            transform: scale(0.92) translateY(8px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #333333;
+            box-sizing: border-box;
+        }
+        .pwa-status-modal.is-active .pwa-status-card {
+            transform: scale(1) translateY(0);
+        }
+        .pwa-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #f4f3f0;
+            border: none;
+            color: #666;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .pwa-modal-close:hover { background: #e8e6e1; color: #222; }
+        .pwa-modal-badge {
+            width: 65px;
+            height: 65px;
+            border-radius: 18px;
+            margin: 0 auto 16px auto;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(82,88,47,0.22);
+            display: block;
+            object-fit: cover;
+        }
+        .pwa-step {
+            display: flex;
+            align-items: center;
+            text-align: left;
+            gap: 14px;
+            background: #faf9f6;
+            border: 1px solid rgba(82, 88, 47, 0.12);
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 11px;
+            font-size: 0.86rem;
+            line-height: 1.45;
+            color: #444;
+        }
+        .pwa-step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--olivo-base);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 3px 8px rgba(82, 88, 47, 0.25);
+        }
+        .pwa-step-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.2;
+        }
+        .pwa-btn-action {
+            width: 100%;
+            margin-top: 14px;
+            background: var(--olivo-base);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 13px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(82,88,47,0.28);
+            transition: all 0.2s ease;
+        }
+        .pwa-btn-action:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+        .pwa-tip-box {
+            background: rgba(82, 88, 47, 0.08);
+            border: 1px solid rgba(82, 88, 47, 0.15);
+            border-radius: 14px;
+            padding: 11px 13px;
+            margin-top: 12px;
+            font-size: 0.81rem;
+            color: #4f5333;
+            line-height: 1.45;
+            text-align: left;
+        }
+
+        /* PORTADA CON ANIMACIÓN DE ENTRADA SUAVE (TEXTO) */
+        header {
+            height: 100vh; /* Fallback para navegadores antiguos */
+            height: 100svh; /* Altura constante estable (evita saltos al hacer scroll) */
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center;
+            opacity: 0;
+            animation: fadeInHeader 1.2s ease-out forwards;
+            will-change: opacity;
+            overflow: hidden; /* Asegura el recorte del fondo sobredimensionado */
+        }
+        @keyframes fadeInHeader {
+            to { opacity: 1; }
+        }
+
+        /* EFECTO CINEMATOGRÁFICO DE ZOOM LENTO (KEN BURNS) PARA EL FONDO */
+
+
+
+        .header-bg {
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('../ImagenesWeb/Optimizadas/portada.webp');
+            background-size: cover; background-position: center;
+            animation: kenBurnsEffect 24s ease-in-out infinite;
+            will-change: transform; /* Optimiza para que el procesamiento ocurra en la tarjeta gráfica */
+        }
+        @keyframes kenBurnsEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); } /* Zoom muy sutil e imperceptible pero con movimiento vivo */
+            100% { transform: scale(1); }
+        }
+
+        /* EFECTO FADE-IN CON DESPLAZAMIENTO SUAVE PARA EL SCROLL */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, transform;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* PARALLAX AVANZADO PARA MÓVILES (Con máscara de recorte) */
+        header, .parallax-section { 
+            position: relative; 
+            clip-path: inset(0); /* Corta todo lo que esté fuera del contenedor */
+            -webkit-clip-path: inset(0); /* Soporte para iOS / Safari */
+            overflow: hidden; /* Recorta el excedente de las capas fijas internas */
+        }
+
+        .parallax-section {
+            min-height: 50vh; /* Fallback */
+            min-height: 50svh; /* Altura constante estable libre de fluctuaciones de barra móvil */
+            display: flex; justify-content: center; align-items: center; padding: 80px 20px;
+        }
+
+        /* Capa de fondo fija en el viewport */
+        .bg-fixed { 
+            position: fixed; 
+            top: -10vh; /* Fallback desplazamiento superior */
+            left: 0; 
+            width: 100%; 
+            height: 120vh; /* Fallback sobredimensionado */
+            
+            /* Unidades estáticas modernas: no cambian de tamaño dinámicamente al ocultar/mostrar la barra */
+            top: -10lvh;
+            height: 120lvh;
+            
+            z-index: -1; 
+            pointer-events: none; /* Permite hacer scroll tocando la imagen */
+            background-size: cover; 
+            background-position: center; 
+        }
+
+        /* Rutas de diseño apuntando a la carpeta ImagenesWeb */
+        .celebracion-bg { 
+            background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('../ImagenesWeb/Optimizadas/trapiche.webp'); 
+        }
+        .hospedaje-bg { 
+            background-image: linear-gradient(rgba(82, 88, 47, 0.75), rgba(82, 88, 47, 0.75)), url('../ImagenesWeb/Optimizadas/hospedaje.webp'); 
+            background-blend-mode: overlay; 
+        }
+        
+        /* COLOR VERDE CLARO/CREMA (SALVIA) SIMPLIFICADO PARA PREGUNTAS FRECUENTES (FAQ) */
+        .faq-bg {
+            background-color: #d8dcd0; /* El tono salvia suave y elegante */
+            background-image: linear-gradient(rgba(225, 228, 215, 0.93), rgba(213, 218, 201, 0.88));
+        }
+
+        /* FONDO ELEGANTE CON ALUSIÓN SUTIL A ARCADE */
+        .retro-grid-bg {
+            background-color: #f6f8f3;
+            background-image: 
+                linear-gradient(rgba(82, 88, 47, 0.035) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(82, 88, 47, 0.035) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            background-position: center;
+        }
+
+        h1 { font-family: 'Prata', serif; font-style: italic; font-size: clamp(3.5rem, 12vw, 6rem); margin: 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+        .fecha-top { font-size: clamp(1.1rem, 2.5vw, 1.4rem); letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; font-weight: 400; }
+        
+        /* CONTADOR */
+        .countdown-container { display: flex; gap: 15px; margin-top: 25px; justify-content: center; }
+        .cd-item { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+        .cd-val { font-size: clamp(1.2rem, 5vw, 2rem); font-weight: 600; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+        .cd-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; opacity: 0.9; }
+
+        section { padding: 80px 20px; max-width: 900px; margin: 0 auto; text-align: center; }
+        h2 { font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 30px; }
+
+        /* CARRUSEL DE FOTOS */
+        .carousel-container { 
+            position: relative; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            overflow: hidden; 
+            border-radius: 22px; 
+            box-shadow: var(--shadow-card); 
+            border: 1px solid rgba(82, 88, 47, 0.08);
+            aspect-ratio: 4/5; 
+            max-height: 80vh; 
+            background: #f0f0f0; 
+        }
+        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
+        /* RESERVAR ESPACIO PARA IMAGENES PARA EVITAR SALTOS DE ANCLAS (LAYOUT SHIFT) */
+        .carousel-img { width: 100%; aspect-ratio: 4/5; flex-shrink: 0; object-fit: cover; background-color: #f0f0f0; }
+        #cgGalleryGrid { min-height: 300px; }
+        
+        /* BOTONES DEL CARRUSEL CON FEEDBACK TÁCTIL */
+        .carousel-btn { 
+            position: absolute; 
+            top: 0; bottom: 0; 
+            margin: auto; 
+            background: rgba(255,255,255,0.9); 
+            border: 1px solid rgba(82, 88, 47, 0.12); 
+            font-size: clamp(1.3rem, 3.5vw, 1.9rem); 
+            cursor: pointer; 
+            border-radius: 50%; 
+            width: 46px; height: 46px; 
+            z-index: 10; 
+            color: var(--olivo-base); 
+            display: flex; justify-content: center; align-items: center; 
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, box-shadow 0.18s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .carousel-btn:hover {
+            background: #ffffff;
+            box-shadow: var(--shadow-card);
+        }
+        .carousel-btn:active {
+            transform: scale(0.92);
+        }
+        .prev { left: 12px; } .next { right: 12px; }
+
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 50px 30px; 
+            border-radius: 24px; 
+            max-width: 500px; 
+            width: 90%; 
+            text-align: center; 
+            box-shadow: var(--shadow-card); 
+            border: 1px solid rgba(82, 88, 47, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* ITINERARIO */
+        .timeline-wrapper { text-align: left; max-width: 450px; margin: 0 auto; position: relative; padding-left: 45px; border-left: 1.5px solid #ddd; }
+        .timeline-day-title { font-size: clamp(0.7rem, 1vw, 0.8rem); letter-spacing: 2px; text-transform: uppercase; color: #999; margin: 50px 0 25px -45px; text-align: center; display: block; font-weight: 600; }
+        .timeline-item { position: relative; margin-bottom: 40px; }
+        .timeline-item::before { content: ""; position: absolute; left: -51.5px; top: 6px; width: 11px; height: 11px; background: white; border: 1.5px solid var(--olivo-base); border-radius: 50%; z-index: 2; }
+        .time-label { font-size: clamp(0.7rem, 1.1vw, 0.85rem); font-weight: 600; color: #888; display: block; }
+        .event-title { font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 600; color: #333; margin: 0; }
+        .event-loc { font-size: clamp(0.7rem, 1.1vw, 0.85rem); color: var(--olivo-base); font-weight: 600; display: block; margin: 3px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .event-desc { font-size: clamp(0.8rem, 1.5vw, 0.95rem); color: #666; margin-top: 5px; line-height: 1.5; }
+
+        /* BOTONES DE AGREGAR AL CALENDARIO EN EL ITINERARIO */
+        .calendar-btn-container {
+            display: flex;
+            gap: 10px;
+            margin: -15px 0 25px 0; /* Ubicación perfecta bajo el título Sábado 13 */
+            flex-wrap: wrap;
+        }
+        .btn-cal {
+            font-size: clamp(0.7rem, 1vw, 0.8rem);
+            font-weight: 600;
+            color: var(--olivo-base);
+            border: 1px solid rgba(82, 88, 47, 0.25);
+            border-radius: 20px;
+            padding: 7px 15px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
+            background-color: transparent;
+            cursor: pointer;
+            font-family: 'Lora', serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-cal:hover {
+            background-color: rgba(82, 88, 47, 0.08);
+            border-color: var(--olivo-base);
+            transform: translateY(-1px);
+        }
+        .btn-cal:active {
+            transform: scale(0.96);
+            background-color: rgba(82, 88, 47, 0.12);
+        }
+        .cal-icon {
+            width: 14px;
+            height: 14px;
+            fill: var(--olivo-base);
+        }
+
+        /* GALERÍA DINÁMICA DE INVITADOS CON SUBTÍTULOS */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .gallery-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .gallery-grid img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer; /* Cambia el cursor a mano para indicar que es clicable */
+        }
+        .gallery-grid img:hover {
+            transform: scale(1.05);
+        }
+        .gallery-caption {
+            font-size: clamp(0.7rem, 1vw, 0.8rem);
+            color: #666;
+            margin-top: 6px;
+            font-style: italic;
+            text-align: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* BOTONES CON FEEDBACK TÁCTIL Y SOMBRAS ESTRATIFICADAS */
+        .btn { 
+            padding: 12px 26px; 
+            text-decoration: none; 
+            border-radius: 9999px; 
+            font-size: clamp(0.72rem, 1.1vw, 0.85rem); 
+            font-weight: 600; 
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background-color 0.2s ease, opacity 0.2s ease; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 10px 5px; 
+            min-width: 140px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            box-shadow: var(--shadow-btn);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+        .btn-rsvp { 
+            background-color: var(--olivo-base); 
+            color: white; 
+            padding: 16px 45px; 
+            font-size: clamp(0.9rem, 1.8vw, 1.1rem); 
+            border: none; 
+            margin-top: 20px; 
+            box-shadow: var(--shadow-btn);
+        }
+        .btn-hotel { 
+            border: 1.5px solid var(--olivo-base); 
+            color: var(--olivo-base); 
+            background: transparent;
+            box-shadow: var(--shadow-subtle);
+        }
+        .btn:hover { 
+            box-shadow: var(--shadow-btn-hover);
+            transform: translateY(-2px); 
+        }
+        .btn:active {
+            transform: scale(0.97) translateY(0);
+            box-shadow: var(--shadow-subtle);
+        }
+        .btn-hotel:hover {
+            background-color: rgba(82, 88, 47, 0.06);
+        }
+
+        /* TARJETAS 3D FLIP PARA HOSPEDAJE RECOMENDADO */
+        .hotel-cards-container {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: stretch;
+            max-width: 850px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hotel-flip-card {
+            background-color: transparent;
+            width: 370px;
+            max-width: 100%;
+            height: 330px;
+            perspective: 1200px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hotel-flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+            border-radius: 20px;
+        }
+
+        /* Hover en computadoras */
+        @media (hover: hover) and (pointer: fine) {
+            .hotel-flip-card:hover .hotel-flip-inner {
+                transform: rotateY(180deg);
+            }
+        }
+
+        /* Click/Tap en celular o toggle manual */
+        .hotel-flip-card.flipped .hotel-flip-inner {
+            transform: rotateY(180deg);
+        }
+
+        .hotel-card-front,
+        .hotel-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 18px 16px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(82, 88, 47, 0.18);
+        }
+
+        .hotel-card-back {
+            transform: rotateY(180deg);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .hotel-badge {
+            display: inline-block;
+            align-self: center;
+            background: rgba(82, 88, 47, 0.1);
+            color: var(--olivo-base);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            padding: 3px 11px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .hotel-title {
+            margin: 6px 0 2px 0;
+            font-size: clamp(1.15rem, 2.4vw, 1.35rem);
+            color: #2b2b2b;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .hotel-distance-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            margin: 4px 0;
+        }
+
+        .distance-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f7f8f4;
+            border: 1px solid rgba(82, 88, 47, 0.12);
+            border-radius: 12px;
+            padding: 7px 12px;
+            text-align: left;
+        }
+
+        .distance-pill.highlight {
+            background: #f0f5e7;
+            border-color: rgba(82, 88, 47, 0.35);
+        }
+
+        .distance-pill .pill-icon {
+            font-size: 1.15rem;
+            line-height: 1;
+        }
+
+        .distance-pill .pill-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .distance-pill .pill-label {
+            font-size: 0.68rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .distance-pill .pill-time {
+            font-size: 0.84rem;
+            color: #2b2b2b;
+            font-weight: 600;
+        }
+
+        .flip-hint {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: var(--olivo-base);
+            font-weight: 600;
+            background: rgba(82, 88, 47, 0.08);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-top: 4px;
+            align-self: center;
+        }
+
+        .flip-hint svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+            transition: transform 0.3s ease;
+        }
+
+        .hotel-flip-card:hover .flip-hint svg {
+            transform: rotate(180deg);
+        }
+
+        /* Reverso */
+        .hotel-rates-list {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 4px 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .hotel-rates-list li {
+            font-size: 0.82rem;
+            color: #333;
+            background: #f9faf7;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border-left: 3px solid var(--olivo-base);
+        }
+
+        .hotel-rates-list li strong {
+            color: var(--olivo-base);
+        }
+
+        .hotel-note {
+            font-size: 0.77rem;
+            color: #555;
+            line-height: 1.38;
+            background: #fff8e8;
+            border: 1px solid #fae2af;
+            border-radius: 9px;
+            padding: 6px 9px;
+            margin: 4px 0 6px 0;
+            text-align: left;
+        }
+
+        .hotel-contact-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .contact-label {
+            font-size: 0.68rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .contact-btn-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-hotel-contact {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            flex: 1;
+            padding: 7px 10px;
+            border-radius: 10px;
+            font-size: 0.79rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-hotel-contact.whatsapp,
+        .btn-hotel-contact.whatsapp-novios {
+            background-color: #25D366;
+            color: white !important;
+            box-shadow: 0 3px 8px rgba(37, 211, 102, 0.25);
+        }
+
+        .btn-hotel-contact.whatsapp:hover,
+        .btn-hotel-contact.whatsapp-novios:hover {
+            background-color: #1EBE5D;
+            transform: translateY(-1px);
+        }
+
+        .btn-hotel-contact.call {
+            background-color: var(--olivo-base);
+            color: white !important;
+            box-shadow: 0 3px 8px rgba(82, 88, 47, 0.25);
+        }
+
+        .btn-hotel-contact.call:hover {
+            background-color: #3f4422;
+            transform: translateY(-1px);
+        }
+
+        .btn-hotel-contact .contact-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        .flip-back-hint {
+            font-size: 0.68rem;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        /* CINTILLA DE HOSPEDAJE FALLBACK */
+        .hospedaje-fallback-banner {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(82, 88, 47, 0.22);
+            border-radius: 18px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-align: left;
+            max-width: 780px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .fallback-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .fallback-content {
+            flex: 1;
+        }
+
+        .fallback-title {
+            display: block;
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--olivo-base);
+            margin-bottom: 3px;
+        }
+
+        .fallback-desc {
+            margin: 0 0 10px 0;
+            font-size: 0.81rem;
+            color: #444;
+            line-height: 1.45;
+        }
+
+        .btn-fallback-call {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--olivo-base);
+            color: white !important;
+            padding: 7px 16px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-fallback-call:hover {
+            background: #3f4422;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            .hospedaje-fallback-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+                padding: 16px 14px;
+            }
+            .fallback-icon {
+                font-size: 1.5rem;
+            }
+            .hotel-flip-card {
+                height: 310px;
+            }
+            .hotel-card-front,
+            .hotel-card-back {
+                padding: 14px 12px;
+            }
+            .hotel-title {
+                font-size: 1.15rem;
+            }
+            .distance-pill {
+                padding: 5px 9px;
+            }
+            .distance-pill .pill-icon {
+                font-size: 1rem;
+            }
+            .distance-pill .pill-time {
+                font-size: 0.78rem;
+            }
+            .hotel-rates-list li {
+                padding: 4px 8px;
+                font-size: 0.78rem;
+            }
+            .hotel-note {
+                padding: 5px 8px;
+                font-size: 0.74rem;
+                line-height: 1.32;
+            }
+            .btn-hotel-contact {
+                padding: 6px 8px;
+                font-size: 0.76rem;
+            }
+        }
+
+        /* BOTONES DE MAPAS Y NAVEGACIÓN ESTILO PÍLDORA OLIVO (SEGÚN DISEÑO) */
+        .location-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .btn-location {
+            background-color: #4a4e30;
+            color: #ffffff !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 9999px;
+            font-size: clamp(0.72rem, 1.1vw, 0.82rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(74, 78, 48, 0.22);
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+        .btn-location:hover {
+            background-color: #3b3f26;
+            box-shadow: 0 6px 18px rgba(74, 78, 48, 0.35);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-location:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 6px rgba(74, 78, 48, 0.2);
+        }
+        .btn-location svg {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            display: inline-block;
+            vertical-align: middle;
+            fill: #ffffff;
+        }
+
+        .upload-section { margin-top: 50px; padding: 40px; border: 2px dashed var(--olivo-base); border-radius: 20px; background-color: rgba(82, 88, 47, 0.05); }
+
+        footer { 
+            padding: 60px 20px calc(60px + env(safe-area-inset-bottom, 0px)) 20px; 
+            font-size: clamp(0.7rem, 1.1vw, 0.85rem); 
+            opacity: 0.85; 
+            text-align: center; 
+            background: #fff; 
+        }
+
+        /* VISOR DE FOTOS (LIGHTBOX MODAL) */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000; /* Prioridad por debajo de los botones de navegación */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .lightbox-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 25px rgba(255,255,255,0.15);
+            transform: translateZ(0); /* Force GPU */
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px; right: 30px;
+            color: #fff;
+            font-size: clamp(32px, 8vw, 48px);
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            z-index: 2200; /* Siempre encima de los botones laterales */
+        }
+        
+        /* BOTONES DE NAVEGACIÓN EN EL LIGHTBOX */
+        .lightbox-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #ffffff;
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease, transform 0.2s ease;
+            z-index: 2100; /* Sobre la foto en pantalla completa */
+            user-select: none;
+        }
+        .lightbox-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .lightbox-btn-prev {
+            left: 20px;
+        }
+        .lightbox-btn-next {
+            right: 20px;
+        }
+
+        /* TIMELINE VERTICAL EN ZIGZAG RESPONSIVO */
+        .vt-timeline-container {
+            margin: 60px auto 30px auto;
+            max-width: 500px; /* Ancho seguro que evita desbordamientos */
+            position: relative;
+            height: 750px; /* Altura fija para control absoluto del trazado responsivo */
+        }
+        
+        /* Enredadera ondulatoria vertical de fondo */
+        .vt-timeline-vine {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* Cada hito de la línea de tiempo vertical */
+        .vt-item {
+            position: absolute;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 120px; /* Ancho óptimo para centrar el texto sin encimarse */
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        .vt-year {
+            font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+            font-weight: 600;
+            color: var(--olivo-base);
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+        .hz-icon-wrapper {
+            background-color: #ffffff; /* Fondo blanco sólido para tapar la línea de fondo */
+            border: 1px solid rgba(82, 88, 47, 0.08);
+            border-radius: 50%;
+            width: 72px; 
+            height: 72px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+            padding: 6px; /* Ajusta los iconos para que no toquen la orilla */
+            box-sizing: border-box; /* Evita que el círculo se agrande con el padding */
+        }
+        .vt-item:hover .hz-icon-wrapper {
+            transform: scale(1.08);
+            box-shadow: var(--shadow-card);
+        }
+        .hz-icon-wrapper img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: all 0.3s ease;
+            
+            /* Oculta los bordes y textos alternativos si el archivo PNG no existe aún */
+            font-size: 0;
+            color: transparent;
+            text-indent: -10000px;
+            border: 0;
+        }
+
+        /* ESTILOS DE LA SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) */
+        .faq-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .faq-item {
+            border-bottom: 1.5px solid rgba(82, 88, 47, 0.15); /* Trazo fino y translúcido de la paleta olivo */
+            transition: border-color 0.3s ease;
+        }
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 22px 10px;
+            text-align: left;
+            font-size: clamp(0.95rem, 2vw, 1.15rem);
+            font-family: 'Lora', serif;
+            font-weight: 600;
+            color: var(--olivo-base);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            outline: none;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.85); /* Sombra suave para legibilidad sobre textura */
+            transition: background-color 0.2s ease, transform 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .faq-question:hover {
+            background-color: rgba(82, 88, 47, 0.04);
+        }
+        .faq-question:active {
+            transform: scale(0.99);
+        }
+        
+        /* Símbolo + animado a la izquierda */
+        .faq-toggle {
+            font-size: clamp(1.2rem, 3vw, 1.7rem);
+            font-weight: 400;
+            color: var(--olivo-base);
+            transition: transform 0.3s ease;
+            display: inline-block;
+            line-height: 1;
+            width: 20px;
+            text-align: center;
+            user-select: none;
+        }
+        
+        /* Cuando la pregunta está abierta, el + rota 45 grados y se vuelve una X */
+        .faq-item.is-open .faq-toggle {
+            transform: rotate(45deg);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out; /* Animación de deslizamiento vertical */
+        }
+        .faq-answer p {
+            padding: 0 10px 22px 35px; /* Alineación perfecta con el bloque de texto superior */
+            margin: 0;
+            font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+            color: #444; /* Gris oscuro para máxima legibilidad sin caja sólida */
+            line-height: 1.7;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
+        }
+
+        /* ADAPTACIÓN MÓVIL Y NAVEGACIÓN */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; }
+        }
+
+        @media (max-width: 600px) {
+            section { padding: 60px 20px; }
+            .timeline-wrapper { margin-left: 20px; }
+            .parallax-section { min-height: 40vh; }
+            
+            /* Ajustes para evitar que los botones y cajas se desborden */
+            .upload-section { padding: 30px 15px; }
+            .btn { min-width: 120px; font-size: clamp(0.7rem, 1vw, 0.8rem); padding: 10px 18px; }
+            .btn-rsvp { padding: 14px 30px; font-size: clamp(0.75rem, 1.3vw, 0.9rem); width: auto; max-width: 100%; box-sizing: border-box; }
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+            .gallery-grid img { height: 100px; }
+            .lightbox-close { top: 15px; right: 20px; font-size: clamp(28px, 6vw, 42px); }
+            .prev { left: 10px; } .next { right: 10px; }
+            
+            /* Ajuste de flechas de lightbox en celular */
+            .lightbox-btn {
+                width: 40px;
+                height: 40px;
+                font-size: clamp(1.3rem, 3.5vw, 1.9rem);
+                padding: 10px;
+            }
+            .lightbox-btn-prev {
+                left: 10px;
+            }
+            .lightbox-btn-next {
+                right: 10px;
+            }
+        }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <!-- Fancybox para Chicosgram -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+
+    <style>
+        /* Ajuste de Z-Index para que Fancybox pase por encima de la barra de navegacion */
+        .fancybox__container { z-index: 99999 !important; }
+        
+
+
+        /* Chicosgram Grid */
+
+        
+        #cgGalleryGrid .gallery-item {
+        #cgGalleryGrid .gallery-item img {
+            border-radius: 0 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#inicio" class="nav-logo">M & M</a>
+            
+            <!-- Links para pantallas medianas/grandes -->
+            <div class="nav-links">
+                <a href="#inicio">Home</a>
+                <a href="#historia">Our Story</a>
+                <a href="#celebracion">Location</a>
+                <a href="#itinerario">Itinerary</a>
+                <a href="#hospedaje">Lodging</a>
+                <a href="#mesa-de-regalos">Gifts</a>
+                <a href="#confirmacion">RSVP</a>
+                <a href="#juegos-acceso">Arcade</a>
+                <a href="#fotos-invitados">Photos</a>
+                <div class="lang-selector-nav">
+                    <a href="/" title="Español">🇲🇽 ES</a>
+                    <span class="lang-sep">|</span>
+                    <a href="/en/" class="active" title="English">🇺🇸 EN</a>
+                </div>
+            </div>
+
+            <!-- Botón Hamburguesa de Navegación Móvil -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Open Menu">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="white"/>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Capa Difusa Oscura para Cerrar Menú al Dar Clic Fuera -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
+    <!-- Panel Lateral Desplegable Móvil -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <!-- Selector de idioma móvil -->
+        <div class="drawer-lang-container">
+            <a href="/" class="drawer-lang-btn">🇲🇽 Español</a>
+            <a href="/en/" class="drawer-lang-btn active">🇺🇸 English</a>
+        </div>
+
+        <div class="drawer-nav-links">
+            <a href="#inicio" onclick="closeDrawer()">Home</a>
+            <a href="#historia" onclick="closeDrawer()">Our Story</a>
+            <a href="#celebracion" onclick="closeDrawer()">Location</a>
+            <a href="#itinerario" onclick="closeDrawer()">Itinerary</a>
+            <a href="#hospedaje" onclick="closeDrawer()">Lodging</a>
+            <a href="#mesa-de-regalos" onclick="closeDrawer()">Gifts</a>
+            <a href="#confirmacion" onclick="closeDrawer()">RSVP</a>
+            <a href="#juegos-acceso" onclick="closeDrawer()">Arcade</a>
+            <a href="#fotos-invitados" onclick="closeDrawer()">Photos</a>
+        </div>
+        
+        <!-- Botón anclado hasta el fondo de la pantalla -->
+        <div class="drawer-bottom">
+            <button id="installAppBtn" class="drawer-install-btn" onclick="handleInstallApp()" aria-label="Install wedding app">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+                </svg>
+                <span>Install The Wedding App</span>
+            </button>
+        </div>
+    </div>
+
+    <header id="inicio">
+        <div class="bg-fixed header-bg"></div>
+        <h1>Mariana & Memo</h1>
+        <div class="fecha-top">February 13 • 2027</div>
+        <p>Cholula, Puebla</p>
+        
+        <!-- CONTADOR EN TIEMPO REAL -->
+        <div class="countdown-container" id="countdown">
+            <div class="cd-item"><span class="cd-val" id="days">00</span><span class="cd-label">Days</span></div>
+            <div class="cd-item"><span class="cd-val" id="hours">00</span><span class="cd-label">Hours</span></div>
+            <div class="cd-item"><span class="cd-val" id="minutes">00</span><span class="cd-label">Minutes</span></div>
+            <div class="cd-item"><span class="cd-val" id="seconds">00</span><span class="cd-label">Seconds</span></div>
+        </div>
+    </header>
+
+    <section id="historia" class="fade-in-section">
+        <h2>Our Story</h2>
+        <div style="font-size: clamp(0.85rem, 1.6vw, 1.05rem); line-height: 1.8; color: #444; margin-bottom: 40px; text-align: justify; max-width: 650px; margin-left: auto; margin-right: auto; padding: 0 15px; letter-spacing: 0.2px;">
+            <p style="margin-bottom: 25px;">What began as a chance office coincidence in 2018 turned into daily conversations in 2021 that brought us together as a couple to beautiful Puebla. In 2023, we found our home in Cholula, and shortly after, Maddie arrived to turn our routine delightfully upside down (with boundless love) to complete our family.</p>
+            <p>After getting engaged in 2025, we know there is no better place than Cholula to celebrate and take our next step in 2027 — and we could not be more thrilled to share it with all of you!</p>
+        </div>
+
+        <!-- LÍNEA DE TIEMPO VERTICAL ALTERNANTE EN ZIGZAG -->
+        <div class="vt-timeline-container">
+            
+            <!-- ENREDADERA VECTORIAL VERTICAL RESPONSIVA (Calculada exactamente para unir los centros a 25% y 75%) -->
+            <svg class="vt-timeline-vine" viewBox="0 0 100 750" preserveAspectRatio="none">
+                <defs>
+                    <!-- Degradado vertical del 70% de opacidad, desvaneciéndose al final de la línea -->
+                    <linearGradient id="vt-vine-fade" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
+                        <stop offset="90%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
+                        <stop offset="100%" stop-color="var(--olivo-base)" stop-opacity="0.7" />
+                    </linearGradient>
+                </defs>
+                
+                <!-- Curvas fluidas (S-curves) que unen con precisión matemática los hitos alternantes -->
+                <path d="M 25 61
+                         C 25 120, 75 130, 75 191
+                         C 75 250, 25 260, 25 321
+                         C 25 380, 75 390, 75 451
+                         C 75 510, 25 520, 25 581
+                         C 25 640, 75 650, 75 711
+                         C 75 730, 50 740, 50 750" 
+                      fill="none" stroke="url(#vt-vine-fade)" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+            </svg>
+
+            <!-- 2018: Oso Bimbo (Izquierda) -->
+            <div class="vt-item" style="top: 0px; left: 25%;">
+                <span class="vt-year">2018</span>
+                <div class="hz-icon-wrapper">
+                    <img src="../ImagenesWeb/Optimizadas/icono_osito_bimbo.webp" alt="Oso Bimbo" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- 2021: Corazón Flechado (Derecha) (Se escala un 25% para emparejar su peso visual) -->
+            <div class="vt-item" style="top: 130px; left: 75%;">
+                <span class="vt-year">2021</span>
+                <div class="hz-icon-wrapper">
+                    <img src="../ImagenesWeb/Optimizadas/icono_corazon_flechado.webp" alt="Corazón Flechado" style="transform: scale(1.25);" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- 2023: Casa Sencilla (Izquierda) -->
+            <div class="vt-item" style="top: 260px; left: 25%;">
+                <span class="vt-year">2023</span>
+                <div class="hz-icon-wrapper">
+                    <img src="../ImagenesWeb/Optimizadas/icono_casa.webp" alt="Casa" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- 2024: Maddie (Derecha) -->
+            <div class="vt-item" style="top: 390px; left: 75%;">
+                <span class="vt-year">2024</span>
+                <div class="hz-icon-wrapper">
+                    <img src="../ImagenesWeb/Optimizadas/icono_maddie.webp?v=29.0" alt="Maddie" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- 2025: Anillo de Compromiso (Izquierda) -->
+            <div class="vt-item" style="top: 520px; left: 25%;">
+                <span class="vt-year">2025</span>
+                <div class="hz-icon-wrapper">
+                    <img src="../ImagenesWeb/Optimizadas/icono_anillo_compromiso.webp" alt="Anillo de Compromiso" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- 2027: Iglesia (Derecha) -->
+            <div class="vt-item" style="top: 650px; left: 75%;">
+                <span class="vt-year">2027</span>
+                <div class="hz-icon-wrapper">
+                    <img src="../ImagenesWeb/Optimizadas/icono_iglesia.webp" alt="Iglesia" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="fotos" style="background-color: #fff;" class="fade-in-section">
+        <h2>Our Story in Photos</h2>
+        <div class="carousel-container">
+            <button class="carousel-btn prev" onclick="moveSlide(-1)">&#10094;</button>
+            <div class="carousel-track" id="carouselTrack">
+                <!-- Fotos locales cargadas desde la carpeta ImagenesWeb -->
+                <img src="../ImagenesWeb/Optimizadas/foto_bimbo.webp?v=22.0" alt="Nuestros inicios Bimbo 2018" class="carousel-img" loading="eager">
+                <img src="../ImagenesWeb/Optimizadas/historia_omitlan.webp" alt="Viaje a Omitlán 2021" class="carousel-img" loading="eager">
+                <img src="../ImagenesWeb/Optimizadas/foto_casa_puebla.webp" alt="Casa en Puebla 2023" class="carousel-img" loading="lazy">
+                <img src="../ImagenesWeb/Optimizadas/historia_maddie_solita.webp" alt="Maddie" class="carousel-img" loading="lazy">
+                <img src="../ImagenesWeb/Optimizadas/historia_propuesta.webp" alt="La propuesta de matrimonio 2025" class="carousel-img" loading="lazy">
+            </div>
+            <button class="carousel-btn next" onclick="moveSlide(1)">&#10095;</button>
+        </div>
+    </section>
+
+    <!-- REMOVIDO fade-in-section DE LOS WRAPPERS CON PARALLAX PARA EVITAR CONFLICTO -->
+    <div id="celebracion" class="parallax-section" style="padding: 100px 20px;">
+        <div class="bg-fixed celebracion-bg"></div>
+        <!-- Contenedor Flex para ambas locaciones -->
+        <div class="fade-in-section" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; z-index: 2; position: relative; max-width: 1000px; margin: 0 auto; width: 100%;">
+            
+            <!-- TARJETA IGLESIA -->
+            <div class="glass-card" style="flex: 1; min-width: 300px; padding: 40px 20px; margin: 0;">
+                <h2 style="font-size: clamp(1.6rem, 4.5vw, 2.4rem); margin-bottom: 10px;">Ceremonia Religiosa</h2>
+                <h3 style="color: #2b2b2b; font-weight: 500; font-size: clamp(1.15rem, 2.8vw, 1.5rem); margin: 0;">Parroquia de San Andrés Apóstol</h3>
+                <p style="text-transform: uppercase; letter-spacing: 2.5px; font-size: clamp(0.7rem, 1vw, 0.8rem); margin-bottom: 25px; margin-top: 8px; color: #555;">Cholula, Puebla</p>
+                <div class="location-btn-group">
+                    <a href="https://www.google.com/maps/search/?api=1&query=Parroquia+de+San+Andrés+Apóstol+Cholula+Puebla" target="_blank" class="btn-location">
+                        <span>Google Maps</span>
+                        <svg viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#ffffff"/></svg>
+                    </a>
+                    <a href="https://waze.com/ul?q=Parroquia+de+San+Andrés+Apóstol+Cholula+Puebla" target="_blank" class="btn-location">
+                        <span>Waze</span>
+                        <svg viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true">
+                            <path d="M13.314 1.59c-.225.003-.45.013-.675.03-2.165.155-4.295.924-6.069 2.327-2.194 1.732-3.296 4.325-3.496 7.05h.002c-.093 1.22-.23 2.15-.469 2.63-.238.479-.42.638-1.24.639C.27 14.259-.4 15.612.266 16.482c1.248 1.657 2.902 2.705 4.72 3.364a2.198 2.198 0 00-.033.367 2.198 2.198 0 002.2 2.197 2.198 2.198 0 002.128-1.668c1.307.12 2.607.14 3.824.1.364-.012.73-.045 1.094-.092a2.198 2.198 0 002.127 1.66 2.198 2.198 0 002.2-2.197 2.198 2.198 0 00-.151-.797 12.155 12.155 0 002.303-1.549c2.094-1.807 3.511-4.399 3.302-7.404-.112-1.723-.761-3.298-1.748-4.608-2.143-2.86-5.53-4.309-8.918-4.265zm.366 1.54c.312.008.623.027.933.063 2.48.288 4.842 1.496 6.4 3.577v.001c.829 1.1 1.355 2.386 1.446 3.792v.003c.173 2.477-.965 4.583-2.777 6.147a10.66 10.66 0 01-2.375 1.535 2.198 2.198 0 00-.98-.234 2.198 2.198 0 00-1.934 1.158 9.894 9.894 0 01-1.338.146 27.323 27.323 0 01-3.971-.148 2.198 2.198 0 00-1.932-1.156 2.198 2.198 0 00-1.347.463c-1.626-.553-3.078-1.422-4.155-2.762 1.052-.096 1.916-.6 2.319-1.408.443-.889.53-1.947.625-3.198v-.002c.175-2.391 1.11-4.536 2.92-5.964h.002c1.77-1.402 3.978-2.061 6.164-2.012zm-3.157 4.638c-.688 0-1.252.579-1.252 1.298 0 .72.564 1.297 1.252 1.297.689 0 1.252-.577 1.252-1.297 0-.711-.563-1.298-1.252-1.298zm5.514 0c-.688 0-1.25.579-1.25 1.298-.008.72.554 1.297 1.25 1.297.688 0 1.252-.577 1.252-1.297 0-.711-.564-1.298-1.252-1.298zM9.641 11.78a.72.72 0 00-.588.32.692.692 0 00-.11.54c.345 1.783 2.175 3.129 4.264 3.129h.125c1.056-.032 2.026-.343 2.816-.922.767-.556 1.29-1.316 1.477-2.137a.746.746 0 00-.094-.547.69.69 0 00-.445-.32.714.714 0 00-.867.539c-.22.93-1.299 1.9-2.934 1.94-1.572.046-2.738-.986-2.926-1.956a.72.72 0 00-.718-.586Z"/>
+                        </svg>
+                    </a>
+                </div>
+                <p style="font-size: clamp(0.7rem, 1.1vw, 0.85rem); color: #666; margin-top: 15px; margin-bottom: 0; line-height: 1.4;">
+                    * Parking lot entrance is located on Maximino A. Camacho street.<br>
+                    <a href="https://maps.app.goo.gl/YBtMj9DjrxcX2Nwi6?g_st=ac" target="_blank" style="color: var(--olivo-base); font-weight: bold; text-decoration: underline;">View parking entrance on Google Maps</a>
+                </p>
+            </div>
+
+            <!-- TARJETA FIESTA -->
+            <div class="glass-card" style="flex: 1; min-width: 300px; padding: 40px 20px; margin: 0;">
+                <h2 style="font-size: clamp(1.6rem, 4.5vw, 2.4rem); margin-bottom: 10px;">Recepción y Fiesta</h2>
+                <h3 style="color: #2b2b2b; font-weight: 500; font-size: clamp(1.15rem, 2.8vw, 1.5rem); margin: 0;">Hacienda San José Actipan</h3>
+                <p style="text-transform: uppercase; letter-spacing: 2.5px; font-size: clamp(0.7rem, 1vw, 0.8rem); margin-bottom: 25px; margin-top: 8px; color: #555;">Cholula, Puebla</p>
+                <div class="location-btn-group">
+                    <a href="https://www.google.com/maps/search/?api=1&query=Hacienda+San+Jos%C3%A9+Actipan+Cholula+Puebla" target="_blank" class="btn-location">
+                        <span>Google Maps</span>
+                        <svg viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#ffffff"/></svg>
+                    </a>
+                    <a href="https://waze.com/ul?q=Hacienda+San+Jose+Actipan" target="_blank" class="btn-location">
+                        <span>Waze</span>
+                        <svg viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true">
+                            <path d="M13.314 1.59c-.225.003-.45.013-.675.03-2.165.155-4.295.924-6.069 2.327-2.194 1.732-3.296 4.325-3.496 7.05h.002c-.093 1.22-.23 2.15-.469 2.63-.238.479-.42.638-1.24.639C.27 14.259-.4 15.612.266 16.482c1.248 1.657 2.902 2.705 4.72 3.364a2.198 2.198 0 00-.033.367 2.198 2.198 0 002.2 2.197 2.198 2.198 0 002.128-1.668c1.307.12 2.607.14 3.824.1.364-.012.73-.045 1.094-.092a2.198 2.198 0 002.127 1.66 2.198 2.198 0 002.2-2.197 2.198 2.198 0 00-.151-.797 12.155 12.155 0 002.303-1.549c2.094-1.807 3.511-4.399 3.302-7.404-.112-1.723-.761-3.298-1.748-4.608-2.143-2.86-5.53-4.309-8.918-4.265zm.366 1.54c.312.008.623.027.933.063 2.48.288 4.842 1.496 6.4 3.577v.001c.829 1.1 1.355 2.386 1.446 3.792v.003c.173 2.477-.965 4.583-2.777 6.147a10.66 10.66 0 01-2.375 1.535 2.198 2.198 0 00-.98-.234 2.198 2.198 0 00-1.934 1.158 9.894 9.894 0 01-1.338.146 27.323 27.323 0 01-3.971-.148 2.198 2.198 0 00-1.932-1.156 2.198 2.198 0 00-1.347.463c-1.626-.553-3.078-1.422-4.155-2.762 1.052-.096 1.916-.6 2.319-1.408.443-.889.53-1.947.625-3.198v-.002c.175-2.391 1.11-4.536 2.92-5.964h.002c1.77-1.402 3.978-2.061 6.164-2.012zm-3.157 4.638c-.688 0-1.252.579-1.252 1.298 0 .72.564 1.297 1.252 1.297.689 0 1.252-.577 1.252-1.297 0-.711-.563-1.298-1.252-1.298zm5.514 0c-.688 0-1.25.579-1.25 1.298-.008.72.554 1.297 1.25 1.297.688 0 1.252-.577 1.252-1.297 0-.711-.564-1.298-1.252-1.298zM9.641 11.78a.72.72 0 00-.588.32.692.692 0 00-.11.54c.345 1.783 2.175 3.129 4.264 3.129h.125c1.056-.032 2.026-.343 2.816-.922.767-.556 1.29-1.316 1.477-2.137a.746.746 0 00-.094-.547.69.69 0 00-.445-.32.714.714 0 00-.867.539c-.22.93-1.299 1.9-2.934 1.94-1.572.046-2.738-.986-2.926-1.956a.72.72 0 00-.718-.586Z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <section id="itinerario" class="fade-in-section">
+        <h2>Itinerary</h2>
+        <div class="timeline-wrapper">
+            <!-- BLOQUE DEL VIERNES (SOLO VISIBLE PARA INVITADOS A BODA CIVIL) -->
+            <div id="itineraryFridayBlock" style="display: none;">
+                <span class="timeline-day-title">Friday, February 12</span>
+                <div class="timeline-item">
+                    <span class="time-label">4:00 P.M.</span>
+                    <p class="event-title">Civil Wedding</p>
+                    <span class="event-loc">📍 Hacienda San José Actipan • Catacombs</span>
+                    <p class="event-desc">We will kick off the celebrations with an intimate gathering where we make our legal vows.</p>
+                </div>
+                <div class="timeline-item">
+                    <span class="time-label">5:00 P.M.</span>
+                    <p class="event-title">Cocktail & Welcome Gathering</p>
+                    <p class="event-desc">A relaxed, intimate evening with our closest loved ones to break the ice and celebrate.</p>
+                </div>
+                <div class="timeline-item">
+                    <span class="time-label">10:00 P.M.</span>
+                    <p class="event-title">End of evening</p>
+                    <p class="event-desc">Time to rest up and recharge — the big day awaits tomorrow!</p>
+                </div>
+            </div>
+            
+            <span class="timeline-day-title">Saturday, February 13</span>
+            
+            <!-- BOTONES DE AGREGAR AL CALENDARIO (Ubicados elegantemente bajo el título Sábado 13) -->
+            <div class="calendar-btn-container">
+                <!-- Enlace dinámico a Google Calendar -->
+                <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Boda+Mariana+%26+Memo&dates=20270213T213000Z/20270214T053000Z&details=%C2%A1Nos+casamos%21+Te+invitamos+a+celebrar+junto+a+nosotros+este+d%C3%ADa+tan+especial+en+Cholula%2C+Puebla.+Conoce+todos+los+detalles+en+nuestra+p%C3%A1gina+web%3A+https%3A%2F%2Fbodadeloschicos.com%2F&location=Ceremonia+en+Parroquia+de+San+Andr%C3%A9s+Ap%C3%B3stol+%2F+Recepci%C3%B3n+en+Hacienda+San+Jos%C3%A9+Actipan" target="_blank" class="btn-cal">
+                    <svg viewBox="0 0 24 24" class="cal-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg> Add to Google Calendar
+                </a>
+                <!-- Llamada de descarga dinámica de archivo .ics para iPhone (Apple Calendar) -->
+                <a href="javascript:void(0);" onclick="downloadICS();" class="btn-cal">
+                    <svg viewBox="0 0 24 24" class="cal-icon"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg> Add to Apple Calendar
+                </a>
+            </div>
+
+            <div class="timeline-item">
+                <span class="time-label">3:00 P.M.</span>
+                <p class="event-title">Church Ceremony</p>
+                <span class="event-loc">📍 Parroquia de San Andrés Apóstol</span>
+                <p class="event-desc">We will join in holy matrimony before all of you, sealing our commitment in love and faith.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="time-label">4:00 P.M.</span>
+                <p class="event-title">Cocktail Reception</p>
+                <span class="event-loc">📍 Hacienda San José Actipan • Trapiche</span>
+                <p class="event-desc">Welcome to the Hacienda! Let us begin this unforgettable celebration with signature drinks and appetizers.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="time-label">5:00 P.M.</span>
+                <p class="event-title">Dinner & Party</p>
+                <p class="event-desc">We will enjoy an exquisite dinner, heartfelt toasts, and dance the night away together!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN HOSPEDAJE RECOMENDADO -->
+    <div id="hospedaje" class="parallax-section" style="padding: 90px 20px;">
+        <div class="bg-fixed hospedaje-bg"></div>
+        
+        <div class="fade-in-section" style="z-index: 2; position: relative; max-width: 900px; margin: 0 auto; width: 100%; text-align: center;">
+            <h2 style="color: white; margin-bottom: 10px; text-shadow: 0 3px 12px rgba(0,0,0,0.5); font-size: clamp(2rem, 5vw, 2.7rem);">Hospedaje Recomendado</h2>
+            <p style="color: rgba(255,255,255,0.92); font-size: clamp(0.85rem, 1.6vw, 1.05rem); margin-top: 0; margin-bottom: 35px; letter-spacing: 0.5px; text-shadow: 0 1px 4px rgba(0,0,0,0.35);">Curated hotel recommendations for your stay over the wedding weekend</p>
+
+            <div class="hotel-cards-container">
+                
+                <!-- TARJETA 1: Hotel Suites Regente -->
+                <div class="hotel-flip-card" onclick="toggleHotelFlip(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHotelFlip(this);}" role="button" tabindex="0" aria-label="Hotel Suites Regente card. Tap or click to view special rates and contact info.">
+                    <div class="hotel-flip-inner">
+                        <!-- FRENTE -->
+                        <div class="hotel-card-front">
+                            <div>
+                                <span class="hotel-badge">Recommended Hotel</span>
+                                <h3 class="hotel-title">Hotel Suites Regente</h3>
+                            </div>
+
+                            <div class="hotel-distance-box">
+                                <div class="distance-pill">
+                                    <span class="pill-icon">⛪</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Church</span>
+                                        <span class="pill-time">~7 min drive</span>
+                                    </div>
+                                </div>
+                                <div class="distance-pill">
+                                    <span class="pill-icon">🏰</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Hacienda</span>
+                                        <span class="pill-time">~15 min drive</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flip-hint">
+                                <span>View rates & contact</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- REVERSO -->
+                        <div class="hotel-card-back">
+                            <div>
+                                <h3 class="hotel-title" style="margin-top: 0; font-size: 1.35rem;">Hotel Suites Regente</h3>
+                                <span class="hotel-badge" style="background: rgba(82, 88, 47, 0.12);">Preferred Rates</span>
+                            </div>
+
+                            <ul class="hotel-rates-list">
+                                <li><strong>Junior Suite:</strong> $2,200 MXN</li>
+                                <li><strong>Master Suite:</strong> $2,300 MXN</li>
+                            </ul>
+
+                            <p class="hotel-note">
+                                💡 Mention the <strong>Guillermo & Mariana Wedding</strong> when booking to apply the preferred rate.
+                            </p>
+
+                            <div class="hotel-contact-actions">
+                                <span class="contact-label">Reservations (WhatsApp or Call):</span>
+                                <div class="contact-btn-row">
+                                    <a href="https://wa.me/522211052644?text=Hola%2C%20quisiera%20pedir%20informes%20y%20reservar%20habitaci%C3%B3n%20para%20la%20Boda%20de%20Guillermo%20y%20Mariana" target="_blank" class="btn-hotel-contact whatsapp" onclick="event.stopPropagation()">
+                                        <svg viewBox="0 0 24 24" class="contact-icon"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.92zM17.47 14.38c-.23.65-1.34 1.2-1.85 1.28-.5.07-1.15.1-3.32-.8-2.77-1.15-4.57-3.95-4.71-4.14-.14-.19-1.12-1.49-1.12-2.85 0-1.36.71-2.03.97-2.31.25-.28.56-.35.75-.35.19 0 .37 0 .54.01.17.01.41-.07.63.47.23.56.8 1.95.87 2.09.07.14.12.3.02.49-.09.19-.14.3-.28.47-.14.16-.3.37-.43.49-.14.14-.29.3-.12.59.16.28.73 1.21 1.57 1.95 1.08.96 1.99 1.26 2.27 1.4.28.14.45.12.62-.07.17-.19.73-.85.92-1.14.19-.28.38-.24.63-.14.26.09 1.63.77 1.91.91.28.14.47.21.54.33.07.12.07.7-.16 1.35z"/></svg>
+                                        <span>WhatsApp</span>
+                                    </a>
+                                    <a href="tel:2211052644" class="btn-hotel-contact call" onclick="event.stopPropagation()">
+                                        <svg viewBox="0 0 24 24" class="contact-icon"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                        <span>221 105 2644</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="flip-back-hint">
+                                <span>↺ Back to front</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 2: Hacienda San José Actipan -->
+                <div class="hotel-flip-card" onclick="toggleHotelFlip(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHotelFlip(this);}" role="button" tabindex="0" aria-label="Hacienda San José Actipan card. Tap or click to view rates and contact info.">
+                    <div class="hotel-flip-inner">
+                        <!-- FRENTE -->
+                        <div class="hotel-card-front">
+                            <div>
+                                <span class="hotel-badge">On-site Lodging</span>
+                                <h3 class="hotel-title">Hacienda San José Actipan</h3>
+                            </div>
+
+                            <div class="hotel-distance-box">
+                                <div class="distance-pill">
+                                    <span class="pill-icon">⛪</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Church</span>
+                                        <span class="pill-time">~10 - 12 min drive</span>
+                                    </div>
+                                </div>
+                                <div class="distance-pill highlight">
+                                    <span class="pill-icon">🏰</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Hacienda</span>
+                                        <span class="pill-time">0 min • Venue location!</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flip-hint">
+                                <span>View rates & contact</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- REVERSO -->
+                        <div class="hotel-card-back">
+                            <div>
+                                <h3 class="hotel-title" style="margin-top: 0; font-size: 1.35rem;">Hacienda San José Actipan</h3>
+                                <span class="hotel-badge" style="background: rgba(82, 88, 47, 0.12);">On-Site Rooms</span>
+                            </div>
+
+                            <ul class="hotel-rates-list">
+                                <li><strong>Tarifa por noche:</strong> $3,000 MXN</li>
+                                <li><strong>Availability:</strong> Saturday to Sunday only</li>
+                            </ul>
+
+                            <p class="hotel-note">
+                                ⭐ Maximum convenience to relax right after the party with zero commute required.
+                            </p>
+
+                            <div class="hotel-contact-actions">
+                                <span class="contact-label">Reservations & availability:</span>
+                                <div class="btn-hotel-contact whatsapp-novios" style="cursor: default; pointer-events: none;">
+                                    <svg viewBox="0 0 24 24" class="contact-icon"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.92zM17.47 14.38c-.23.65-1.34 1.2-1.85 1.28-.5.07-1.15.1-3.32-.8-2.77-1.15-4.57-3.95-4.71-4.14-.14-.19-1.12-1.49-1.12-2.85 0-1.36.71-2.03.97-2.31.25-.28.56-.35.75-.35.19 0 .37 0 .54.01.17.01.41-.07.63.47.23.56.8 1.95.87 2.09.07.14.12.3.02.49-.09.19-.14.3-.28.47-.14.16-.3.37-.43.49-.14.14-.29.3-.12.59.16.28.73 1.21 1.57 1.95 1.08.96 1.99 1.26 2.27 1.4.28.14.45.12.62-.07.17-.19.73-.85.92-1.14.19-.28.38-.24.63-.14.26.09 1.63.77 1.91.91.28.14.47.21.54.33.07.12.07.7-.16 1.35z"/></svg>
+                                    <span>Contact the Bride & Groom</span>
+                                </div>
+                            </div>
+
+                            <div class="flip-back-hint">
+                                <span>↺ Back to front</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 3: La Quinta Luna -->
+                <div class="hotel-flip-card" onclick="toggleHotelFlip(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHotelFlip(this);}" role="button" tabindex="0" aria-label="La Quinta Luna card. Tap or click to view rates and contact info.">
+                    <div class="hotel-flip-inner">
+                        <!-- FRENTE -->
+                        <div class="hotel-card-front">
+                            <div>
+                                <span class="hotel-badge">Hotel Boutique</span>
+                                <h3 class="hotel-title">La Quinta Luna</h3>
+                            </div>
+
+                            <div class="hotel-distance-box">
+                                <div class="distance-pill">
+                                    <span class="pill-icon">⛪</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Church</span>
+                                        <span class="pill-time">~6 - 8 min drive</span>
+                                    </div>
+                                </div>
+                                <div class="distance-pill">
+                                    <span class="pill-icon">🏰</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Hacienda</span>
+                                        <span class="pill-time">~12 - 14 min drive</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flip-hint">
+                                <span>View rates & contact</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- REVERSO -->
+                        <div class="hotel-card-back">
+                            <div>
+                                <h3 class="hotel-title" style="margin-top: 0; font-size: 1.35rem;">La Quinta Luna</h3>
+                                <span class="hotel-badge" style="background: rgba(82, 88, 47, 0.12);">Colonial Mansion</span>
+                            </div>
+
+                            <p class="hotel-note" style="margin-top: 15px; font-size: 0.88rem; line-height: 1.5;">
+                                💡 Mention that your event is at <strong>Hacienda San José Actipan</strong> when booking for a preferred rate.
+                            </p>
+
+                            <div class="hotel-contact-actions">
+                                <span class="contact-label">Reservations & contact:</span>
+                                <a href="tel:2222478913" class="btn-hotel-contact call" onclick="event.stopPropagation()">
+                                    <svg viewBox="0 0 24 24" class="contact-icon"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                    <span>Call: +52 222 247 8913</span>
+                                </a>
+                            </div>
+
+                            <div class="flip-back-hint">
+                                <span>↺ Back to front</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 4: Hotel Casa Chanehque -->
+                <div class="hotel-flip-card" onclick="toggleHotelFlip(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHotelFlip(this);}" role="button" tabindex="0" aria-label="Hotel Casa Chanehque card. Tap or click to view rates and contact info.">
+                    <div class="hotel-flip-inner">
+                        <!-- FRENTE -->
+                        <div class="hotel-card-front">
+                            <div>
+                                <span class="hotel-badge">Sightseeing Ideal</span>
+                                <h3 class="hotel-title">Hotel Casa Chanehque</h3>
+                            </div>
+
+                            <div class="hotel-distance-box">
+                                <div class="distance-pill">
+                                    <span class="pill-icon">⛪</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Church</span>
+                                        <span class="pill-time">~7 - 9 min drive</span>
+                                    </div>
+                                </div>
+                                <div class="distance-pill">
+                                    <span class="pill-icon">🏰</span>
+                                    <div class="pill-info">
+                                        <span class="pill-label">To Hacienda</span>
+                                        <span class="pill-time">~12 - 15 min drive</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flip-hint">
+                                <span>View rates & contact</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- REVERSO -->
+                        <div class="hotel-card-back">
+                            <div>
+                                <h3 class="hotel-title" style="margin-top: 0; font-size: 1.35rem;">Hotel Casa Chanehque</h3>
+                                <span class="hotel-badge" style="background: rgba(82, 88, 47, 0.12);">Downtown Cholula</span>
+                            </div>
+
+                            <p class="hotel-note" style="margin-top: 8px; font-size: 0.83rem; line-height: 1.4;">
+                                🚶‍♂️ Great location next to the Great Pyramid of Cholula for exploring on Sunday.<br>
+                                <span style="display: block; margin-top: 5px; font-weight: 600; color: #a04000;">(Please confirm parking availability directly with hotel).</span>
+                            </p>
+
+                            <div class="hotel-contact-actions">
+                                <span class="contact-label">Reservations & contact:</span>
+                                <a href="tel:2215695997" class="btn-hotel-contact call" onclick="event.stopPropagation()">
+                                    <svg viewBox="0 0 24 24" class="contact-icon"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                    <span>Call: +52 221 569 5997</span>
+                                </a>
+                            </div>
+
+                            <div class="flip-back-hint">
+                                <span>↺ Back to front</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CINTILLA DE HOSPEDAJE FALLBACK: HOTEL VILLAS ARQUEOLÓGICAS -->
+            <div class="hospedaje-fallback-banner">
+                <div class="fallback-icon">🏨</div>
+                <div class="fallback-content">
+                    <span class="fallback-title">Looking for more accommodation alternatives?</span>
+                    <p class="fallback-desc">
+                        We also suggest <strong>Hotel Villas Arqueológicas Cholula</strong> as an excellent alternative (~5 min from Church, ~12 min from Hacienda).
+                    </p>
+                    <a href="tel:2222731970" class="btn-fallback-call">
+                        <svg viewBox="0 0 24 24" class="contact-icon" style="width: 14px; height: 14px; fill: currentColor;"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        <span>Call Hotel: +52 222 273 1970</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section id="dresscode" class="fade-in-section">
+        <h2>Dress Code</h2>
+        <p style="font-size: clamp(1.3rem, 3.5vw, 1.9rem); font-weight: 600; color: var(--olivo-base); margin-bottom: 20px;">Formal</p>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; margin-top: 20px;">
+            <div style="flex: 1; min-width: 250px; text-align: center;">
+                <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px;">Women</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: clamp(0.8rem, 1.5vw, 0.95rem); line-height: 1.8;">
+                    <li>No white</li>
+                    <li>No white-based patterns</li>
+                    <li>Avoid light shades</li>
+                    <li style="font-size: clamp(0.7rem, 1.1vw, 0.85rem); color: #666; line-height: 1.4;">(beige, ivory, champagne, silver)</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 250px; text-align: center;">
+                <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px;">Men</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: clamp(0.8rem, 1.5vw, 0.95rem); line-height: 1.8;">
+                    <li>No green suits/shades</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding: 25px; background-color: #f2f4ed; border-radius: 15px;">
+            <p style="font-size: clamp(0.8rem, 1.5vw, 0.95rem); color: var(--olivo-base); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px;">Adults-Only Celebration</p>
+            <p style="font-style: italic; color: #555; font-size: clamp(0.8rem, 1.5vw, 0.95rem);">Our wedding will be an adults-only celebration. Thank you for your love and understanding.</p>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) CON EFECTO PARALLAX, TEXTURA CLARA Y FONDO TRANSPARENTADO -->
+    <div id="faq" class="parallax-section" style="padding: 100px 20px;">
+        <div class="bg-fixed faq-bg"></div>
+        <!-- El contenedor de contenido hereda la animación suave de scroll pero no tiene recuadro blanco -->
+        <div class="fade-in-section" style="max-width: 650px; width: 92%; margin: 0 auto; z-index: 2; position: relative;">
+            <h2 style="color: var(--olivo-base); text-shadow: 0 1px 1px rgba(255,255,255,0.8); font-size: clamp(1.4rem, 5.5vw, 2.5rem); white-space: nowrap; text-align: center;">FAQ - Preguntas Frecuentes</h2>
+            <div class="faq-container">
+                
+                <!-- PREGUNTA 1 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>Will there be parking available?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí, tanto la hacienda cuenta con estacionamiento privado para todos nuestros invitados, como la iglesia que también cuenta con estacionamiento (costo de $25 pesos). También sugerimos utilizar aplicaciones de transporte (Uber, Didi) para poder disfrutar de la barra libre sin preocupaciones.</p>
+                    </div>
+                </div>
+
+                <!-- PREGUNTA 2 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>What if I have dietary restrictions or food allergies?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>If you have any food allergies or dietary restrictions (vegetarian, vegan, gluten-free, etc.), please let us know when submitting your RSVP form below so our catering team can prepare a personalized meal for you.</p>
+                    </div>
+                </div>
+
+                <!-- PREGUNTA 3 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>What weather should we expect?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>February in Cholula typically brings pleasant, sunny afternoons (68°F - 75°F / 20°C - 24°C). However, temperatures drop in the evening, so we recommend bringing a jacket, coat, or shawl to stay comfortable during the night. We will update the forecast as the date approaches.</p>
+                    </div>
+                </div>
+
+                <!-- PREGUNTA 4 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="faq-toggle">+</span>
+                        <span>Is the wedding indoors or outdoors?</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>The welcome cocktail hour will take place in the outdoor garden, while dinner and dancing will be held inside an enclosed, covered hall.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- MESA DE REGALOS -->
+    <section id="mesa-de-regalos" class="gifts-section fade-in-section" style="padding: 80px 20px; background-color: var(--crema-fondo); text-align: center; border-top: 1px solid rgba(82, 88, 47, 0.08);">
+        <div class="gifts-header" style="max-width: 650px; margin: 0 auto;">
+            <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 10px;">Honeymoon Registry</h2>
+            <p style="font-size: clamp(0.95rem, 2vw, 1.15rem); color: #555; line-height: 1.6; margin-bottom: 30px;">Your presence is the greatest gift of all. However, if you wish to celebrate us with a gift, we have created this registry of experiences for our honeymoon.</p>
+            <a href="https://evento.uniko.co/bodadeloschicos/" target="_blank" rel="noopener noreferrer" class="btn btn-rsvp" style="background-color: var(--olivo-base); color: white; padding: 16px 45px; font-size: clamp(0.9rem, 1.8vw, 1.1rem); border-radius: 30px; text-decoration: none; display: inline-block;">View Honeymoon Registry 🎁</a>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: CONFIRMACIÓN RSVP PERSONALIZADA (CONECTADA A GOOGLE SHEETS) -->
+    <div id="confirmacion" style="background-color: #eef2e6; padding: 60px 15px; text-align: center;" class="fade-in-section">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: clamp(22px, 5vw, 35px) clamp(14px, 4vw, 25px); border-radius: 26px; box-shadow: var(--shadow-card); border: 1px solid rgba(82, 88, 47, 0.12); box-sizing: border-box; min-height: 380px; display: flex; flex-direction: column; justify-content: center;">
+            
+            <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.4rem, 7vw, 3.8rem); color: var(--olivo-base); margin: 0 0 8px 0;">RSVP</h2>
+
+            <!-- ESTADO 1: BÚSQUEDA / INGRESO DE ID (SI NO HAY PARÁMETRO EN LA URL) -->
+            <div id="rsvpSearchContainer">
+                <p style="color: #555; font-size: clamp(0.85rem, 1.6vw, 1.05rem); line-height: 1.6; margin-bottom: 20px;">
+                    Please kindly RSVP before January 13, 2027.<br>
+                    <span style="font-size: clamp(0.75rem, 1.3vw, 0.9rem); color: #777; font-style: italic;">Enter your invitation code or last name:</span>
+                </p>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; max-width: 420px; margin: 0 auto; justify-content: center;">
+                    <input type="text" id="rsvpSearchInput" placeholder="E.g., smith-family" onkeypress="if(event.key==='Enter') { event.preventDefault(); searchRSVPInvitation(); }" style="flex: 1 1 200px; min-width: 180px; padding: 12px 16px; border: 1.5px solid #ccc; border-radius: 14px; outline: none; font-size: clamp(14px, 2vw, 18px); font-family: inherit; box-sizing: border-box;">
+                    <button type="button" onclick="searchRSVPInvitation()" class="btn btn-rsvp" style="flex: 0 0 auto; padding: 12px 24px; white-space: nowrap; font-size: clamp(0.85rem, 1.6vw, 1.05rem);">Search 🔍</button>
+                </div>
+                <p id="rsvpSearchError" style="color: #e74c3c; font-size: clamp(0.75rem, 1.3vw, 0.9rem); margin-top: 12px; display: none; font-weight: 600;"></p>
+            </div>
+
+            <!-- ESTADO 2: CARGANDO -->
+            <div id="rsvpLoadingContainer" style="display: none; padding: 30px 0;">
+                <span style="font-size: clamp(2.2rem, 6vw, 3.5rem); display: inline-block;" class="animate-bounce">💌</span>
+                <p style="color: var(--olivo-base); font-weight: 600; font-size: clamp(0.95rem, 2vw, 1.15rem); margin-top: 10px;">Finding your invitation on the guest list...</p>
+            </div>
+
+            <!-- ESTADO 3: FORMULARIO PERSONALIZADO (VIERNES / SÁBADO) -->
+            <div id="rsvpFormContainer" style="display: none; text-align: left;">
+                <div style="text-align: center; margin-bottom: 22px; border-bottom: 1px dashed rgba(82, 88, 47, 0.2); padding-bottom: 16px;">
+                    <h3 id="rsvpGuestTitle" style="color: var(--olivo-base); font-size: clamp(1.4rem, 5vw, 1.7rem); font-weight: 600; margin: 0;">¡Hola Familia!</h3>
+                    <p id="rsvpPassesText" style="color: #666; font-size: clamp(0.8rem, 1.5vw, 0.95rem); margin-top: 4px;">Tienen 2 pases reservados para nuestra boda.</p>
+                </div>
+
+                <form id="rsvpCustomForm" onsubmit="submitRSVPForm(event)">
+                    
+                    <!-- SECCIÓN OPTATIVA: BODA CIVIL (VIERNES) -->
+                    <div id="rsvpFridaySection" style="display: none; background: #f9faf7; padding: clamp(12px, 3vw, 18px); border-radius: 18px; margin-bottom: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                        <h4 style="color: var(--olivo-base); font-size: clamp(0.95rem, 2vw, 1.15rem); font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                            <span>🥂</span> Civil Ceremony (Friday, Feb 12 - 6:00 PM)
+                        </h4>
+                        <p style="font-size: clamp(0.7rem, 1.1vw, 0.85rem); color: #777; margin: 0 0 12px 0;">You are cordially invited to our intimate civil ceremony!</p>
+                        <div id="rsvpFridayMembers" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                    </div>
+
+                    <!-- SECCIÓN OBLIGATORIA: BODA Y FIESTA (SÁBADO) -->
+                    <div id="rsvpSaturdaySection" style="background: #f9faf7; padding: clamp(12px, 3vw, 18px); border-radius: 18px; margin-bottom: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                        <h4 style="color: var(--olivo-base); font-size: clamp(0.95rem, 2vw, 1.15rem); font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                            <span>💒</span> Wedding & Celebration (Saturday, Feb 13 - 4:00 PM)
+                        </h4>
+                        <p style="font-size: clamp(0.7rem, 1.1vw, 0.85rem); color: #777; margin: 0 0 12px 0;">Hacienda San José Actipan, Cholula</p>
+                        <div id="rsvpSaturdayMembers" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                    </div>
+
+                    <!-- SECCIÓN: CELEBRACIÓN ESPECIAL -->
+                    <div style="margin-bottom: 20px; background: #f9faf7; padding: clamp(12px, 3vw, 16px); border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15);">
+                        <label style="display: block; font-size: clamp(0.8rem, 1.4vw, 0.95rem); font-weight: 600; color: var(--olivo-base); margin-bottom: 6px;">🎉 Are you celebrating something special around this date? (Birthday, anniversary, etc.):</label>
+                        <textarea id="rsvpCelebracionInput" rows="2" placeholder="E.g., Birthday, wedding anniversary..." style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: clamp(14px, 2vw, 18px); outline: none; box-sizing: border-box; font-family: inherit; background: white; resize: vertical;"></textarea>
+                    </div>
+
+                    <button type="submit" id="rsvpSubmitBtn" class="btn btn-rsvp" style="width: 100%; padding: 14px; font-size: clamp(0.95rem, 2vw, 1.15rem); border-radius: 14px; box-sizing: border-box;">Confirm Attendance 💌</button>
+                </form>
+            </div>
+
+            <!-- ESTADO 4: ÉXITO POST-ENVÍO -->
+            <div id="rsvpSuccessContainer" style="display: none; padding: 25px 0;">
+                <span style="font-size: clamp(3rem, 8vw, 4.5rem);">🎉</span>
+                <h3 style="color: var(--olivo-base); font-size: clamp(1.4rem, 4vw, 2.1rem); margin: 12px 0 6px 0;">Response Received!</h3>
+                <p style="color: #555; font-size: clamp(0.85rem, 1.6vw, 1.05rem); line-height: 1.6;">Thank you for confirming. Your response has been safely recorded on our official guest list.</p>
+                <button onclick="resetRSVPView()" style="margin-top: 18px; font-size: clamp(0.75rem, 1.3vw, 0.9rem); color: var(--olivo-base); text-decoration: underline; background: none; border: none; cursor: pointer; font-weight: 600;">Edit or modify response</button>
+            </div>
+
+        </div>
+    </div>
+    
+
+    <!-- ========================================== -->
+    
+
+
+    <!-- LÓGICA DE ÉXITO DE PAGO -->
+    
+
+
+
+    
+
+    <!-- NUEVA SECCIÓN: ACCESO AL ARCADE DE JUEGOS CON FONDO RETRO ELEGANTE -->
+    <section id="juegos-acceso" class="fade-in-section retro-grid-bg" style="padding: 80px 20px; border-top: 1px solid rgba(82, 88, 47, 0.08); border-bottom: 1px solid rgba(82, 88, 47, 0.08);">
+        <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 15px;">Juegos de los Chicos</h2>
+        
+        <div style="font-size: clamp(0.95rem, 2vw, 1.15rem); line-height: 1.8; color: #444; max-width: 650px; margin: 0 auto;">
+            <p style="font-weight: 600; color: var(--olivo-base); font-size: clamp(1.05rem, 2.3vw, 1.3rem);">Can't wait for the wedding? Play our custom mini-games and earn a special prize on the wedding day!</p>
+            <p style="font-style: italic; font-size: clamp(0.85rem, 1.5vw, 1rem); margin-top: 10px; color: #666; line-height: 1.6;">
+                Beat high scores across all 4 mini-games we built for you. If you conquer all challenges, you will be able to claim an exclusive gift on the wedding day!
+            </p>
+        </div>
+
+        <!-- Vista previa discreta de los desafíos -->
+        <div style="max-width: 680px; margin: 35px auto 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; text-align: left;">
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: clamp(0.85rem, 1.6vw, 1.05rem);">🦖 Chicosaurio</h4>
+                <p style="font-size: clamp(0.75rem, 1.2vw, 0.9rem); color: #666; margin: 0; line-height: 1.5;">Help Memo dodge work meetings, unread emails, and early alarms while grabbing gaming controllers for extra bonus points.</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: clamp(0.85rem, 1.6vw, 1.05rem);">👰🏻 Atrapa el Amor</h4>
+                <p style="font-size: clamp(0.75rem, 1.2vw, 0.9rem); color: #666; margin: 0; line-height: 1.5;">Move Mariana to collect falling hearts and engagement rings before time runs out, dodging stormy clouds.</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: clamp(0.85rem, 1.6vw, 1.05rem);">🐶 Atrapa a Maddie</h4>
+                <p style="font-size: clamp(0.75rem, 1.2vw, 0.9rem); color: #666; margin: 0; line-height: 1.5;">Whack-a-Maddie! Tap our mischievous puppy whenever she pops up in the garden before time expires. Watch out for poop!</p>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(82, 88, 47, 0.08);">
+                <h4 style="font-weight: 600; color: var(--olivo-base); margin: 0 0 4px 0; font-size: clamp(0.85rem, 1.6vw, 1.05rem);">🚗 Camino a Puebla</h4>
+                <p style="font-size: clamp(0.75rem, 1.2vw, 0.9rem); color: #666; margin: 0; line-height: 1.5;">Drive down the highway toward Puebla dodging traffic and potholes while collecting delicious chalupas and speed boosts.</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <a href="../juegos.html?v=5.0" class="btn btn-rsvp" style="background-color: var(--olivo-base); box-shadow: 0 4px 15px rgba(82, 88, 47, 0.15);">Enter The Arcade 🎮</a>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- GALERÍA PRINCIPAL: CHICOSGRAM -->
+    <!-- ========================================== -->
+    <section id="fotos-invitados" class="fade-in-section" style="background-color: #faf9f7; border-top: 2px dashed #eaefe0; padding-top: 60px; padding-bottom: 60px;">
+        <div class="upload-section">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 5px;">
+                <img src="../ImagenesWeb/Chicosgram_sinfondo.png" alt="Chicosgram Icon" style="height: clamp(3rem, 10vw, 4.5rem); width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+                <h3 style="color: var(--olivo-base); font-size: clamp(2rem, 5.5vw, 3rem); font-family: 'Prata', serif; font-style: italic; margin: 0;">Chicosgram</h3>
+            </div>
+            <p style="margin-top: 0; color: #555; font-size: clamp(0.95rem, 2vw, 1.15rem);">Our custom wedding feed. Upload your favorite shots and help us build the most epic photo album!</p>
+            
+            <div style="background: #ffffff; padding: 25px 20px; border-radius: 16px; margin-bottom: 30px; border: 1px solid rgba(82, 88, 47, 0.1); text-align: left; max-width: 420px; margin-left: auto; margin-right: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.04);">
+                
+                <div style="position: relative; margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: clamp(0.75rem, 1.3vw, 0.9rem); font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Paparazzi Name</label>
+                    <input type="text" id="cgGuestName" placeholder="E.g., John & Jane" style="width: 100%; padding: 14px 16px; border: 1.5px solid #eaeaea; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: clamp(0.9rem, 1.8vw, 1.1rem); color: #333; transition: border-color 0.3s ease; outline: none;" onfocus="this.style.borderColor='var(--olivo-base)'" onblur="this.style.borderColor='#eaeaea'">
+                </div>
+                
+                <div style="position: relative; margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                        <label style="font-size: clamp(0.75rem, 1.3vw, 0.9rem); font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px;">Your Best Shots</label>
+                        <span style="font-size: 0.75rem; color: #888; font-style: italic;">(Up to 10 per batch)</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="file" id="cgFileInput" multiple accept="image/*" style="display: none;" onchange="toggleClearPhotosBtn()">
+                        <label for="cgFileInput" id="cgFileLabel" style="cursor: pointer; background: #f9f9f9; border: 1.5px dashed #ccc; color: #666; font-weight: 600; padding: 12px 15px; border-radius: 10px; flex-grow: 1; text-align: center; transition: all 0.2s; font-size: clamp(0.8rem, 1.5vw, 0.95rem); display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='#f0f2f5'; this.style.borderColor='var(--olivo-base)'" onmouseout="this.style.background='#f9f9f9'; this.style.borderColor='#ccc'">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <span id="cgFileText">Choose photos...</span>
+                        </label>
+                        <button id="cgClearPhotosBtn" onclick="clearSelectedPhotos()" style="display: none; background: #ffebee; color: #d32f2f; border: none; border-radius: 10px; width: 44px; height: 44px; cursor: pointer; font-size: clamp(1.3rem, 3.5vw, 1.9rem); line-height: 1; align-items: center; justify-content: center; transition: background 0.2s;" title="Descartar fotos">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- ALERTA ESTILIZADA -->
+                <div id="cgErrorAlert" style="display: none; background-color: #f8d7da; color: #721c24; padding: 10px 15px; border-radius: 8px; font-size: clamp(0.75rem, 1.3vw, 0.9rem); margin-bottom: 15px; text-align: center; border: 1px solid #f5c6cb;"></div>
+
+                <button id="cgUploadBtn" onclick="uploadFotosCG()" class="btn btn-rsvp" style="width: 100%; padding: 15px; background-color: var(--olivo-base); color: white; border: none; border-radius: 10px; font-size: clamp(0.95rem, 2vw, 1.15rem); font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(82, 88, 47, 0.25); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(82, 88, 47, 0.35)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(82, 88, 47, 0.25)'">Post to Chicosgram 🚀</button>
+                <p id="cgUploadStatus" style="font-size: clamp(0.8rem, 1.5vw, 0.95rem); color: #555; margin-top: 15px; font-weight: bold; text-align: center; display: none;"></p>
+            </div>
+
+            <div class="gallery-grid" id="cgGalleryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 0;">
+                <p style="grid-column: 1 / -1; color: #888; font-size: clamp(0.8rem, 1.5vw, 0.95rem); font-style: italic;">Loading feed...</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- LÓGICA DE CLOUDFLARE R2 Y COMPRESIÓN -->
+    
+
+
+
+
+
+    <!-- Modal Universal Personalizado para Instalar / Estado de la App PWA -->
+    <div class="pwa-status-modal" id="pwaStatusModal" onclick="if(event.target === this) closePwaStatusModal()">
+        <div class="pwa-status-card">
+            <button class="pwa-modal-close" onclick="closePwaStatusModal()" aria-label="Cerrar">&times;</button>
+            <div id="pwaModalDynamicBody">
+                <!-- Se inyecta contenido estético dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <!-- Logotipo final elegante -->
+        <div style="margin-bottom: 25px; display: flex; justify-content: center; align-items: center;">
+            <img src="../ImagenesWeb/logo.png" alt="Mariana & Memo Logo" style="max-width: 320px; width: 85%; height: auto; opacity: 0.95;">
+        </div>
+        MADE WITH ♡ BY MARIANA & MEMO FOR OUR GUESTS.
+    </footer>
+
+    <!-- Registro del Service Worker y utilidades globales -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+        function toggleHotelFlip(card) {
+            if (!card) return;
+            card.classList.toggle('flipped');
+        }
+    </script>
+<script src="../js/index.js?v=30.0" defer></script>
+</body>
+</html>

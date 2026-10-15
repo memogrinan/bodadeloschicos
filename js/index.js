@@ -1,9 +1,19 @@
 
-// GLOBAL URL PARAMETER PRESERVER
-// Asegura que el parámetro '?p=' (Party ID) viaje a todas las páginas internas.
+// GLOBAL URL PARAMETER PRESERVER & LANGUAGE PRESERVER
+// Asegura que el parámetro '?p=' (Party ID) viaje a todas las páginas internas e idiomas.
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const partyId = urlParams.get('p') || localStorage.getItem('bodachicos_party_id');
+    const partyId = urlParams.get('p') || urlParams.get('id') || urlParams.get('invitado') || localStorage.getItem('bodachicos_party_id');
+    
+    // Si la URL actual es /en/ o tiene param lang=en, recordarlo
+    if (window.location.pathname.startsWith('/en') || urlParams.get('lang') === 'en') {
+        localStorage.setItem('bodachicos_lang', 'en');
+    } else if (window.location.pathname === '/' && !urlParams.get('lang')) {
+        // Si el usuario navegó explícitamente a la raíz en español
+        if (document.documentElement.lang === 'es') {
+            localStorage.setItem('bodachicos_lang', 'es');
+        }
+    }
     
     if (partyId) {
         // Guardamos o actualizamos en cache
@@ -11,8 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.querySelectorAll('a').forEach(link => {
             const href = link.getAttribute('href');
-            // Solo inyectar en links que apunten a htmls internos o al root
-            if (href && (href.includes('.html') || href === '/') && !href.startsWith('http') && !href.startsWith('tel') && !href.startsWith('javascript')) {
+            // Solo inyectar en links que apunten a htmls internos, al root o a /en/
+            if (href && (href.includes('.html') || href === '/' || href.startsWith('/en') || href.startsWith('../')) && !href.startsWith('http') && !href.startsWith('tel') && !href.startsWith('javascript')) {
                 try {
                     const urlObj = new URL(link.href, window.location.origin);
                     urlObj.searchParams.set('p', partyId);
@@ -149,26 +159,27 @@ if (!document.getElementById('cg-dynamic-styles')) {
 
         function showPwaStatusModal(mode) {
             if (!pwaStatusModal || !pwaModalDynamicBody) return;
+            const isEn = document.documentElement.lang === "en";
 
             let html = "";
             if (mode === "installed") {
                 html = `
-                    <img src="ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='ImagenesWeb/logo_solid.png'">
-                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 8px 0; color: var(--olivo-base);">¡App Oficial Instalada! ✨</h3>
+                    <img src="${isEn ? '../' : ''}ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='${isEn ? '../' : ''}ImagenesWeb/logo_solid.png'">
+                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 8px 0; color: var(--olivo-base);">${isEn ? "Official App Installed! ✨" : "¡App Oficial Instalada! ✨"}</h3>
                     <p style="font-size: 0.88rem; color: #555; margin: 0 0 16px 0; line-height: 1.5;">
-                        Ya estás disfrutando del acceso directo exclusivo de la boda en tu pantalla de inicio.
+                        ${isEn ? "You already have the wedding shortcut ready on your home screen." : "Ya estás disfrutando del acceso directo exclusivo de la boda en tu pantalla de inicio."}
                     </p>
                     <div class="pwa-tip-box" style="text-align: center; margin-bottom: 16px;">
-                        <span>📱 Tienes el itinerario, confirmación, minijuegos y fotos a un toque de distancia sin barras de navegador.</span>
+                        <span>📱 ${isEn ? "You have the itinerary, RSVP, mini-games, and photos just one tap away with no browser bars." : "Tienes el itinerario, confirmación, minijuegos y fotos a un toque de distancia sin barras de navegador."}</span>
                     </div>
-                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">¡Continuar Navegando!</button>
+                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">${isEn ? "Continue Browsing!" : "¡Continuar Navegando!"}</button>
                 `;
             } else if (mode === "ios") {
                 html = `
-                    <img src="ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='ImagenesWeb/logo_solid.png'">
-                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 6px 0; color: var(--olivo-base);">Instalar App de los Chicos</h3>
+                    <img src="${isEn ? '../' : ''}ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='${isEn ? '../' : ''}ImagenesWeb/logo_solid.png'">
+                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 6px 0; color: var(--olivo-base);">${isEn ? "Install The Wedding App" : "Instalar App de los Chicos"}</h3>
                     <p style="font-size: 0.85rem; color: #666; margin: 0 0 16px 0; line-height: 1.4;">
-                        Agrega el acceso directo exclusivo a la pantalla de inicio de tu iPhone:
+                        ${isEn ? "Add this direct access to your iPhone's home screen:" : "Agrega el acceso directo exclusivo a la pantalla de inicio de tu iPhone:"}
                     </p>
 
                     <div class="pwa-step">
@@ -176,8 +187,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
                         </div>
                         <div>
-                            <strong>1. Toca Compartir</strong><br>
-                            En la barra inferior de Safari, presiona el botón del recuadro con la flecha arriba.
+                            <strong>${isEn ? "1. Tap Share" : "1. Toca Compartir"}</strong><br>
+                            ${isEn ? "In Safari's bottom bar, tap the share icon (square with an arrow pointing up)." : "En la barra inferior de Safari, presiona el botón del recuadro con la flecha arriba."}
                         </div>
                     </div>
 
@@ -186,24 +197,24 @@ if (!document.getElementById('cg-dynamic-styles')) {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                         </div>
                         <div>
-                            <strong>2. Añadir a pantalla de inicio</strong><br>
-                            Desliza hacia abajo en las opciones y presiona <em>"Añadir a pantalla de inicio"</em>.
+                            <strong>${isEn ? "2. Add to Home Screen" : "2. Añadir a pantalla de inicio"}</strong><br>
+                            ${isEn ? "Scroll down through the options and tap <em>\"Add to Home Screen\"</em>." : "Desliza hacia abajo en las opciones y presiona <em>\"Añadir a pantalla de inicio\"</em>."}
                         </div>
                     </div>
 
                     <div class="pwa-tip-box">
-                        <strong>💡 ¿Ya la habías instalado antes?</strong><br>
-                        Si ya la añadiste previamente a tu iPhone, ¡simplemente búscala en tu pantalla de inicio con el icono de los chicos para abrirla directo!
+                        <strong>💡 ${isEn ? "Did you already add it?" : "¿Ya la habías instalado antes?"}</strong><br>
+                        ${isEn ? "If you previously added it, just find it on your home screen with the wedding icon to open it directly!" : "Si ya la añadiste previamente a tu iPhone, ¡simplemente búscala en tu pantalla de inicio con el icono de los chicos para abrirla directo!"}
                     </div>
 
-                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">¡Entendido!</button>
+                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">${isEn ? "Got it!" : "¡Entendido!"}</button>
                 `;
             } else {
                 html = `
-                    <img src="ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='ImagenesWeb/logo_solid.png'">
-                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 6px 0; color: var(--olivo-base);">Instalar App de los Chicos</h3>
+                    <img src="${isEn ? '../' : ''}ImagenesWeb/Optimizadas/logo_con_circulo.webp" alt="Boda M&M" class="pwa-modal-badge" onerror="this.src='${isEn ? '../' : ''}ImagenesWeb/logo_solid.png'">
+                    <h3 style="font-family: 'Bodoni Moda', serif; font-size: 1.35rem; margin: 0 0 6px 0; color: var(--olivo-base);">${isEn ? "Install The Wedding App" : "Instalar App de los Chicos"}</h3>
                     <p style="font-size: 0.85rem; color: #666; margin: 0 0 16px 0; line-height: 1.4;">
-                        Agrega el acceso directo para abrir la boda como una app nativa:
+                        ${isEn ? "Add this shortcut to open the wedding site just like a native app:" : "Agrega el acceso directo para abrir la boda como una app nativa:"}
                     </p>
 
                     <div class="pwa-step">
@@ -211,8 +222,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
                             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z"/></svg>
                         </div>
                         <div>
-                            <strong>En Celular Android</strong><br>
-                            Toca los tres puntos (⋮) arriba a la derecha y selecciona <em>"Instalar aplicación"</em> o <em>"Añadir a pantalla de inicio"</em>.
+                            <strong>${isEn ? "On Android" : "En Celular Android"}</strong><br>
+                            ${isEn ? "Tap the three dots (⋮) in the top right corner and tap <em>\"Install app\"</em> or <em>\"Add to Home screen\"</em>." : "Toca los tres puntos (⋮) arriba a la derecha y selecciona <em>\"Instalar aplicación\"</em> o <em>\"Añadir a pantalla de inicio\"</em>."}
                         </div>
                     </div>
 
@@ -221,12 +232,12 @@ if (!document.getElementById('cg-dynamic-styles')) {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                         </div>
                         <div>
-                            <strong>En Computadora</strong><br>
-                            Haz clic en el icono ⊕ o de instalación situado a la derecha de la barra de direcciones.
+                            <strong>${isEn ? "On Desktop" : "En Computadora"}</strong><br>
+                            ${isEn ? "Click the ⊕ or install icon on the right side of the address bar." : "Haz clic en el icono ⊕ o de instalación situado a la derecha de la barra de direcciones."}
                         </div>
                     </div>
 
-                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">¡Entendido!</button>
+                    <button class="pwa-btn-action" onclick="closePwaStatusModal()">${isEn ? "Got it!" : "¡Entendido!"}</button>
                 `;
             }
 
@@ -295,6 +306,15 @@ if (!document.getElementById('cg-dynamic-styles')) {
 
         // Función para descargar el archivo .ics para Apple Calendar (iOS)
         function downloadICS() {
+            const isEn = document.documentElement.lang === "en";
+            const summary = isEn ? "Mariana & Memo's Wedding" : "Boda Mariana & Memo";
+            const description = isEn 
+                ? "We are getting married! Join us in celebrating our special day in Cholula, Puebla. Find all the details on our wedding website: https://bodadeloschicos.com/en/" 
+                : "¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.com/";
+            const location = isEn 
+                ? "Ceremony at Parroquia de San Andrés Apóstol / Reception at Hacienda San José Actipan" 
+                : "Ceremonia en Parroquia de San Andrés Apóstol / Recepción en Hacienda San José Actipan";
+
             const icsContent = [
                 "BEGIN:VCALENDAR",
                 "VERSION:2.0",
@@ -303,9 +323,9 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 "BEGIN:VEVENT",
                 "DTSTART:20270213T213000Z", // 15:30 CST en formato UTC
                 "DTEND:20270214T053000Z",   // 23:30 CST en formato UTC
-                "SUMMARY:Boda Mariana & Memo",
-                "DESCRIPTION:¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.com/",
-                "LOCATION:Ceremonia en Parroquia de San Andrés Apóstol / Recepción en Hacienda San José Actipan",
+                `SUMMARY:${summary}`,
+                `DESCRIPTION:${description}`,
+                `LOCATION:${location}`,
                 "END:VEVENT",
                 "END:VCALENDAR"
             ].join("\r\n");
@@ -589,7 +609,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
 
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const partyId = urlParams.get("id") || urlParams.get("p") || urlParams.get("invitado");
+            const partyId = urlParams.get("id") || urlParams.get("p") || urlParams.get("invitado") || localStorage.getItem("bodachicos_party_id");
             if (partyId) {
                 fetchRSVPData(partyId);
             }
@@ -638,8 +658,11 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 } else {
                     document.getElementById("rsvpLoadingContainer").style.display = "none";
                     document.getElementById("rsvpSearchContainer").style.display = "block";
+                    const isEn = document.documentElement.lang === "en";
                     const errEl = document.getElementById("rsvpSearchError");
-                    errEl.innerText = `No encontramos una invitación con la clave '${id}'. Por favor verifica e intenta de nuevo.`;
+                    errEl.innerText = isEn 
+                        ? `We couldn't find an invitation matching '${id}'. Please verify and try again.` 
+                        : `No encontramos una invitación con la clave '${id}'. Por favor verifica e intenta de nuevo.`;
                     errEl.style.display = "block";
                 }
 
@@ -662,15 +685,19 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 }
             } catch (err) {
                 console.error("Error al obtener RSVP:", err);
+                const isEn = document.documentElement.lang === "en";
                 document.getElementById("rsvpLoadingContainer").style.display = "none";
                 document.getElementById("rsvpSearchContainer").style.display = "block";
                 const errEl = document.getElementById("rsvpSearchError");
-                errEl.innerText = "Ocurrió un error al conectar con la lista de invitados. Intenta de nuevo.";
+                errEl.innerText = isEn 
+                    ? "An error occurred while connecting to the guest list. Please try again." 
+                    : "Ocurrió un error al conectar con la lista de invitados. Intenta de nuevo.";
                 errEl.style.display = "block";
             }
         }
 
         function renderRSVPSummaryView(data) {
+            const isEn = document.documentElement.lang === "en";
             document.getElementById("rsvpLoadingContainer").style.display = "none";
             document.getElementById("rsvpFormContainer").style.display = "none";
             
@@ -684,7 +711,9 @@ if (!document.getElementById('cg-dynamic-styles')) {
             const celebracionInput = document.getElementById("rsvpCelebracionInput");
             if (celebracionInput && integrantes.length > 0) {
                 const primerNombre = integrantes[0].split(" ")[0]; // Extraemos solo el primer nombre
-                celebracionInput.placeholder = `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
+                celebracionInput.placeholder = isEn 
+                    ? `E.g., ${primerNombre}'s anniversary, birthday...` 
+                    : `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
             }
 
             // CONTROL DEL ITINERARIO: Mostrar el Viernes 12 de Febrero en el Itinerario SOLO a invitados a la boda civil
@@ -693,10 +722,22 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 itinFriday.style.display = isCivil ? "block" : "none";
             }
 
+            // Mapeo amigable para el resumen en inglés o español
+            const formatStatusText = (statusStr) => {
+                if (!statusStr) return isEn ? 'No response' : 'Sin respuesta';
+                return statusStr.split(' | ').map(item => {
+                    if (isEn) {
+                        return item.replace(/:\s*SI\b/gi, ': Attending ✓').replace(/:\s*NO\b/gi, ': Not attending ✗');
+                    } else {
+                        return item.replace(/:\s*SI\b/gi, ': Sí asistirá ✓').replace(/:\s*NO\b/gi, ': No asistirá ✗');
+                    }
+                }).join('<br>');
+            };
+
             let summaryHTML = `
                 <span style="font-size: 3.2rem; display: inline-block;">🎉</span>
-                <h3 style="color: var(--olivo-base); font-size: 1.5rem; font-weight: 600; margin: 10px 0 4px 0;">¡Respuesta Registrada!</h3>
-                <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">Hola <strong>${data.nombre}</strong>, ya recibimos tu confirmación oficial.</p>
+                <h3 style="color: var(--olivo-base); font-size: 1.5rem; font-weight: 600; margin: 10px 0 4px 0;">${isEn ? "Response Received!" : "¡Respuesta Registrada!"}</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">${isEn ? `Hello <strong>${data.nombre}</strong>, we have received your official confirmation.` : `Hola <strong>${data.nombre}</strong>, ya recibimos tu confirmación oficial.`}</p>
 
                 <div style="text-align: left; background: #f9faf7; padding: 18px; border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15); margin-bottom: 20px; font-size: 0.9rem; color: #444; line-height: 1.6;">
             `;
@@ -704,16 +745,16 @@ if (!document.getElementById('cg-dynamic-styles')) {
             if (isCivil) {
                 summaryHTML += `
                     <div style="margin-bottom: 14px;">
-                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥂 Boda Civil (Viernes 12 de Feb):</h4>
-                        <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${(data.estadoCivil || 'Sin respuesta').split(' | ').join('<br>')}</p>
+                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥂 ${isEn ? "Civil Wedding (Friday, Feb 12):" : "Boda Civil (Viernes 12 de Feb):"}</h4>
+                        <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${formatStatusText(data.estadoCivil)}</p>
                     </div>
                 `;
             }
 
             summaryHTML += `
                 <div style="margin-bottom: 14px;">
-                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">💒 Boda & Fiesta (Sábado 13 de Feb):</h4>
-                    <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${(data.estadoSabado || 'Sin respuesta').split(' | ').join('<br>')}</p>
+                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">💒 ${isEn ? "Wedding & Celebration (Saturday, Feb 13):" : "Boda & Fiesta (Sábado 13 de Feb):"}</h4>
+                    <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${formatStatusText(data.estadoSabado)}</p>
                 </div>
             `;
 
@@ -745,7 +786,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 const rawVal = alergiasMap[member.toLowerCase()] || "";
                 const isNone = (!rawVal || rawVal.toLowerCase() === "ninguna" || rawVal.toLowerCase() === "n/a" || rawVal.toLowerCase() === "none" || rawVal.toLowerCase() === "nones");
                 if (isNone) {
-                    alergiasSummaryLines.push(`${member}: <span style="font-weight: 400; color: #777;">Ninguna</span>`);
+                    alergiasSummaryLines.push(`${member}: <span style="font-weight: 400; color: #777;">${isEn ? "None" : "Ninguna"}</span>`);
                 } else {
                     alergiasSummaryLines.push(`${member}: <span style="font-weight: 600; color: #2b2b2b;">${rawVal}</span>`);
                 }
@@ -753,7 +794,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
 
             summaryHTML += `
                 <div style="margin-bottom: 14px;">
-                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🍽️ Restricciones alimenticias:</h4>
+                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🍽️ ${isEn ? "Dietary restrictions:" : "Restricciones alimenticias:"}</h4>
                     <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${alergiasSummaryLines.join('<br>')}</p>
                 </div>
             `;
@@ -761,7 +802,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
             if (data.celebracion && data.celebracion.trim() !== "") {
                 summaryHTML += `
                     <div>
-                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🎉 Celebración especial:</h4>
+                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🎉 ${isEn ? "Special celebration:" : "Celebración especial:"}</h4>
                         <p style="margin: 0; color: #555;">${data.celebracion}</p>
                     </div>
                 `;
@@ -770,7 +811,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
             summaryHTML += `</div>`;
 
             summaryHTML += `
-                <button onclick="renderRSVPForm(currentRSVPData)" class="btn btn-rsvp" style="padding: 12px 24px; font-size: 0.9rem; border-radius: 14px; margin-top: 5px; width: 100%; box-sizing: border-box;">Modificar o actualizar respuesta ✏️</button>
+                <button onclick="renderRSVPForm(currentRSVPData)" class="btn btn-rsvp" style="padding: 12px 24px; font-size: 0.9rem; border-radius: 14px; margin-top: 5px; width: 100%; box-sizing: border-box;">${isEn ? "Edit or update response ✏️" : "Modificar o actualizar respuesta ✏️"}</button>
             `;
 
             successContainer.innerHTML = summaryHTML;
@@ -779,15 +820,16 @@ if (!document.getElementById('cg-dynamic-styles')) {
         function updateRSVPSubmitButtonText() {
             const submitBtn = document.getElementById("rsvpSubmitBtn");
             if (!submitBtn) return;
+            const isEn = document.documentElement.lang === "en";
             const checkedRadios = document.querySelectorAll('#rsvpCustomForm input[type="radio"]:checked');
             let hasAnyYes = false;
             checkedRadios.forEach(r => {
                 if (r.value === "SI") hasAnyYes = true;
             });
             if (hasAnyYes) {
-                submitBtn.innerText = "Confirmar Asistencia 💌";
+                submitBtn.innerText = isEn ? "Confirm Attendance 💌" : "Confirmar Asistencia 💌";
             } else {
-                submitBtn.innerText = "Enviar Respuesta 💌";
+                submitBtn.innerText = isEn ? "Send Response 💌" : "Enviar Respuesta 💌";
             }
         }
 
@@ -809,13 +851,16 @@ if (!document.getElementById('cg-dynamic-styles')) {
         }
 
         function renderRSVPForm(data) {
+            const isEn = document.documentElement.lang === "en";
             document.getElementById("rsvpLoadingContainer").style.display = "none";
             document.getElementById("rsvpSuccessContainer").style.display = "none";
             document.getElementById("rsvpSearchContainer").style.display = "none";
             document.getElementById("rsvpFormContainer").style.display = "block";
 
-            document.getElementById("rsvpGuestTitle").innerText = `¡Hola ${data.nombre}!`;
-            document.getElementById("rsvpPassesText").innerText = `Tienen ${data.pasesSabado} pase(s) reservado(s) para nuestra boda.`;
+            document.getElementById("rsvpGuestTitle").innerText = isEn ? `Hello ${data.nombre}!` : `¡Hola ${data.nombre}!`;
+            document.getElementById("rsvpPassesText").innerText = isEn 
+                ? `You have ${data.pasesSabado} seat(s) reserved for our wedding.` 
+                : `Tienen ${data.pasesSabado} pase(s) reservado(s) para nuestra boda.`;
 
             const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
             const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
@@ -824,7 +869,9 @@ if (!document.getElementById('cg-dynamic-styles')) {
             const celebracionInput = document.getElementById("rsvpCelebracionInput");
             if (celebracionInput && integrantes.length > 0) {
                 const primerNombre = integrantes[0].split(" ")[0]; // Extraemos solo el primer nombre
-                celebracionInput.placeholder = `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
+                celebracionInput.placeholder = isEn 
+                    ? `E.g., ${primerNombre}'s anniversary, birthday...` 
+                    : `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
             }
 
             // CONTROL DEL ITINERARIO: Mostrar el Viernes 12 de Febrero en el Itinerario SOLO a invitados a la boda civil
@@ -849,8 +896,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     div.innerHTML = `
                         <span style="font-size: 0.95rem; font-weight: 600; color: #333;">👤 ${member}</span>
                         <div style="display: flex; gap: 10px; font-size: 0.85rem;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="civil_${idx}" value="SI" ${siChecked} onchange="updateRSVPSubmitButtonText()"> Sí asistirá</label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="civil_${idx}" value="NO" ${noChecked} onchange="updateRSVPSubmitButtonText()"> No asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="civil_${idx}" value="SI" ${siChecked} onchange="updateRSVPSubmitButtonText()"> ${isEn ? "Will attend" : "Sí asistirá"}</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="civil_${idx}" value="NO" ${noChecked} onchange="updateRSVPSubmitButtonText()"> ${isEn ? "Will not attend" : "No asistirá"}</label>
                         </div>
                     `;
                     fridayMembers.appendChild(div);
@@ -873,12 +920,12 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;">
                         <span style="font-size: 0.95rem; font-weight: 600; color: #333;">👤 ${member}</span>
                         <div style="display: flex; gap: 10px; font-size: 0.85rem;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="sabado_${idx}" value="SI" ${siChecked} onchange="updateRSVPSubmitButtonText()"> Sí asistirá</label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="sabado_${idx}" value="NO" ${noChecked} onchange="updateRSVPSubmitButtonText()"> No asistirá</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f2f5eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #52582f;"><input type="radio" name="sabado_${idx}" value="SI" ${siChecked} onchange="updateRSVPSubmitButtonText()"> ${isEn ? "Will attend" : "Sí asistirá"}</label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #fbebee; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #c0392b;"><input type="radio" name="sabado_${idx}" value="NO" ${noChecked} onchange="updateRSVPSubmitButtonText()"> ${isEn ? "Will not attend" : "No asistirá"}</label>
                         </div>
                     </div>
                     <div>
-                        <textarea id="alergia_${idx}" rows="2" placeholder="Restricciones alimenticias de ${member} (ej. vegetariano, alergia a mariscos...)" style="width: 100%; padding: 9px 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box; background: #fafafa; font-family: inherit; resize: vertical;"></textarea>
+                        <textarea id="alergia_${idx}" rows="2" placeholder="${isEn ? `Dietary restrictions for ${member} (e.g., vegetarian, shellfish allergy...)` : `Restricciones alimenticias de ${member} (ej. vegetariano, alergia a mariscos...)`}" style="width: 100%; padding: 9px 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box; background: #fafafa; font-family: inherit; resize: vertical;"></textarea>
                     </div>
                 `;
                 saturdayMembers.appendChild(div);
@@ -927,9 +974,10 @@ if (!document.getElementById('cg-dynamic-styles')) {
             e.preventDefault();
             if (!currentRSVPData) return;
 
+            const isEn = document.documentElement.lang === "en";
             const submitBtn = document.getElementById("rsvpSubmitBtn");
             submitBtn.disabled = true;
-            submitBtn.innerText = "Guardando confirmación... 💌";
+            submitBtn.innerText = isEn ? "Saving response... 💌" : "Guardando confirmación... 💌";
 
             const integrantes = currentRSVPData.integrantes ? currentRSVPData.integrantes.toString().split(",").map(s => s.trim()) : [currentRSVPData.nombre];
             const isCivil = (currentRSVPData.invitaCivil && currentRSVPData.invitaCivil.toString().trim().toUpperCase() === "SI");
@@ -986,10 +1034,10 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 }
             } catch (err) {
                 console.error("Error al enviar RSVP:", err);
-                alert("Ocurrió un inconveniente al guardar. Por favor intenta de nuevo.");
+                alert(isEn ? "There was an issue saving your response. Please try again." : "Ocurrió un inconveniente al guardar. Por favor intenta de nuevo.");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "Confirmar Asistencia 💌";
+                submitBtn.innerText = isEn ? "Confirm Attendance 💌" : "Confirmar Asistencia 💌";
             }
         }
 
@@ -1263,19 +1311,23 @@ document.addEventListener("DOMContentLoaded", () => {
             const input = document.getElementById("cgFileInput");
             const btn = document.getElementById("cgClearPhotosBtn");
             const labelText = document.getElementById("cgFileText");
+            const isEn = document.documentElement.lang === "en";
+
             if (input.files && input.files.length > 0) {
                 if (input.files.length > 10) {
-                    showCGError("Para que suban rápido y no sature tu celular, selecciona máximo 10 fotos por turno 📸");
+                    showCGError(isEn ? "To keep uploads fast and avoid freezing your phone, please select up to 10 photos at a time 📸" : "Para que suban rápido y no sature tu celular, selecciona máximo 10 fotos por turno 📸");
                     input.value = "";
                     btn.style.display = "none";
-                    labelText.innerText = "Elegir fotos...";
+                    labelText.innerText = isEn ? "Choose photos..." : "Elegir fotos...";
                     return;
                 }
                 btn.style.display = "flex";
-                labelText.innerText = `${input.files.length} foto(s) seleccionada(s)`;
+                labelText.innerText = isEn 
+                    ? `${input.files.length} photo(s) selected` 
+                    : `${input.files.length} foto(s) seleccionada(s)`;
             } else {
                 btn.style.display = "none";
-                labelText.innerText = "Elegir fotos...";
+                labelText.innerText = isEn ? "Choose photos..." : "Elegir fotos...";
             }
         }
 
@@ -1297,11 +1349,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const fileInput = document.getElementById("cgFileInput");
             const statusEl = document.getElementById("cgUploadStatus");
             const btn = document.getElementById("cgUploadBtn");
+            const isEn = document.documentElement.lang === "en";
 
-            if (!guestNameInput) { showCGError("¡Falta tu nombre de Paparazzi!"); return; }
-            if (fileInput.files.length === 0) { showCGError("¡Selecciona al menos una foto para publicar!"); return; }
+            if (!guestNameInput) { showCGError(isEn ? "Please enter your Paparazzi name!" : "¡Falta tu nombre de Paparazzi!"); return; }
+            if (fileInput.files.length === 0) { showCGError(isEn ? "Select at least one photo to share!" : "¡Selecciona al menos una foto para publicar!"); return; }
             if (fileInput.files.length > 10) { 
-                showCGError("Para que suban rápido y no sature tu celular, sube hasta 10 fotos por turno 📸"); 
+                showCGError(isEn ? "To keep uploads fast and avoid freezing your phone, upload up to 10 photos at a time 📸" : "Para que suban rápido y no sature tu celular, sube hasta 10 fotos por turno 📸"); 
                 return; 
             }
 
@@ -1315,7 +1368,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                statusEl.innerText = `Publicando foto ${i + 1} de ${files.length}...`;
+                statusEl.innerText = isEn 
+                    ? `Publishing photo ${i + 1} of ${files.length}...` 
+                    : `Publicando foto ${i + 1} de ${files.length}...`;
 
                 try {
                     const compressedBlob = await imageCompression(file, options);
@@ -1331,7 +1386,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (error) { console.error("Error", error); }
             }
 
-            statusEl.innerText = `¡Éxito! Se publicaron ${uploadedCount} fotos en el feed.`;
+            statusEl.innerText = isEn 
+                ? `Success! ${uploadedCount} photo(s) published to the feed.` 
+                : `¡Éxito! Se publicaron ${uploadedCount} fotos en el feed.`;
             statusEl.style.color = "green";
             fileInput.value = ""; 
             btn.disabled = false;
