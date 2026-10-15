@@ -273,8 +273,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
         // Verificar estado al cargar
         updateInstallButtonState();
 
-        // Contador en tiempo real
-        const targetDate = new Date("Feb 13, 2027 16:00:00").getTime();
+        // Contador en tiempo real: Sábado 13 de Febrero de 2027 a las 3:00 PM (Hora local Puebla, UTC-6)
+        const targetDate = new Date("2027-02-13T15:00:00-06:00").getTime();
         function updateTimer() {
             const now = new Date().getTime();
             const diff = targetDate - now;
@@ -283,6 +283,11 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000);
+            } else {
+                document.getElementById("days").innerText = "0";
+                document.getElementById("hours").innerText = "0";
+                document.getElementById("minutes").innerText = "0";
+                document.getElementById("seconds").innerText = "0";
             }
         }
         setInterval(updateTimer, 1000);
