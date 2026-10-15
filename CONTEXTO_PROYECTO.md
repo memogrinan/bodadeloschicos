@@ -15,7 +15,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 - **Base de Datos Firebase Realtime Database:**
   `https://boda-los-chicos-default-rtdb.firebaseio.com/`
   *Maneja puntajes de los minijuegos, ChiCoins, tiempos de juego y el Leaderboard en tiempo real.*
-- **Versión de Cache-Buster Actual:** `v=24.0` (Inyectado en scripts de todos los HTML para evitar atascos de caché en navegadores de invitados).
+- **Versión de Cache-Buster Actual:** `v=29.0` en favicons e imágenes clave / `v=28.2` en scripts de `index.html`.
 
 ---
 
@@ -23,11 +23,11 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 
 | Archivo | Rol y Responsabilidad |
 | :--- | :--- |
-| `index.html` & `js/index.js` | Invitación principal: portada, historia, lugares, itinerario condicional, hospedaje, regalos, RSVP conectado a Sheets, acceso a minijuegos y galería de fotos. |
+| `index.html` & `js/index.js` | Invitación principal: portada, contador regresivo al 13-Feb-2027 3:00 PM, historia, lugares, itinerario condicional, hospedaje, regalos (enlace directo a Uniko), RSVP conectado a Sheets, acceso a minijuegos y galería de fotos. |
 | `juegos.html` & `js/juegos.js` | Plataforma de 4 minijuegos web (Chicosaurio, Atrapa el Amor, Atrapa a Maddie, Camino a Puebla), sistema de ChiCoins y Leaderboard sincronizado con Firebase. |
-| `regalos.html` & `js/regalos.js` | Tienda interactiva de regalos de luna de miel con carrito de compras dinámico y modal de dedicatoria. |
+| `regalos.html` & `js/regalos.js` | Tienda interactiva histórica de regalos de luna de miel (se mantiene como página de respaldo; el botón principal de regalos en `index.html` lleva a la mesa oficial de Uniko). |
 | `admin.html` & `js/admin.js` | Panel administrativo protegido por contraseña para monitoreo de jugadores, ajuste manual de monedas, canjes de premios físicos y gestión de base de datos. |
-| `worker/` & `TODO_STRIPE.md` | Código y especificación técnica del Cloudflare Worker para balancear pagos entre dos cuentas de Stripe. |
+| `worker/` & `TODO_STRIPE.md` | Código y especificación técnica archivada del Cloudflare Worker para Stripe. |
 
 ---
 
@@ -219,13 +219,48 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
 
 ---
 
-## 12. Temas Pendientes para Futuras Sesiones
+## 12. Actualización de Mesa de Regalos, Contador e Identidad Visual (`v=28.0` / `v=29.0`)
 
-1. **Mesa de Regalos & Stripe (`regalos.html`):**
-   - El frontend cuenta con carrito dinámico funcional en diseño (suma productos, desglose y dedicatoria).
-   - Falta conectar el Cloudflare Worker (`worker/`) para balancear los pagos 50/50 entre las cuentas de Stripe de Memo y Mariana según el plan en `BodaWebpage/TODO_STRIPE.md`.
-2. **Galería Final:**
+1. **Mesa de Regalos Oficial (UNIKO):**
+   - Se deprecó la integración de cobro directo con Stripe en `index.html`.
+   - El botón principal de la sección de regalos ahora abre directamente la mesa oficial de Uniko en pestaña nueva: `https://evento.uniko.co/bodadeloschicos/`.
+   - `regalos.html` se mantiene como respaldo histórico.
+2. **Contador Regresivo en Portada:**
+   - Fecha objetivo configurada: **Sábado 13 de febrero de 2027 a las 3:00 PM** (`2027-02-13T15:00:00-06:00`).
+   - Cuenta hacia atrás con exactitud horaria y se desactiva limpiamente una vez alcanzada la fecha.
+3. **Identidad Visual de Maddie & Favicon:**
+   - **Ícono de Maddie en la Línea de Tiempo (Hito 2024):** Actualizado con el trazo oficial `maddie_logo_contorno.webp` en `ImagenesWeb/Optimizadas/` (color olivo institucional `#52582F`).
+   - **Favicon de todo el sitio:** Se actualizó en `index.html`, `regalos.html`, `juegos.html` y `admin.html` a `maddie_logo_contorno_fondo.webp` con refresco de caché `?v=29.0`.
+
+---
+
+## 13. Directrices Operativas Obligatorias para Nuevas Sesiones
+
+1. **Gestión de Git y Despliegue en Cloudflare Pages:**
+   - El repositorio usa **sparse-checkout**.
+   - Al agregar archivos con `git add`, especificar siempre las rutas explícitas (ej. `git add index.html ImagenesWeb/Optimizadas/archivo.webp`). **Nunca** usar `git add .` o patrones globales que incluyan `img/` (carpeta excluida del sparse-checkout).
+   - Siempre hacer `git push origin main` al terminar cualquier cambio (requiere `BypassSandbox: true` por política de red). Cloudflare Pages compila y despliega en producción automáticamente.
+2. **Manejo de Imágenes y Pillow en Python:**
+   - Toda imagen nueva (.png, .jpg) que se suba debe ser convertida a `.webp` optimizado en `ImagenesWeb/Optimizadas/` antes de enlazarse en el HTML.
+   - Pillow está instalado en el entorno de usuario de macOS:
+     ```python
+     import sys
+     sys.path.insert(0, "/Users/ggrinan/Library/Python/3.9/lib/python/site-packages")
+     from PIL import Image
+     ```
+   - Al ejecutar scripts con Pillow o comandos con red, ejecutar con `BypassSandbox: true`.
+3. **Cache-Busting:**
+   - Cada vez que se modifique un archivo `.js`, `.css` o imagen compartida, incrementar el sufijo de versión en los archivos HTML correspondientes (ej. `?v=30.0`).
+4. **Preservación del Código y Comentarios:**
+   - Mantener la integridad de los comentarios existentes en `index.html`, `js/index.js` y `CONTEXTO_PROYECTO.md`.
+
+---
+
+## 14. Temas Pendientes para Futuras Sesiones
+
+1. **Galería Final:**
    - Carga y compresión de las fotografías oficiales en alta resolución hacia la carpeta `ImagenesWeb/Optimizadas/`.
-3. **Decisión sobre RSVP y Google Sheets:**
+2. **Consulta a Google Sheets en Vivo:**
    - Se mantiene la consulta directa y en vivo a Google Sheets (sin caché local forzado) para garantizar que cualquier cambio manual en la lista de invitados o en sus pases se refleje siempre con la información más actualizada.
+
 
