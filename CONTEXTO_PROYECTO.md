@@ -105,13 +105,20 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
    min-height: 380px; display: flex; flex-direction: column; justify-content: center;
    ```
    El spinner de carga ahora vive dentro de una tarjeta con altura reservada, eliminando el crecimiento brusco de RSVP.
-2. **Compensación Matemática por Elemento Activo:**
+2. **Compensación Matemática por Elemento Activo (Condicionada a `isPastItinerary`):**
    Inmediatamente antes y después de que Google Sheets altere el DOM:
    ```javascript
+   const itinerarioEl = document.getElementById("itinerario");
+   // Solo compensar si el usuario ya alcanzó o superó la sección de Itinerario.
+   // Si todavía no llega (Inicio, Historia, Lugar), el DOM inferior no afecta su pantalla y no se altera el scroll:
+   const isPastItinerary = itinerarioEl ? (itinerarioEl.getBoundingClientRect().top <= 100) : false;
+
    const hashTarget = (window.location.hash && window.location.hash !== "#inicio") 
        ? document.querySelector(window.location.hash) 
        : null;
-   const anchorEl = hashTarget || (window.scrollY > 150 ? document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 3) : null);
+   const anchorEl = isPastItinerary
+       ? (hashTarget || (window.scrollY > 150 ? document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 3) : null))
+       : null;
    const prevTop = anchorEl ? anchorEl.getBoundingClientRect().top : 0;
 
    // ... Se modifica el DOM con la respuesta de Google Sheets ...
@@ -125,8 +132,8 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
    }
    ```
    - **Sincrónico:** Se ejecuta en el mismo ciclo de renderizado del navegador.
-   - **Universal:** Cero nombres de secciones hardcodeados; funciona con cualquier sección actual o futura.
-   - **Invisible:** Si estás en Inicio o Historia, `delta = 0` y no se mueve nada. Si estás en secciones inferiores, se compensa la diferencia exacta sin animaciones ni brincos.
+   - **Estabilidad Absoluta en Inicio/Historia/Lugar:** Si el usuario está antes de Itinerario (`isPastItinerary === false`), `anchorEl` es `null` y el scroll no se altera en lo más mínimo.
+   - **Invisible:** Si estás en secciones inferiores (Itinerario, Hospedaje, RSVP, Juegos, Fotos), se compensa la diferencia exacta sin animaciones ni brincos.
 
 ---
 

@@ -612,12 +612,19 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(id)}`);
                 const data = await res.json();
 
-                // COMPENSACIÓN MATEMÁTICA UNIVERSAL (Cero condicionales por sección):
-                // Identifica qué elemento está observando el usuario (o al que navegó mediante el menú)
+                // COMPENSACIÓN MATEMÁTICA ANTI-LAYOUT SHIFT:
+                // Solo compensar si el usuario ya alcanzó o superó la sección de Itinerario.
+                // Si todavía no llega a Itinerario (está en Inicio, Historia o Lugar),
+                // el DOM inferior no afecta en lo absoluto su pantalla y NUNCA se debe alterar el scroll:
+                const itinerarioEl = document.getElementById("itinerario");
+                const isPastItinerary = itinerarioEl ? (itinerarioEl.getBoundingClientRect().top <= 100) : false;
+
                 const hashTarget = (window.location.hash && window.location.hash !== "#inicio")
                     ? document.querySelector(window.location.hash)
                     : null;
-                const anchorEl = hashTarget || (window.scrollY > 150 ? document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 3) : null);
+                const anchorEl = isPastItinerary
+                    ? (hashTarget || (window.scrollY > 150 ? document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 3) : null))
+                    : null;
                 const prevTop = anchorEl ? anchorEl.getBoundingClientRect().top : 0;
 
                 if (data.status === "success") {
