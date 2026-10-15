@@ -247,12 +247,14 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
    - El inyector de enlaces `GLOBAL URL PARAMETER PRESERVER` propaga transparentemente el `partyId` tanto a enlaces en español como en inglés (`/en/` y `/`).
 4. **Traducción Contextual Completa:**
    - Portada, contador, Nuestra Historia (anécdota de oficina 2018, Puebla 2021, Cholula 2023, Maddie 2024, compromiso 2025).
-   - Locaciones, mapas, itinerario completo con botones dinámicos para Google Calendar y Apple Calendar (generando `.ics` en inglés).
-   - Hospedaje con tarifas en MXN y notas para reservación preferencial.
-   - Código de vestimenta, FAQ contextualizado (con equivalencias °C / °F para temperatura).
+   - Locaciones ("Church Ceremony" y "Wedding Reception" manteniendo nombres propios en español: "Parroquia de San Andrés Apóstol" y "Hacienda San José Actipan").
+   - Hospedaje con código internacional (+52) en todos los teléfonos y tarifas en MXN.
+   - FAQ totalmente en inglés ("Frequently Asked Questions" y respuesta de estacionamiento traducida).
    - Mesa de regalos oficial apuntando directamente a Uniko (se removió "y futuro hogar" de todos los textos).
    - RSVP dinámico: títulos, alertas, opciones (*"Will attend" / "Will not attend"*), placeholders de restricciones alimenticias y resumen de confirmación en inglés con compatibilidad directa hacia Google Sheets.
-   - Sección de Arcade y Chicosgram (paparazzi upload, validaciones de lote y mensajes de estado).
+   - Nombres oficiales de minijuegos en inglés: **Chicosaurus**, **Love in the Air**, **Whack-a-Maddie!** y **Road to Puebla**.
+   - Arcade bilingüe completo: `en/juegos.html` con UI traducida (GamerTag, Leaderboard, modales, instrucciones retro dinámicas, Game Over bilingüe) y selector de idioma directo en la cabecera del Arcade (`juegos.html` ⟷ `en/juegos.html`).
+   - Chicosgram (paparazzi upload, validaciones de lote y mensajes de estado).
 
 ---
 

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wedding Arcade - Mariana & Memo's Wedding</title>
+    <link class="favicon" rel="icon" href="../ImagenesWeb/Optimizadas/favicon.webp?v=29.0" type="image/webp">
+    
+    <!-- Preconnect DNS to resource origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+
+    <!-- Preload key arcade sprites -->
+    <link rel="preload" as="image" href="../SpritesNecesarios/coches_uno.png">
+    <link rel="preload" as="image" href="../SpritesNecesarios/coches_cuatro.png">
+
+    <!-- PWA Config -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="M&M Wedding">
+    <link rel="apple-touch-icon" href="../ImagenesWeb/logo_solid.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        olivo: {
+                            base: '#52582f',
+                            trans: 'rgba(82, 88, 47, 0.75)',
+                            acento: '#a3ad73',
+                            claro: '#f2f4ed'
+                        },
+                        crema: {
+                            fondo: '#fcfaf7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Retro pixel font monogram-extended */
+        @font-face {
+            font-family: 'Monogram';
+            src: url('../Fonts/monogram-extended.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        .font-monogram {
+            font-family: 'Monogram', monospace;
+            image-rendering: pixelated;
+        }
+        body {
+            background-color: #fcfaf7;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        button, canvas {
+            touch-action: manipulation;
+        }
+
+        /* CRT SCANLINES & SCREEN OVERLAY */
+        .crt-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .crt-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        @keyframes crt-flicker {
+            0% { opacity: 0.985; }
+            50% { opacity: 0.995; }
+            100% { opacity: 0.985; }
+        }
+        .crt-screen {
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        /* MADDIE GARDEN HOLE DESIGN */
+        .maddie-hole {
+            aspect-ratio: 1 / 1;
+            border-radius: 9999px;
+            background: radial-gradient(circle, #2a1b14 30%, #442a1d 70%, #634331 100%);
+            border: 3.5px solid #5a3d28;
+            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 3px;
+            box-sizing: border-box;
+            transition: transform 0.1s, background 0.2s;
+        }
+        .maddie-hole:active {
+            transform: scale(0.95);
+            background: radial-gradient(circle, #1a0f0a 30%, #301d14 70%, #4f3426 100%);
+        }
+
+        /* POP-UP ANIMATION FOR MADDIE */
+        @keyframes maddiePopUp {
+            0% { transform: translateY(100%) scale(0.6); opacity: 0; }
+            70% { transform: translateY(-5%) scale(1.05); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .animate-pop-up {
+            animation: maddiePopUp 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.18) forwards;
+            will-change: transform, opacity;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen pb-12">
+
+    <!-- CABECERA -->
+    <header class="bg-[#52582f] text-white py-4 px-4 shadow-md">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+            <a href="index.html" class="self-center sm:self-center bg-white/20 hover:bg-white/30 text-white font-semibold py-1.5 px-4 rounded-full text-xs transition inline-flex items-center gap-1.5 shadow-xs">
+                ← Back
+            </a>
+            <div class="text-center flex-grow">
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wide uppercase">WEDDING ARCADE</h1>
+                <p class="text-[11px] sm:text-xs text-olivo-claro/80 mt-0.5">Beat all targets to unlock an exclusive prize on our wedding day</p>
+            </div>
+            <!-- Language Switcher Pill in Header -->
+            <div class="flex items-center gap-1.5 bg-black/20 rounded-full px-2.5 py-1 text-xs font-semibold">
+                <a href="../juegos.html" class="opacity-75 hover:opacity-100 transition">🇲🇽 ES</a>
+                <span class="opacity-40">|</span>
+                <span class="text-white font-bold">🇺🇸 EN</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- PANEL DEL USUARIO -->
+    <div class="max-w-4xl mx-auto mt-6 px-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎮</span>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase">GamerTag</p>
+                    <div class="flex items-center gap-2">
+                        <span id="playerGamertag" class="font-extrabold text-olivo-base text-xl md:text-2xl font-monogram">Unregistered</span>
+                        <button onclick="changeGamerTagPrompt()" class="text-xs text-blue-500 hover:underline">Edit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTADOR CHI-COINS -->
+            <div class="bg-amber-50 border border-amber-200/80 px-6 py-2 rounded-2xl text-center shadow-xs">
+                <p class="text-xs text-amber-800 font-bold tracking-wider text-center">Your ChiCoins</p>
+                <div class="flex items-center justify-center gap-2 mt-0.5">
+                    <span class="text-xl md:text-2xl">🪙</span>
+                    <span id="totalChiCoinsDisplay" class="text-xl md:text-2xl font-extrabold text-amber-900 font-monogram">0</span>
+                    <span class="text-xl md:text-2xl">🪙</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="openLeaderboardModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm">
+                    <span>🏆</span> Leaderboard
+                </button>
+                <div id="prizeStatus" class="bg-gray-100 text-gray-500 px-3 py-2 rounded-xl text-xs font-semibold text-center transition-all duration-300">
+                    Progress: 0/4 targets
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE JUEGOS (MENÚ PRINCIPAL) -->
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" id="gamesMenu">
+            
+            <!-- JUEGO 1: CHICOSAURUS -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🦖</span>
+                        <span id="badge-chico" class="text-xs px-2 py-1 rounded-full font-bold">Pending</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Groom's Game: Chicosaurus</h3>
+                    <p class="text-gray-500 text-sm mt-2 leading-relaxed">
+                        Help Memo's Chicosaurus (🦖) jump over meetings 
+                        <img src="../ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Calendar">, 
+                        alarms 
+                        <img src="../ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Alarm"> 
+                        and unread emails 
+                        <img src="../ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Email">, 
+                        while catching gaming controllers 
+                        <img src="../ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-4 h-4 mx-0.5 object-contain" alt="Gamepad"> 
+                        along the way.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">High Score / Target</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chico">0</span> pts / <span class="text-olivo-base font-bold">100 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-chico">0</span> ChiCoins</p>
+                    </div>
+                    <button onclick="openGame('chico')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Play</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 2: LOVE IN THE AIR -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">👰🏻‍♀️</span>
+                        <span id="badge-chica" class="text-xs px-2 py-1 rounded-full font-bold">Pending</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Bride's Game: Love in the Air</h3>
+                    <p class="text-gray-500 text-sm mt-2">Move Mariana (👰🏻‍♀️) to catch falling hearts (💖) and engagement rings (💍) before they touch the ground. Dodge storm lightning clouds (🌩️)!</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">High Score / Target</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-chica">0</span> pts / <span class="text-olivo-base font-bold">15 pts</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-chica">0</span> ChiCoins</p>
+                    </div>
+                    <button onclick="openGame('chica')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Play</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 3: WHACK-A-MADDIE! -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🐶</span>
+                        <span id="badge-maddie" class="text-xs px-2 py-1 rounded-full font-bold">Pending</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Maddie's Game: Whack-a-Maddie!</h3>
+                    <p class="text-gray-500 text-sm mt-2">Maddie (🐶) pops her head out of the garden holes. Test your reflexes and tap her in 30 seconds. Watch out for garden poop (💩)!</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">High Score / Target</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="score-maddie">0</span> clicks / <span class="text-olivo-base font-bold">20 clicks</span></p>
+                        <p class="text-xs text-amber-700 font-bold mt-0.5 font-monogram">🪙 <span id="chicoins-maddie">0</span> ChiCoins</p>
+                    </div>
+                    <button onclick="openGame('maddie')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Play</button>
+                </div>
+            </div>
+
+            <!-- JUEGO 4: ROAD TO PUEBLA -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-4xl">🚗</span>
+                        <span id="badge-puebla" class="text-xs px-2 py-1 rounded-full font-bold">Pending</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-olivo-base mt-4">Road to Puebla: OutRun Retro</h3>
+                    <p class="text-gray-500 text-sm mt-2">Drive your grey sports car 120 KM toward Cholula overtaking heavy highway traffic, potholes (🕳️) and road work (🚧). Collect chalupas (🌮) and turbo boosts!</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400">Max Distance / Target</p>
+                        <p class="font-bold text-gray-700 text-base md:text-lg font-monogram"><span id="dist-puebla">0.0</span> km / <span class="text-olivo-base font-bold">120 km</span></p>
+                        <div class="flex items-center gap-3 mt-1 text-xs font-monogram">
+                            <span class="text-gray-600 font-bold">🏆 <span id="score-puebla">0</span> pts</span>
+                            <span class="text-amber-700 font-bold">🪙 <span id="chicoins-puebla">0</span></span>
+                        </div>
+                    </div>
+                    <button onclick="openGame('puebla')" class="bg-[#52582f] text-white hover:bg-opacity-90 font-bold px-6 py-2.5 rounded-xl text-sm transition">Play</button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- PIE DE PÁGINA CON BOTÓN DE ADMIN -->
+        <footer class="mt-8 mb-6 text-center">
+            <button onclick="openAdminAuthModal()" class="text-xs text-gray-400 hover:text-gray-600 transition inline-flex items-center gap-1.5 opacity-60 hover:opacity-100 font-semibold bg-white/60 px-3 py-1.5 rounded-full shadow-xs border border-gray-200/50">
+                <span>🔐</span> Admin Panel
+            </button>
+        </footer>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE REGISTRO GAMERTAG & INTEGRANTE RSVP -->
+    <div id="gamertagModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 justify-center items-center p-4 hidden" style="display: none;">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative">
+            <button onclick="closeGamertagModal()" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold p-1">✕</button>
+            <span class="text-4xl">👾</span>
+            <h2 class="text-xl font-extrabold text-olivo-base mt-2">Welcome to the Arcade!</h2>
+            
+            <!-- SECCIÓN 1: SELECTOR DE INTEGRANTE RSVP -->
+            <div id="memberSelectContainer" class="mt-4 text-left hidden">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2 text-center">1. Select who you are:</label>
+                <div id="memberButtonsList" class="flex flex-col gap-2"></div>
+            </div>
+
+            <div class="mt-4 text-left">
+                <label id="gamertagLabel" class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1 text-center">2. Your GamerTag (Nickname):</label>
+                <input type="text" id="gamertagInput" maxlength="15" placeholder="Nickname / Name" class="w-full mt-2 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition" onkeyup="if(event.key==='Enter') saveGamerTag()">
+            </div>
+            
+            <p id="gamertagErrorMsg" class="text-red-500 text-xs font-bold mt-2 hidden text-center"></p>
+            
+            <button onclick="saveGamerTag()" id="saveGamerTagBtn" type="button" class="w-full mt-3 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md">Start Playing 🎮</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE TABLA DE LÍDERES EN VIVO -->
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl">🏆</span>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-olivo-base">Wedding Leaderboard</h2>
+                        <p class="text-xs text-gray-400 font-semibold" id="leaderboardSubtitle">Real-time ranking across all mini-games</p>
+                    </div>
+                </div>
+                <button onclick="closeLeaderboardModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold p-1">✕</button>
+            </div>
+
+            <!-- PESTAÑAS DE NAVEGACIÓN DE LÍDERES -->
+            <div class="flex gap-1.5 overflow-x-auto py-2.5 my-1 border-b border-gray-100 no-scrollbar text-xs">
+                <button onclick="switchLeaderboardTab('general')" id="tab-general" class="lb-tab px-3 py-1.5 rounded-xl bg-[#52582f] text-white font-bold transition shrink-0">🏆 Overall</button>
+                <button onclick="switchLeaderboardTab('chico')" id="tab-chico" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">👾 Dino</button>
+                <button onclick="switchLeaderboardTab('chica')" id="tab-chica" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">👰🏻 Bride</button>
+                <button onclick="switchLeaderboardTab('maddie')" id="tab-maddie" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">🐶 Maddie</button>
+                <button onclick="switchLeaderboardTab('puebla')" id="tab-puebla" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">🚗 Road</button>
+            </div>
+
+            <div class="overflow-y-auto my-2 flex-1 pr-1">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-xs text-gray-400 uppercase border-b border-gray-100 pb-2">
+                            <th class="py-2">Pos</th>
+                            <th class="py-2">Player</th>
+                            <th class="py-2 text-right" id="leaderboardScoreColTitle">Total Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody" class="divide-y divide-gray-50">
+                        <tr>
+                            <td colspan="3" class="py-6 text-center text-gray-400 italic">Loading leaderboard...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+                <span>🟢 Live Updates</span>
+                <button onclick="closeLeaderboardModal()" class="bg-[#52582f] text-white px-5 py-2 rounded-xl font-bold hover:bg-opacity-90 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE AUTENTICACIÓN DE ADMINISTRADOR -->
+    <div id="adminAuthModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <span class="text-4xl">🔐</span>
+            <h2 class="text-xl font-extrabold text-gray-800 mt-3">Admin Access</h2>
+            <p class="text-gray-500 text-xs mt-1">Enter wedding arcade password</p>
+            <input type="password" id="adminPasswordInput" placeholder="Password" class="w-full mt-4 p-3 border border-gray-200 rounded-xl text-center font-bold text-base outline-none focus:border-[#52582f] transition" onkeyup="if(event.key==='Enter') submitAdminPassword()">
+            <p id="adminAuthError" class="text-red-500 text-xs font-semibold mt-2 hidden">Incorrect password ❌</p>
+            <div class="flex gap-2 mt-4">
+                <button onclick="closeAdminAuthModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl transition text-xs">Cancel</button>
+                <button onclick="submitAdminPassword()" class="w-1/2 bg-[#52582f] hover:bg-opacity-90 text-white font-bold py-2.5 rounded-xl transition text-xs">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CONTENEDOR DE JUEGOS EN PANTALLA COMPLETA -->
+    <div id="gameContainer" class="fixed inset-0 bg-black/95 z-40 hidden flex flex-col justify-between p-4">
+        <div class="flex justify-between items-center text-white pb-2 border-b border-white/10">
+            <div class="flex items-center gap-2">
+                <span id="activeGameIcon" class="text-xl">🎮</span>
+                <span id="activeGameTitle" class="font-bold text-sm">Loading Game...</span>
+            </div>
+            <button onclick="closeActiveGame()" class="text-white hover:text-red-400 font-bold px-2 py-1 text-sm bg-white/10 rounded-lg">✕ Exit</button>
+        </div>
+
+        <!-- ÁREA INTERNA DEL JUEGO -->
+        <div class="flex-grow flex flex-col justify-center items-center relative my-4 w-full">
+            
+            <!-- Contenedor del Gabinete Arcade con scanlines CRT -->
+            <div id="crtWrapper" class="relative max-w-full rounded-2xl overflow-hidden shadow-2xl bg-gray-900 border border-white/10 w-[360px] h-[480px] flex flex-col items-center justify-center crt-container">
+                
+                <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
+                <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 w-full h-full hidden relative z-1"></canvas>
+
+                <!-- Contenedor para Maddie (con marco de jardín de madera y césped) -->
+                <div id="maddieContainer" class="hidden flex flex-col items-center justify-between w-full h-full p-3.5 relative z-1 select-none" style="background: radial-gradient(ellipse at 50% 25%, #3d8b40 0%, #256b29 55%, #134217 100%);">
+                    <!-- ENCABEZADO: TÍTULO Y MARCADOR -->
+                    <div class="w-full flex flex-col items-center pointer-events-none">
+                        <div class="w-full flex justify-center items-center px-1 mb-1 text-[11px] font-bold text-white/80 opacity-70">
+                            <span class="tracking-widest uppercase">🌿 Maddie's Garden</span>
+                        </div>
+                        <div id="maddieScoreboard" class="text-center select-none font-monogram text-white/95 text-lg md:text-xl tracking-widest bg-black/40 px-5 py-0.5 rounded-lg border border-white/10 shadow-inner">
+                            HI <span id="maddieHighScore" class="font-bold text-[#f1c40f]">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold text-white">00000</span> &nbsp;&nbsp; <span class="text-[#e74c3c]">⏳</span> <span id="maddieTimeDisplay" class="font-bold text-[#e74c3c]">30</span>s
+                        </div>
+                    </div>
+
+                    <!-- CAJA DE ARENA / MADRIGUERA (ÁREA INTERACTIVA CON TAMAÑO FIJO INMUTABLE) -->
+                    <div class="p-2.5 rounded-2xl bg-[#2a170e]/80 border-4 border-[#795548] shadow-2xl my-auto w-[290px] h-[290px] min-w-[290px] min-h-[290px] flex items-center justify-center">
+                        <div id="maddieGrid" class="grid grid-cols-4 grid-rows-4 gap-2 w-full h-full">
+                            <!-- Dynamically generated -->
+                        </div>
+                    </div>
+
+                    <!-- PIE ILUSTRATIVO DECORATIVO (NO CLICKEABLE) -->
+                    <div class="w-full flex justify-center items-center gap-6 py-0.5 text-xs text-white/60 pointer-events-none select-none tracking-widest font-monogram">
+                        <span>🐾 TAP MADDIE WHENEVER SHE POPS UP 🐾</span>
+                    </div>
+                </div>
+
+                <!-- PANTALLA SUPERPUESTA / GAME OVER ORIGINAL DE CHROME DINO (FONDO GRIS OSCURO) -->
+                <div id="gameOverlay" class="absolute inset-0 bg-[#151719] flex flex-col justify-center items-center text-white text-center p-3 py-4 max-h-full overflow-y-auto rounded-2xl z-2">
+                    
+                    <!-- G A M E   O V E R  DIBUJADO CON FUENTE RETRO MONOGRAM -->
+                    <div id="gameOverTitleContainer" class="hidden mb-3 text-center select-none pointer-events-none shrink-0">
+                        <h2 id="gameOverTitleText" class="text-3xl md:text-4xl font-monogram font-bold tracking-widest text-[#e74c3c] animate-pulse">GAME OVER</h2>
+                    </div>
+
+                    <!-- RECUADRO CENTRAL DE PUNTUACIÓN DE FIN DE JUEGO -->
+                    <div id="overlayScoreBox" class="hidden mb-3 bg-white/10 border border-white/15 p-3 rounded-2xl w-60 shadow-sm text-gray-200 shrink-0">
+                        <p class="text-xs tracking-widest text-gray-400 font-bold uppercase font-monogram">Score Achieved</p>
+                        <p id="overlayFinalScore" class="text-4xl md:text-5xl font-extrabold text-[#a3ad73] font-monogram my-1">00000</p>
+                        <p id="overlayMetaCompare" class="text-sm md:text-base text-gray-200 font-semibold font-monogram">Target: 100 pts</p>
+                        <p id="overlayChiCoinsEarned" class="text-base md:text-lg font-bold text-amber-300 font-monogram mt-1 border-t border-white/10 pt-1">🪙 +0 ChiCoins</p>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <p id="overlayInstructions" class="text-base md:text-lg max-w-[340px] mb-3 text-gray-100 leading-relaxed font-monogram shrink-0"></p>
+                    
+                    <!-- CONTENEDOR DE BOTÓN DE INICIO / REINICIO -->
+                    <div id="restartBtnContainer" class="flex flex-col items-center gap-2 mt-1 shrink-0 pb-1">
+                        <!-- Icono circular original de Dino -->
+                        <canvas id="restartSpriteCanvas" width="72" height="64" class="w-[44px] h-[38px] cursor-pointer hover:scale-110 active:scale-95 transition-transform hidden" style="filter: invert(0.7) brightness(1.2);"></canvas>
+                        
+                        <!-- Botón de texto para iniciar y reiniciar de forma segura -->
+                        <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-8 py-2.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
+                            Play
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Capa de líneas CRT Scanlines -->
+                <div class="crt-screen absolute inset-0 pointer-events-none z-10 rounded-2xl"></div>
+            </div>
+        </div>
+
+        <!-- Barra inferior informativa -->
+        <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center text-white text-xs font-monogram text-sm">
+            <div>
+                <p class="text-gray-400 uppercase font-semibold">Current Score</p>
+                <p class="text-lg md:text-xl font-extrabold text-olivo-claro font-monogram" id="currentGameScore">00000</p>
+            </div>
+            <div class="text-center">
+                <p class="text-gray-400 uppercase font-semibold">GamerTag</p>
+                <p class="text-lg md:text-xl font-extrabold text-olivo-claro font-monogram" id="bottomGamerTag">Player</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400 uppercase font-semibold">Status</p>
+                <p class="text-sm md:text-base font-bold font-monogram" id="currentGameState">Ready to start</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GLOBAL Y LÓGICA DE JUEGOS -->
+    <script src="../js/juegos.js?v=16.0" defer></script>
+</body>
+</html>

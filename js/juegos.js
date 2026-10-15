@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
             puebla: 200
         };
 
+        const isEnLang = document.documentElement.lang === "en";
+        const assetPrefix = isEnLang ? "../" : "";
+
         let playerGamertag = "";
         let activeGame = null;
         let gameInterval = null;
@@ -45,76 +48,76 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
-        sprite.src = 'ImagenesWeb/Juegos/Dino/Optimizadas/sprites.webp';
+        sprite.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/sprites.webp';
 
         // CARGA DE SPRITES EN PNG
         const imgCalendar = new Image();
-        imgCalendar.src = 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp';
+        imgCalendar.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp';
 
         const imgClock = new Image();
-        imgClock.src = 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp';
+        imgClock.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp';
 
         const imgEmail = new Image();
-        imgEmail.src = 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp';
+        imgEmail.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp';
 
         const imgGamepad = new Image();
-        imgGamepad.src = 'ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp';
+        imgGamepad.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp';
 
         // SPRITES PARA JUEGO 2: LA CHICA
         const imgChicaCrown = new Image();
-        imgChicaCrown.src = 'SpritesNecesarios/Hats_Crown_Queen_Tiara.png';
+        imgChicaCrown.src = assetPrefix + 'SpritesNecesarios/Hats_Crown_Queen_Tiara.png';
 
         const imgChicaHeart = new Image();
-        imgChicaHeart.src = 'SpritesNecesarios/Boardgames_Card_Suit_Hearts.png';
+        imgChicaHeart.src = assetPrefix + 'SpritesNecesarios/Boardgames_Card_Suit_Hearts.png';
 
         const imgChicaRing = new Image();
-        imgChicaRing.src = 'ImagenesWeb/Optimizadas/icono_anillo_compromiso.webp';
+        imgChicaRing.src = assetPrefix + 'ImagenesWeb/Optimizadas/icono_anillo_compromiso.webp';
 
         const imgChicaCloud = new Image();
-        imgChicaCloud.src = 'SpritesNecesarios/Weather_Thunderstorm_Cloud_Lightning_Zap.png';
+        imgChicaCloud.src = assetPrefix + 'SpritesNecesarios/Weather_Thunderstorm_Cloud_Lightning_Zap.png';
 
         // SPRITES PARA JUEGO 3: MADDIE
         const imgMaddiePoop = new Image();
-        imgMaddiePoop.src = 'SpritesNecesarios/Emoji_Poop_Shite_Doodoo_Poopoo_Brown_Mousse_Cream_Creme.png';
+        imgMaddiePoop.src = assetPrefix + 'SpritesNecesarios/Emoji_Poop_Shite_Doodoo_Poopoo_Brown_Mousse_Cream_Creme.png';
 
         // SPRITES PARA JUEGO 4: PUEBLA
 
         const imgTrafficCar1 = new Image();
-        imgTrafficCar1.src = 'SpritesNecesarios/coches_uno.png';
+        imgTrafficCar1.src = assetPrefix + 'SpritesNecesarios/coches_uno.png';
 
         const imgTrafficCar3 = new Image();
-        imgTrafficCar3.src = 'SpritesNecesarios/coches_tres.png';
+        imgTrafficCar3.src = assetPrefix + 'SpritesNecesarios/coches_tres.png';
 
         const imgTrafficCar4 = new Image();
-        imgTrafficCar4.src = 'SpritesNecesarios/coches_cuatro.png';
+        imgTrafficCar4.src = assetPrefix + 'SpritesNecesarios/coches_cuatro.png';
 
         const imgTrafficCar2 = new Image();
-        imgTrafficCar2.src = 'SpritesNecesarios/coche_dos.png';
+        imgTrafficCar2.src = assetPrefix + 'SpritesNecesarios/coche_dos.png';
 
         const imgPueblaHeart = new Image();
-        imgPueblaHeart.src = 'SpritesNecesarios/RPG_Stat_HP_Health_Heart_Small.png';
+        imgPueblaHeart.src = assetPrefix + 'SpritesNecesarios/RPG_Stat_HP_Health_Heart_Small.png';
 
         const imgPueblaMap = new Image();
-        imgPueblaMap.src = 'SpritesNecesarios/Map_Markers_Travel_Map_Folded.png';
+        imgPueblaMap.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Travel_Map_Folded.png';
 
         const imgPueblaPothole = new Image();
-        imgPueblaPothole.src = 'SpritesNecesarios/Map_Markers_Hole_Trap.png';
+        imgPueblaPothole.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Hole_Trap.png';
 
         const imgPueblaBarrier = new Image();
-        imgPueblaBarrier.src = 'SpritesNecesarios/Map_Markers_Building_Stone_Wall_Fortification.png';
+        imgPueblaBarrier.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Building_Stone_Wall_Fortification.png';
 
         // PAISAJE DINÁMICO PARA CAMINO A PUEBLA
         const imgSceneryTree = new Image();
-        imgSceneryTree.src = 'SpritesNecesarios/Map_Markers_Tree_Forest_Pine.png';
+        imgSceneryTree.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Tree_Forest_Pine.png';
 
         const imgSceneryCactus = new Image();
-        imgSceneryCactus.src = 'SpritesNecesarios/Map_Markers_Cactus_Desert.png';
+        imgSceneryCactus.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Cactus_Desert.png';
 
         const imgSceneryLamp = new Image();
-        imgSceneryLamp.src = 'SpritesNecesarios/Map_Markers_Building_Lamp_Post_1.png';
+        imgSceneryLamp.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Building_Lamp_Post_1.png';
 
         const imgSceneryChurch = new Image();
-        imgSceneryChurch.src = 'SpritesNecesarios/Map_Markers_Building_Church_Faith_Temple.png';
+        imgSceneryChurch.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Building_Church_Faith_Temple.png';
 
         // Comprobaciones de error de carga para los sprites
         const handleImageError = (name, src) => {
@@ -578,7 +581,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!tbody) return;
 
-            const tabInfo = {
+            const tabInfo = isEnLang ? {
+                general: { col: "Total Score", sub: "Real-time global leaderboard across all 4 mini-games" },
+                chico: { col: "High Score (Pts)", sub: "Chicosaurus (Groom) leaderboard" },
+                chica: { col: "High Score (Pts)", sub: "Love in the Air (Bride) leaderboard" },
+                maddie: { col: "High Score (Clicks)", sub: "Whack-a-Maddie! leaderboard" },
+                puebla: { col: "High Score (Pts)", sub: "Road to Puebla leaderboard" }
+            } : {
                 general: { col: "Puntos Totales", sub: "Ranking general de puntajes acumulados en todos los minijuegos" },
                 chico: { col: "Récord (Pts)", sub: "Ranking de puntuación en Chicosaurio (Chico)" },
                 chica: { col: "Récord (Pts)", sub: "Ranking de puntuación en Atrapa el Amor (Chica)" },
@@ -609,7 +618,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const list = Object.values(uniqueMap);
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Aún no hay récords registrados. ¡Sé el primero!</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">${isEnLang ? "No records recorded yet. Be the first!" : "Aún no hay récords registrados. ¡Sé el primero!"}</td></tr>`;
                 return;
             }
 
@@ -640,11 +649,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const scoreVal = getScoreVal(player, currentLeaderboardTab);
                 const unit = currentLeaderboardTab === "maddie" ? "clics" : "pts";
                 const realNameDisplay = player.realName && player.realName !== "Invitado No Registrado" ? ` <span class="text-xs font-normal text-gray-500">(${player.realName})</span>` : '';
+                const youBadge = isEnLang ? ' <span class="text-xs font-bold text-amber-700">(You)</span>' : ' <span class="text-xs font-bold text-amber-700">(Tú)</span>';
 
                 html += `
                     <tr class="${rowClass} hover:bg-gray-50 transition">
                         <td class="py-2.5 px-2">${posBadge}</td>
-                        <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || 'Anónimo'}${realNameDisplay}${isCurrent ? ' <span class="text-xs font-bold text-amber-700">(Tú)</span>' : ''}</td>
+                        <td class="py-2.5 px-2 font-medium text-gray-800">${player.gamerTag || (isEnLang ? 'Anonymous' : 'Anónimo')}${realNameDisplay}${isCurrent ? youBadge : ''}</td>
                         <td class="py-2.5 px-2 text-right font-monogram font-bold text-amber-800 text-base">${scoreVal.toLocaleString()} ${unit}</td>
                     </tr>
                 `;
@@ -671,7 +681,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const val = document.getElementById("adminPasswordInput").value.trim();
             if (val.toLowerCase() === "souvenir") {
                 sessionStorage.setItem("bodachicos_admin_auth", "true");
-                window.location.href = "admin.html";
+                window.location.href = isEnLang ? "../admin.html" : "admin.html";
             } else {
                 document.getElementById("adminAuthError").classList.remove("hidden");
             }
@@ -700,7 +710,7 @@ document.addEventListener("DOMContentLoaded", () => {
             playerRealName = savedReal || "";
             playerGuestId = savedGuestId || "";
 
-            const tagDisplay = playerGamertag ? playerGamertag : "Sin registrar";
+            const tagDisplay = playerGamertag ? playerGamertag : (isEnLang ? "Unregistered" : "Sin registrar");
             document.getElementById("playerGamertag").innerText = tagDisplay;
             document.getElementById("bottomGamerTag").innerText = tagDisplay;
 
@@ -906,7 +916,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const val = document.getElementById("gamertagInput").value.trim();
             if (!val) {
                 if (errorMsg) {
-                    errorMsg.innerText = "❌ Escribe un GamerTag (Apodo) para jugar.";
+                    errorMsg.innerText = isEnLang ? "❌ Enter a GamerTag (Nickname) to play." : "❌ Escribe un GamerTag (Apodo) para jugar.";
                     errorMsg.classList.remove("hidden");
                 }
                 return;
@@ -917,14 +927,14 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (isSelectVisible && partyMembersData.length === 0) {
                 if (errorMsg) {
-                    errorMsg.innerText = "⌛ Espera a que cargue la invitación o revisa tu conexión.";
+                    errorMsg.innerText = isEnLang ? "⌛ Please wait while invitation loads or check connection." : "⌛ Espera a que cargue la invitación o revisa tu conexión.";
                     errorMsg.classList.remove("hidden");
                 }
                 return;
             }
             if (isSelectVisible && !selectedRealName) {
                 if (errorMsg) {
-                    errorMsg.innerText = "👆 Por favor selecciona qué invitado eres de la lista superior.";
+                    errorMsg.innerText = isEnLang ? "👆 Please select who you are from the list above." : "👆 Por favor selecciona qué invitado eres de la lista superior.";
                     errorMsg.classList.remove("hidden");
                 }
                 return;
@@ -932,7 +942,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const btn = document.getElementById("saveGamerTagBtn");
             if (btn) {
-                btn.innerText = "Conectando al Arcade...";
+                btn.innerText = isEnLang ? "Connecting to Arcade..." : "Conectando al Arcade...";
                 btn.disabled = true;
                 btn.classList.add("opacity-70", "cursor-wait");
             }
@@ -985,7 +995,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (btn) {
-                btn.innerText = "Comenzar a Jugar 🎮";
+                btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
                 btn.disabled = false;
                 btn.classList.remove("opacity-70", "cursor-wait");
             }
@@ -1045,11 +1055,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if (isGamePassed) {
-                    badge.innerText = "¡Completado! ✓";
+                    badge.innerText = isEnLang ? "Completed! ✓" : "¡Completado! ✓";
                     badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-green-100 text-green-700 font-monogram text-sm";
                     totalMetasSuperadas++;
                 } else {
-                    badge.innerText = "Pendiente";
+                    badge.innerText = isEnLang ? "Pending" : "Pendiente";
                     badge.className = "text-xs px-2 py-1 rounded-full font-bold bg-yellow-100 text-yellow-700 font-monogram text-sm";
                 }
             });
@@ -1064,10 +1074,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const prizeStatus = document.getElementById("prizeStatus");
             if (totalMetasSuperadas === 4) {
-                prizeStatus.innerHTML = "🏆 ¡Premio Desbloqueado! Toma una captura y canjéala el día de la boda.";
+                prizeStatus.innerHTML = isEnLang 
+                    ? "🏆 Prize Unlocked! Take a screenshot and redeem it at our wedding." 
+                    : "🏆 ¡Premio Desbloqueado! Toma una captura y canjéala el día de la boda.";
                 prizeStatus.className = "bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md font-monogram";
             } else {
-                prizeStatus.innerHTML = `Progreso: ${totalMetasSuperadas}/4 metas`;
+                prizeStatus.innerHTML = isEnLang ? `Progress: ${totalMetasSuperadas}/4 targets` : `Progreso: ${totalMetasSuperadas}/4 metas`;
                 prizeStatus.className = "bg-gray-100 text-gray-500 px-3 py-2 rounded-xl text-xs font-semibold text-center";
             }
 
@@ -1099,7 +1111,12 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("gameContainer").classList.remove("hidden");
             document.body.style.overflow = "hidden"; // Deshabilita scroll de fondo
 
-            const gameTitles = {
+            const gameTitles = isEnLang ? {
+                chico: "Chicosaurus",
+                chica: "Love in the Air",
+                maddie: "Whack-a-Maddie!",
+                puebla: "Road to Puebla: OutRun 80s"
+            } : {
                 chico: "Chicosaurio",
                 chica: "Atrapa el Amor",
                 maddie: "Atrapa a Maddie",
@@ -1124,7 +1141,7 @@ document.addEventListener("DOMContentLoaded", () => {
             clearInterval(gameInterval);
             score = 0;
             
-            currentGameState.innerText = "Esperando inicio";
+            currentGameState.innerText = isEnLang ? "Waiting to start" : "Esperando inicio";
             currentGameScore.innerText = "00000";
 
             canvas.classList.add("hidden");
@@ -1138,20 +1155,28 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Restauramos el botón estándar con el texto original
             const startBtn = document.getElementById("startGameBtn");
-            startBtn.innerText = "Jugar";
+            startBtn.innerText = isEnLang ? "Play" : "Jugar";
             startBtn.classList.remove("hidden");
             startBtn.onclick = startActiveGame;
 
             const targetScore = METAS[activeGame];
             let inst = "";
             if (activeGame === 'chico') {
-                inst = `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-xs py-2 px-3 rounded-xl text-center font-bold tracking-wider mb-3 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
+                inst = isEnLang 
+                    ? `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-xs py-2 px-3 rounded-xl text-center font-bold tracking-wider mb-3 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONNECTING TO OUR LOVE...</div>Jump by tapping the screen or using SPACE to dodge meetings <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-5 h-5 mx-1 object-contain">, alarms <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-5 h-5 mx-1 object-contain"> and emails <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-5 h-5 mx-1 object-contain">. Catch controllers <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-5 h-5 mx-1 object-contain"> for 15 bonus pts.<br>Target: ${targetScore} pts.`
+                    : `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-xs py-2 px-3 rounded-xl text-center font-bold tracking-wider mb-3 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
-                inst = `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos de compromiso (💍). ¡Esquiva las tormentas eléctricas (🌩️)!<br>Meta: ${targetScore} pts.`;
+                inst = isEnLang 
+                    ? `Move Mariana (👰🏻) by tapping or dragging your finger to catch falling hearts (💖) and engagement rings (💍). Dodge storm clouds (🌩️)!<br>Target: ${targetScore} pts.`
+                    : `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos de compromiso (💍). ¡Esquiva las tormentas eléctricas (🌩️)!<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
-                inst = `Toca a Maddie (🐶) cada vez que asome la cabeza por los hoyos de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
+                inst = isEnLang 
+                    ? `Tap Maddie (🐶) whenever she pops her head out of the garden holes. You have 30 seconds. Watch out for poop (💩)!<br>Target: ${targetScore} clicks.`
+                    : `Toca a Maddie (🐶) cada vez que asome la cabeza por los hoyos de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
             } else if (activeGame === 'puebla') {
-                inst = `Usa las flechas ⬅️ / ➡️ o toca la pantalla para conducir a Puebla. Rebasa al tráfico y esquiva baches (🕳️) u obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
+                inst = isEnLang 
+                    ? `Use arrow keys ⬅️ / ➡️ or tap screen edges to drive to Puebla. Dodge traffic, potholes (🕳️) and construction (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: ${targetScore} pts.`
+                    : `Usa las flechas ⬅️ / ➡️ o toca la pantalla para conducir a Puebla. Rebasa al tráfico y esquiva baches (🕳️) u obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
             }
             
             overlayInstructions.innerHTML = inst; 
@@ -1197,16 +1222,16 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Iniciar música de fondo según el juego
             if (activeGame === 'chico') {
-                bgMusic.src = 'Music/juego_dino.mp3';
+                bgMusic.src = assetPrefix + 'Music/juego_dino.mp3';
                 bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
             } else if (activeGame === 'chica') {
-                bgMusic.src = 'Music/juego_novia.mp3';
+                bgMusic.src = assetPrefix + 'Music/juego_novia.mp3';
                 bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
             } else if (activeGame === 'maddie') {
-                bgMusic.src = 'Music/juego_maddie.mp3';
+                bgMusic.src = assetPrefix + 'Music/juego_maddie.mp3';
                 bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
             } else if (activeGame === 'puebla') {
-                bgMusic.src = 'Music/juego_coche.mp3';
+                bgMusic.src = assetPrefix + 'Music/juego_coche.mp3';
                 bgMusic.play().catch(e => console.log('Bloqueo de audio', e));
             } else {
                 bgMusic.pause();
@@ -1216,7 +1241,7 @@ document.addEventListener("DOMContentLoaded", () => {
             gameRunning = true;
             gameStartTime = Date.now();
             score = 0;
-            currentGameState.innerText = "Jugando";
+            currentGameState.innerText = isEnLang ? "Playing" : "Jugando";
 
             if (activeGame === 'chico') {
                 canvas.classList.remove("hidden");
@@ -1308,10 +1333,10 @@ document.addEventListener("DOMContentLoaded", () => {
             // Cambiar titulo si ganamos en puebla
             const titleText = document.getElementById("gameOverTitleText");
             if (activeGame === 'puebla' && isSuccess) {
-                titleText.innerText = "¡LLEGASTE!";
+                titleText.innerText = isEnLang ? "YOU ARRIVED!" : "¡LLEGASTE!";
                 titleText.className = "text-3xl md:text-4xl font-monogram font-bold tracking-widest text-[#16a34a] animate-pulse";
             } else if (isSuccess) {
-                titleText.innerText = "¡VICTORIA!";
+                titleText.innerText = isEnLang ? "VICTORY!" : "¡VICTORIA!";
                 titleText.className = "text-3xl md:text-4xl font-monogram font-bold tracking-widest text-[#f1c40f] animate-pulse";
             } else {
                 titleText.innerText = "GAME OVER";
@@ -1320,7 +1345,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             overlayScoreBox.classList.remove("hidden");
             overlayFinalScore.innerText = finalScore.toString().padStart(5, '0');
-            overlayMetaCompare.innerText = `Meta requerida: ${meta} ${activeGame === 'maddie' ? 'clics' : 'pts'}`;
+            const unitLabel = activeGame === 'maddie' ? (isEnLang ? 'clicks' : 'clics') : 'pts';
+            overlayMetaCompare.innerText = isEnLang ? `Required target: ${meta} ${unitLabel}` : `Meta requerida: ${meta} ${unitLabel}`;
             
             const coinsEarnedEl = document.getElementById("overlayChiCoinsEarned");
             if (coinsEarnedEl) {
@@ -1331,7 +1357,7 @@ document.addEventListener("DOMContentLoaded", () => {
             drawGameOverOverlaySprites();
 
             const startBtn = document.getElementById("startGameBtn");
-            startBtn.innerText = "Jugar de nuevo";
+            startBtn.innerText = isEnLang ? "Play Again" : "Jugar de nuevo";
             startBtn.classList.remove("hidden");
             startBtn.onclick = startActiveGame;
             
@@ -1344,19 +1370,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 const distDriven = distanceKm.toFixed(1);
                 const diffKm = Math.max(0, (120.0 - distanceKm)).toFixed(1);
                 if (isSuccess) {
-                    resultMessage = `🏆 ¡BIENVENIDO A CHOLULA! Condujiste los 120 km completos, llegaste a Cholula y ganaste +${coinsEarned.toLocaleString()} ChiCoins.`;
-                    currentGameState.innerText = "¡Meta lograda!";
+                    resultMessage = isEnLang 
+                        ? `🏆 WELCOME TO CHOLULA! You completed the full 120 km, arrived at Cholula, and won +${coinsEarned.toLocaleString()} ChiCoins.`
+                        : `🏆 ¡BIENVENIDO A CHOLULA! Condujiste los 120 km completos, llegaste a Cholula y ganaste +${coinsEarned.toLocaleString()} ChiCoins.`;
+                    currentGameState.innerText = isEnLang ? "Target achieved!" : "¡Meta lograda!";
                 } else {
-                    resultMessage = `💥 ¡CHOCASTE ANTES DE LLEGAR! Recorriste ${distDriven} km de 120 km (te faltaron ${diffKm} km para llegar a Cholula). Puntuación: ${finalScore} pts. ¡Inténtalo de nuevo!`;
-                    currentGameState.innerText = "Buen intento";
+                    resultMessage = isEnLang 
+                        ? `💥 CRASHED BEFORE ARRIVING! You drove ${distDriven} km of 120 km (${diffKm} km left to reach Cholula). Score: ${finalScore} pts. Try again!`
+                        : `💥 ¡CHOCASTE ANTES DE LLEGAR! Recorriste ${distDriven} km de 120 km (te faltaron ${diffKm} km para llegar a Cholula). Puntuación: ${finalScore} pts. ¡Inténtalo de nuevo!`;
+                    currentGameState.innerText = isEnLang ? "Good try" : "Buen intento";
                 }
             } else if (isSuccess) {
-                resultMessage = `🎉 ¡Reto superado con éxito! Lograste sobrepasar el objetivo.`;
-                currentGameState.innerText = "¡Meta lograda!";
+                resultMessage = isEnLang ? `🎉 Challenge conquered! You exceeded the target.` : `🎉 ¡Reto superado con éxito! Lograste sobrepasar el objetivo.`;
+                currentGameState.innerText = isEnLang ? "Target achieved!" : "¡Meta lograda!";
             } else {
                 const diff = meta - finalScore;
-                resultMessage = `Te quedaste a ${diff} ${activeGame === 'maddie' ? 'clics' : 'puntos'} de alcanzar la meta. ¡No te rindas!`;
-                currentGameState.innerText = "Buen intento";
+                const unitStr = activeGame === 'maddie' ? (isEnLang ? 'clicks' : 'clics') : (isEnLang ? 'points' : 'puntos');
+                resultMessage = isEnLang 
+                    ? `You were only ${diff} ${unitStr} away from the target. Don't give up!`
+                    : `Te quedaste a ${diff} ${unitStr} de alcanzar la meta. ¡No te rindas!`;
+                currentGameState.innerText = isEnLang ? "Good try" : "Buen intento";
             }
 
             overlayInstructions.innerHTML = resultMessage;
