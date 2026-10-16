@@ -337,25 +337,47 @@ document.addEventListener("DOMContentLoaded", () => {
                     osc2.stop(now + 0.22);
                     return;
                 } else if (type === 'wedding_horn') {
-                    // Claxon festivo de boda: bip bip bip-bip-bip!
-                    const hornPattern = [
-                        { f: 440, t: 0, d: 0.12 },
-                        { f: 440, t: 0.18, d: 0.12 },
-                        { f: 440, t: 0.38, d: 0.09 },
-                        { f: 440, t: 0.49, d: 0.09 },
-                        { f: 440, t: 0.60, d: 0.24 },
+                    // Claxon automotriz dual-tone realista: 415 Hz y 495 Hz con textura metálica y filtro resonante
+                    const hornBeeps = [
+                        { t: 0, d: 0.13 },
+                        { t: 0.18, d: 0.13 },
+                        { t: 0.38, d: 0.08 },
+                        { t: 0.49, d: 0.08 },
+                        { t: 0.60, d: 0.30 }
                     ];
-                    hornPattern.forEach(h => {
-                        const hOsc = audioCtx.createOscillator();
-                        const hGain = audioCtx.createGain();
-                        hOsc.type = 'square';
-                        hOsc.frequency.setValueAtTime(h.f, now + h.t);
-                        hGain.gain.setValueAtTime(0.18, now + h.t);
-                        hGain.gain.exponentialRampToValueAtTime(0.01, now + h.t + h.d - 0.02);
-                        hOsc.connect(hGain);
-                        hGain.connect(audioCtx.destination);
-                        hOsc.start(now + h.t);
-                        hOsc.stop(now + h.t + h.d);
+                    hornBeeps.forEach(b => {
+                        const start = now + b.t;
+                        const duration = b.d;
+                        const end = start + duration;
+
+                        const filter = audioCtx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(2400, start);
+                        filter.Q.setValueAtTime(2.2, start);
+                        filter.connect(audioCtx.destination);
+
+                        const hornGain = audioCtx.createGain();
+                        hornGain.gain.setValueAtTime(0.001, start);
+                        hornGain.gain.linearRampToValueAtTime(0.20, start + 0.015);
+                        hornGain.gain.setValueAtTime(0.20, end - 0.02);
+                        hornGain.gain.linearRampToValueAtTime(0.001, end);
+                        hornGain.connect(filter);
+
+                        // Tono grave (415 Hz)
+                        const osc1 = audioCtx.createOscillator();
+                        osc1.type = 'sawtooth';
+                        osc1.frequency.setValueAtTime(415, start);
+                        osc1.connect(hornGain);
+                        osc1.start(start);
+                        osc1.stop(end);
+
+                        // Tono agudo (495 Hz - intervalo de tercera menor de bocina automotriz)
+                        const osc2 = audioCtx.createOscillator();
+                        osc2.type = 'sawtooth';
+                        osc2.frequency.setValueAtTime(495, start);
+                        osc2.connect(hornGain);
+                        osc2.start(start);
+                        osc2.stop(end);
                     });
                     return;
                 }
@@ -1238,8 +1260,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const prizeStatus = document.getElementById("prizeStatus");
             if (totalMetasSuperadas === 4) {
                 prizeStatus.innerHTML = isEnLang 
-                    ? "🏆 Prize Unlocked! (+500 Bonus ChiCoins) Redeem it at our wedding." 
-                    : "🏆 ¡Premio Desbloqueado! (+500 ChiCoins de Bono) Canjéalo el día de la boda.";
+                    ? "🏆 Prize Unlocked! (+500 Bonus ChiCoins) Redeem your prize at our wedding." 
+                    : "🏆 ¡Premio Desbloqueado! (+500 ChiCoins de Bono) Canjea tu premio el día de la boda.";
                 prizeStatus.className = "bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md font-monogram";
             } else {
                 prizeStatus.innerHTML = isEnLang ? `Progress: ${totalMetasSuperadas}/4 targets` : `Progreso: ${totalMetasSuperadas}/4 metas`;
@@ -2260,7 +2282,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // ==========================================
         // JUEGO 3: MADDIE (¡Atrapa a la perrita! Obstáculo: Popós 💩)
         let maddieTimer, activeHole, activeDistractorHole, lastActiveHole, timeRemaining;
-        let activeGoldenHole = -1, goldenItemType = "🦴✨";
+        let activeGoldenHole = -1, goldenItemType = "🦴";
         let lastPoopTapHole = -1, lastPoopTapTime = 0, poopPenaltyTimeout = null;
         
         function initMaddieGame() {
@@ -2281,7 +2303,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Usamos la nueva clase de hoyo de tierra de alta calidad
                 hole.className = "maddie-hole";
                 hole.id = "hole-" + i;
-                hole.onclick = () => handleHoleClick(i);
+                // onpointerdown para respuesta instantánea (0ms) en móviles y PC sin retrasos de click
+                hole.onpointerdown = (e) => {
+                    e.preventDefault();
+                    handleHoleClick(i);
+                };
                 maddieGrid.appendChild(hole);
             }
 
@@ -2327,6 +2353,7 @@ document.addEventListener("DOMContentLoaded", () => {
             activeHole = -1;
             activeDistractorHole = -1;
             activeGoldenHole = -1;
+            lastPoopTapHole = -1;
 
             const isDecoyOnly = Math.random() < 0.25; // 25% de las veces sale ÚNICAMENTE una popó para destantear al jugador
 
@@ -2350,11 +2377,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 lastActiveHole = nextHole;
 
-                // EASTER EGG: 5% de probabilidad de Huesito Dorado o Rebanada de Pizza
+                // EASTER EGG: 5% de probabilidad de Hueso (Solo Hueso 🦴, sin estrellas, sin pizza)
                 const isGoldenChance = Math.random() < 0.05;
                 if (isGoldenChance) {
                     activeGoldenHole = nextHole;
-                    goldenItemType = Math.random() > 0.5 ? "🦴✨" : "🍕";
+                    goldenItemType = "🦴";
                     const next = document.getElementById("hole-" + nextHole);
                     if (next) {
                         next.innerHTML = `<span class='select-none pointer-events-none text-4xl md:text-5xl animate-bounce inline-block'>${goldenItemType}</span>`;
@@ -2384,13 +2411,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Dificultad balanceada y accesible vinculada a la puntuación
             let popDelay = Math.max(550, 1100 - (score * 18));
+            // Si salió el hueso, dura mucho menos tiempo en pantalla (¡más difícil y rápido!)
+            if (activeGoldenHole !== -1) {
+                popDelay = Math.max(300, Math.floor(popDelay * 0.45));
+            }
             maddieTimer = setTimeout(maddiePop, popDelay);
         }
 
         function handleHoleClick(index) {
             if (!gameRunning) return;
 
-            // EASTER EGG 1: HUESITO DORADO / PIZZA (+5 PTS)
+            // EASTER EGG 1: HUESO (+5 PTS)
             if (index === activeGoldenHole) {
                 score += 5;
                 playSound('bark');
@@ -2401,8 +2432,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const hitHole = document.getElementById("hole-" + index);
                 if (hitHole) {
-                    hitHole.innerHTML = "<span class='text-xs font-bold text-amber-500 animate-pop-up inline-block'>+5 MADDIE TIME!</span>";
-                    setTimeout(() => { if (hitHole) hitHole.innerHTML = ""; }, 500);
+                    hitHole.innerHTML = "<span class='text-xs font-bold text-amber-500 animate-pop-up inline-block'>+5 HUESO!</span>";
+                    setTimeout(() => { if (hitHole) hitHole.innerHTML = ""; }, 400);
                 }
                 activeGoldenHole = -1;
                 clearTimeout(maddieTimer);
@@ -2425,33 +2456,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 clearTimeout(maddieTimer);
                 maddiePop();
-                
-            } else if (index === activeDistractorHole) {
-                // EASTER EGG 2: DOBLE TAP A LA POPÓ (REFLEJO DE LIMPIARLA)
+                return;
+            }
+
+            if (index === activeDistractorHole) {
                 const now = Date.now();
-                if (lastPoopTapHole === index && (now - lastPoopTapTime < 380)) {
-                    // ¡Doble tap limpiador! Salva la penalización
+                const distHole = document.getElementById("hole-" + index);
+
+                // Si ya se había tocado este mismo hoyo y el segundo toque es muy rápido (< 220ms):
+                if (lastPoopTapHole === index && (now - lastPoopTapTime < 220)) {
+                    // ¡Doble toque súper rápido exitoso! Se cancela el castigo y aparece la escoba mágica
                     clearTimeout(poopPenaltyTimeout);
+                    clearTimeout(maddieTimer);
                     lastPoopTapHole = -1;
                     activeDistractorHole = -1;
                     playSound('coin');
                     triggerHaptic(40);
-                    const distHole = document.getElementById("hole-" + index);
                     if (distHole) {
                         distHole.innerHTML = "<span class='text-3xl inline-block animate-pop-up'>🧹✨</span>";
-                        setTimeout(() => { if (distHole) distHole.innerHTML = ""; }, 400);
+                        setTimeout(() => { 
+                            if (distHole) distHole.innerHTML = ""; 
+                            maddiePop();
+                        }, 320);
+                    } else {
+                        maddiePop();
                     }
                     return;
                 }
 
-                // Primer tap a la popó: dar margen de 380ms para segundo tap antes de aplicar castigo
+                // Primer toque a la popó:
+                // Pausamos el timer de maddiePop para que la popó NO desaparezca súbitamente bajo el dedo
+                clearTimeout(maddieTimer);
                 lastPoopTapHole = index;
                 lastPoopTapTime = now;
-                const distHole = document.getElementById("hole-" + index);
                 if (distHole) {
                     distHole.innerHTML = "<span class='select-none pointer-events-none text-4xl animate-bounce inline-block'>💩</span>";
                 }
 
+                // Ventana ultrarrápida de 220ms para el segundo toque; si no ocurre, se aplica el castigo inmediatamente
                 clearTimeout(poopPenaltyTimeout);
                 poopPenaltyTimeout = setTimeout(() => {
                     if (!gameRunning) return;
@@ -2463,7 +2505,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (distHole) distHole.innerHTML = "";
                     activeDistractorHole = -1;
                     lastPoopTapHole = -1;
-                }, 380);
+                    maddiePop();
+                }, 220);
             }
         }
 
@@ -2484,17 +2527,32 @@ document.addEventListener("DOMContentLoaded", () => {
             pueblaHornUsed = true;
             pueblaHornBannerTimer = 90; // ~3 seg a 30 fps
             playSound('wedding_horn');
-            triggerHaptic([50, 40, 50, 40, 80]);
+            triggerHaptic([60, 40, 60, 40, 90]);
 
-            // Despejar los 2 autos de tráfico más cercanos frente al jugador
+            // Despejar prioritariamente los autos que se encuentren en nuestro mismo carril frente a nosotros
             const aheadCars = roadObjects.filter(o => (o.isCar || o.trafficImg) && o.y < 430 && !o.isPulledAside);
-            aheadCars.sort((a, b) => b.y - a.y);
+            
+            // Prioridad: primero autos en el carril del jugador (targetLane), luego los más cercanos en Y
+            aheadCars.sort((a, b) => {
+                const aSameLane = (a.lane === targetLane) ? 1 : 0;
+                const bSameLane = (b.lane === targetLane) ? 1 : 0;
+                if (bSameLane !== aSameLane) return bSameLane - aSameLane;
+                return b.y - a.y;
+            });
+
             const targets = aheadCars.slice(0, 2);
 
-            targets.forEach(car => {
+            targets.forEach((car, idx) => {
                 car.isPulledAside = true;
-                car.isCar = false; // Se orillan al acotamiento: ya no colisionan
-                car.lane = (car.lane <= 1) ? -0.8 : 2.8;
+                car.isCar = false; // Se orillan al acotamiento: ya no colisionan jamás
+                // Despejar el carril actual del jugador
+                if (targetLane === 1) {
+                    car.lane = (idx === 0) ? -0.85 : 2.85;
+                } else if (targetLane === 0) {
+                    car.lane = 2.85;
+                } else {
+                    car.lane = -0.85;
+                }
                 car.speed = 1.0; // Descienden suavemente fuera de pantalla y NUNCA regresan
             });
         }
@@ -2569,14 +2627,14 @@ document.addEventListener("DOMContentLoaded", () => {
             let touchStartX = 0;
             let touchStartY = 0;
 
+            // En PC: los clics no cambian de carril (solo flechas/A-D); doble clic en el coche activa el claxon
             canvas.onclick = (e) => {
                 const rect = canvas.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const clickY = e.clientY - rect.top;
 
-                // Doble tap o click sobre el auto del jugador activa el Claxon Nupcial
                 const now = Date.now();
-                const isNearCar = Math.abs(clickX - playerX) < 50 && Math.abs(clickY - 440) < 50;
+                const isNearCar = Math.abs(clickX - playerX) < 65 && Math.abs(clickY - 440) < 65;
                 if (isNearCar && (now - lastCarTapTime < 450)) {
                     triggerPueblaHorn();
                     lastCarTapTime = 0;
@@ -2584,12 +2642,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 if (isNearCar) {
                     lastCarTapTime = now;
-                }
-
-                if (clickX < rect.width / 2) {
-                    changeLane(-1);
-                } else {
-                    changeLane(1);
                 }
             };
 
@@ -2604,6 +2656,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
+            // En móvil: el auto SOLO cambia de carril mediante swipe horizontal (no por toques en la pantalla)
             canvas.ontouchend = (e) => {
                 if (!e.changedTouches || e.changedTouches.length === 0) return;
                 const touchEndX = e.changedTouches[0].clientX;
@@ -2612,20 +2665,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 const diffY = touchEndY - touchStartY;
 
                 // Swipe horizontal consistente estilo Subway Surfers
-                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 22) {
                     if (diffX > 0) {
                         changeLane(1);
                     } else {
                         changeLane(-1);
                     }
-                } else if (Math.abs(diffX) < 15 && Math.abs(diffY) < 15) {
+                } else if (Math.abs(diffX) < 18 && Math.abs(diffY) < 18) {
+                    // Tap suave: NO cambia de carril. Si es doble tap sobre el auto, activa el claxon sin mover el coche
                     const rect = canvas.getBoundingClientRect();
                     const clickX = touchEndX - rect.left;
                     const clickY = touchEndY - rect.top;
 
-                    // Doble tap táctil sobre el auto del jugador activa el Claxon Nupcial
                     const now = Date.now();
-                    const isNearCar = Math.abs(clickX - playerX) < 55 && Math.abs(clickY - 440) < 55;
+                    const isNearCar = Math.abs(clickX - playerX) < 70 && Math.abs(clickY - 440) < 70;
                     if (isNearCar && (now - lastCarTapTime < 450)) {
                         triggerPueblaHorn();
                         lastCarTapTime = 0;
@@ -2633,12 +2686,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     if (isNearCar) {
                         lastCarTapTime = now;
-                    }
-
-                    if (clickX < rect.width / 2) {
-                        changeLane(-1);
-                    } else {
-                        changeLane(1);
                     }
                 }
             };
