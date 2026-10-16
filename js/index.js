@@ -321,7 +321,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 "PRODID:-//Boda Mariana y Memo//NONSGML v1.0//MX",
                 "CALSCALE:GREGORIAN",
                 "BEGIN:VEVENT",
-                "DTSTART:20270213T213000Z", // 15:30 CST en formato UTC
+                "DTSTART:20270213T210000Z", // 15:00 CST en formato UTC
                 "DTEND:20270214T053000Z",   // 23:30 CST en formato UTC
                 `SUMMARY:${summary}`,
                 `DESCRIPTION:${description}`,
@@ -707,13 +707,12 @@ if (!document.getElementById('cg-dynamic-styles')) {
             const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
             const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
 
-            // Dinamizar el placeholder del input de celebración especial
+            // Placeholder del input de celebración especial
             const celebracionInput = document.getElementById("rsvpCelebracionInput");
-            if (celebracionInput && integrantes.length > 0) {
-                const primerNombre = integrantes[0].split(" ")[0]; // Extraemos solo el primer nombre
+            if (celebracionInput) {
                 celebracionInput.placeholder = isEn 
-                    ? `E.g., ${primerNombre}'s anniversary, birthday...` 
-                    : `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
+                    ? "E.g., A birthday or wedding anniversary..." 
+                    : "Ej. Cumpleaños o aniversario de bodas...";
             }
 
             // CONTROL DEL ITINERARIO: Mostrar el Viernes 12 de Febrero en el Itinerario SOLO a invitados a la boda civil
@@ -745,7 +744,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
             if (isCivil) {
                 summaryHTML += `
                     <div style="margin-bottom: 14px;">
-                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥂 ${isEn ? "Civil Wedding (Friday, Feb 12):" : "Boda Civil (Viernes 12 de Feb):"}</h4>
+                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🥂 ${isEn ? "Civil Ceremony (Friday, February 12):" : "Boda Civil (Viernes 12 de Febrero):"}</h4>
                         <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${formatStatusText(data.estadoCivil)}</p>
                     </div>
                 `;
@@ -753,7 +752,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
 
             summaryHTML += `
                 <div style="margin-bottom: 14px;">
-                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">💒 ${isEn ? "Wedding & Celebration (Saturday, Feb 13):" : "Boda & Fiesta (Sábado 13 de Feb):"}</h4>
+                    <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">💒 ${isEn ? "Wedding & Celebration (Saturday, February 13):" : "Boda & Fiesta (Sábado 13 de Febrero):"}</h4>
                     <p style="margin: 0; padding-left: 10px; border-left: 3px solid var(--olivo-base); color: #333; font-weight: 500;">${formatStatusText(data.estadoSabado)}</p>
                 </div>
             `;
@@ -821,15 +820,11 @@ if (!document.getElementById('cg-dynamic-styles')) {
             const submitBtn = document.getElementById("rsvpSubmitBtn");
             if (!submitBtn) return;
             const isEn = document.documentElement.lang === "en";
-            const checkedRadios = document.querySelectorAll('#rsvpCustomForm input[type="radio"]:checked');
-            let hasAnyYes = false;
-            checkedRadios.forEach(r => {
-                if (r.value === "SI") hasAnyYes = true;
-            });
-            if (hasAnyYes) {
-                submitBtn.innerText = isEn ? "Confirm Attendance 💌" : "Confirmar Asistencia 💌";
+            const isEditing = currentRSVPData && (currentRSVPData.estadoSabado || currentRSVPData.confirmado);
+            if (isEditing) {
+                submitBtn.innerText = isEn ? "Save Changes 💌" : "Guardar Cambios 💌";
             } else {
-                submitBtn.innerText = isEn ? "Send Response 💌" : "Enviar Respuesta 💌";
+                submitBtn.innerText = isEn ? "Send RSVP 💌" : "Enviar Confirmación 💌";
             }
         }
 
@@ -858,20 +853,20 @@ if (!document.getElementById('cg-dynamic-styles')) {
             document.getElementById("rsvpFormContainer").style.display = "block";
 
             document.getElementById("rsvpGuestTitle").innerText = isEn ? `Hello ${data.nombre}!` : `¡Hola ${data.nombre}!`;
+            const pases = Number(data.pasesSabado) || 1;
             document.getElementById("rsvpPassesText").innerText = isEn 
-                ? `You have ${data.pasesSabado} seat(s) reserved for our wedding.` 
-                : `Tienen ${data.pasesSabado} pase(s) reservado(s) para nuestra boda.`;
+                ? (pases === 1 ? `We’ve reserved 1 seat for your party.` : `We’ve reserved ${pases} seats for your party.`)
+                : (pases === 1 ? `Tienes 1 pase reservado para nuestra boda.` : `Tienen ${pases} pases reservados para nuestra boda.`);
 
             const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
             const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
 
-            // Dinamizar el placeholder del input de celebración especial
+            // Placeholder del input de celebración especial
             const celebracionInput = document.getElementById("rsvpCelebracionInput");
-            if (celebracionInput && integrantes.length > 0) {
-                const primerNombre = integrantes[0].split(" ")[0]; // Extraemos solo el primer nombre
+            if (celebracionInput) {
                 celebracionInput.placeholder = isEn 
-                    ? `E.g., ${primerNombre}'s anniversary, birthday...` 
-                    : `Ej. Aniversario de ${primerNombre}, cumpleaños...`;
+                    ? "E.g., A birthday or wedding anniversary..." 
+                    : "Ej. Cumpleaños o aniversario de bodas...";
             }
 
             // CONTROL DEL ITINERARIO: Mostrar el Viernes 12 de Febrero en el Itinerario SOLO a invitados a la boda civil

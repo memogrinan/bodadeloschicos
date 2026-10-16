@@ -1235,8 +1235,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     : `Toca a Maddie (🐶) cuando asome de los hoyos. Tienes 30s. ¡Cuidado con popós (💩)!<br>Meta: ${targetScore} clics.`;
             } else if (activeGame === 'puebla') {
                 inst = isEnLang 
-                    ? `Use ⬅️ / ➡️, swipe left/right (recommended) or tap sides to drive to Puebla. Dodge traffic, potholes (🕳️) and works (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: ${targetScore} pts.`
-                    : `Usa flechas ⬅️ / ➡️, desliza tu dedo (swipe recomendado) o toca los lados para conducir a Puebla. Esquiva tráfico, baches (🕳️) u obras (🚧). ¡Toma chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
+                    ? `Use ⬅️ / ➡️, swipe left/right (recommended) or tap sides to drive to Puebla. Dodge traffic, potholes (🕳️) and works (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: 120 km to reach Cholula (200+ pts).`
+                    : `Usa flechas ⬅️ / ➡️, desliza tu dedo (swipe recomendado) o toca los lados para conducir a Puebla. Esquiva tráfico, baches (🕳️) u obras (🚧). ¡Toma chalupas (🌮) y turbos (⚡)!<br>Meta: 120 km para llegar a Cholula (200+ pts).`;
             }
             
             overlayInstructions.innerHTML = inst; 
