@@ -415,7 +415,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const db = (typeof firebase !== "undefined") ? firebase.database() : null;
 
-        // FÓRMULA LOGARÍTMICA DE CHI-COINS (1,000 base al cumplir la meta, +50% al 2x de la meta, curva logarítmica)
+        // FÓRMULA ASINTÓTICA ESTRICTA DE CHI-COINS:
+        // - Menor a la meta: proporcional a 1,000 base
+        // - Al cumplir la meta: 1,000 ChiCoins
+        // - Al duplicar el score (extraRatio = 1): gana solo +300 ChiCoins (1,300 total)
+        // - Curva con amortiguamiento fuerte y límite asintótico absoluto de +500 ChiCoins (tope máximo de 1,500 ChiCoins por juego)
         function calculateGameChiCoins(gameKey, scoreVal) {
             const target = METAS[gameKey] || 100;
             if (!scoreVal || scoreVal <= 0) return 0;
@@ -423,8 +427,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 return Math.floor((scoreVal / target) * 1000);
             }
             const extraRatio = (scoreVal - target) / target;
-            const extraCoins = Math.floor(500 * Math.log(1 + 1.718281828459 * extraRatio));
+            const extraCoins = Math.min(500, Math.floor(500 * (extraRatio / (extraRatio + (2 / 3)))));
             return 1000 + extraCoins;
+        }
+
+        function areAllMetasPassed() {
+            return Object.keys(METAS).every(g => {
+                const s = getScore(g);
+                if (g === 'puebla') {
+                    return localStorage.getItem("bodachicos_puebla_won") === "true" || s >= METAS.puebla;
+                }
+                return s >= METAS[g];
+            });
         }
 
         function getChiCoins(gameKey) {
@@ -439,6 +453,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             let bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
             if (isNaN(bonus)) bonus = 0;
+            if (areAllMetasPassed()) {
+                bonus += 500;
+            }
             return sum + bonus;
         }
 
@@ -485,6 +502,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
             if (isNaN(bonus)) bonus = 0;
+            if (areAllMetasPassed()) {
+                bonus += 500;
+            }
             totalCoins += bonus;
             let timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
             if (isNaN(timePlayed)) timePlayed = 0;
@@ -1075,8 +1095,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const prizeStatus = document.getElementById("prizeStatus");
             if (totalMetasSuperadas === 4) {
                 prizeStatus.innerHTML = isEnLang 
-                    ? "🏆 Prize Unlocked! Take a screenshot and redeem it at our wedding." 
-                    : "🏆 ¡Premio Desbloqueado! Toma una captura y canjéala el día de la boda.";
+                    ? "🏆 Prize Unlocked! (+500 Bonus ChiCoins) Take a screenshot and redeem it at our wedding." 
+                    : "🏆 ¡Premio Desbloqueado! (+500 ChiCoins de Bono) Toma una captura y canjéala el día de la boda.";
                 prizeStatus.className = "bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md font-monogram";
             } else {
                 prizeStatus.innerHTML = isEnLang ? `Progress: ${totalMetasSuperadas}/4 targets` : `Progreso: ${totalMetasSuperadas}/4 metas`;

@@ -198,10 +198,15 @@
             </div>
         </div>
 
-        <!-- AVISO ACLARATORIO DE CHICOINS -->
-        <div class="mt-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 text-xs text-amber-900 flex items-center gap-2">
-            <span class="text-base shrink-0">💡</span>
-            <span><strong>¿Cómo funcionan las ChiCoins?</strong> Solo sumas el máximo de ChiCoins obtenido con tu récord más alto en cada juego (no se acumulan infinitamente por cada partida jugada). ¡Cumple la meta de cada reto para asegurar 1,000 ChiCoins base!</span>
+        <!-- AVISO ACLARATORIO DE CHICOINS Y AUDIO -->
+        <div class="mt-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 text-xs text-amber-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div class="flex items-center gap-2">
+                <span class="text-base shrink-0">💡</span>
+                <span><strong>¿Cómo funcionan las ChiCoins?</strong> Sumas el máximo obtenido con tu récord en cada juego (no se acumulan por partida). ¡Supera las 4 metas para ganar un <strong>bono de +500 ChiCoins</strong>!</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[11px] font-bold text-amber-950 bg-amber-200/80 px-2.5 py-1 rounded-full shrink-0 shadow-xs">
+                <span>🔊</span> <span>¡Activa tu sonido!</span>
+            </div>
         </div>
 
         <!-- SECCIÓN DE JUEGOS (MENÚ PRINCIPAL) -->
@@ -472,6 +477,12 @@
                         <button id="startGameBtn" class="bg-[#52582f] hover:bg-opacity-90 text-white font-extrabold px-8 py-2.5 rounded-full text-xs tracking-wider uppercase transition-transform shadow-md">
                             Jugar
                         </button>
+
+                        <!-- AVISO DE SONIDO EN OVERLAY -->
+                        <div class="mt-2 text-[11px] md:text-xs text-amber-200/90 bg-white/10 px-3 py-1 rounded-full inline-flex items-center gap-1.5 font-monogram tracking-wide">
+                            <span class="animate-pulse">🔊</span>
+                            <span>Sube tu volumen o desactiva el silencio para escuchar la música retro</span>
+                        </div>
                     </div>
                 </div>
 
@@ -498,6 +509,6 @@
     </div>
 
     <!-- JAVASCRIPT GLOBAL Y LÓGICA DE JUEGOS -->
-<script src="js/juegos.js?v=17.0" defer></script>
+<script src="js/juegos.js?v=18.0" defer></script>
 </body>
 </html>
