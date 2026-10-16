@@ -468,6 +468,17 @@ document.addEventListener("DOMContentLoaded", () => {
         let partyMembersData = [];
         let playerRealName = "";
 
+        // Formatea el ID de invitado asegurando el prefijo GID_ para respetar ceros a la izquierda (ej. 001 -> GID_001)
+        function formatGuestId(rawId) {
+            if (!rawId) return "";
+            let s = String(rawId).trim();
+            if (!s) return "";
+            if (!s.startsWith("GID_")) {
+                s = "GID_" + s;
+            }
+            return s.replace(/[.#$/[\]]/g, "_");
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const pParam = urlParams.get("p") || urlParams.get("id") || urlParams.get("invitado");
         if (pParam) {
@@ -483,9 +494,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function syncPlayerToFirebase() {
             if (!db || !playerGamertag || !playerGamertag.trim()) return;
-            const cleanGuestId = playerGuestId ? playerGuestId.trim().replace(/[.#$/[\]]/g, "_") : "";
+            const cleanGuestId = formatGuestId(playerGuestId || localStorage.getItem("bodachicos_guest_id"));
             const cleanGamertag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
             const keyTag = cleanGuestId || cleanGamertag;
+            if (!keyTag) return;
             
             const scoresObj = {};
             const coinsObj = {};
@@ -626,15 +638,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (colTitle && tabInfo[currentLeaderboardTab]) colTitle.innerText = tabInfo[currentLeaderboardTab].col;
             if (subtitle && tabInfo[currentLeaderboardTab]) subtitle.innerText = tabInfo[currentLeaderboardTab].sub;
 
-            // Deduplicación por guestId o identidad real para que NUNCA aparezcan registros dobles
+            // Deduplicación por guestId inmutable
             const uniqueMap = {};
             Object.keys(rawPlayersData).forEach(k => {
                 const p = rawPlayersData[k];
                 if (!p || !p.gamerTag) return;
-                let dedupeKey = p.guestId || k;
-                if (p.realName && p.partyId && p.partyId !== "general") {
-                    dedupeKey = `${p.partyId}_${p.realName.trim().toLowerCase()}`;
-                }
+                const formattedId = formatGuestId(p.guestId);
+                const dedupeKey = formattedId || k;
                 if (!uniqueMap[dedupeKey]) {
                     uniqueMap[dedupeKey] = p;
                 } else {
@@ -733,13 +743,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function checkGamertag() {
-            const savedTag = localStorage.getItem("bodachicos_gamertag");
-            const savedReal = localStorage.getItem("bodachicos_real_name");
-            const savedGuestId = localStorage.getItem("bodachicos_guest_id");
+            let savedGuestId = localStorage.getItem("bodachicos_guest_id") || "";
+            if (savedGuestId === "GID_chicos_2") savedGuestId = "GID_001";
+            if (savedGuestId === "GID_chicos_3") savedGuestId = "GID_002";
+            playerGuestId = formatGuestId(savedGuestId);
+            if (playerGuestId) localStorage.setItem("bodachicos_guest_id", playerGuestId);
 
-            playerGamertag = savedTag || "";
-            playerRealName = savedReal || "";
-            playerGuestId = savedGuestId || "";
+            playerGamertag = localStorage.getItem("bodachicos_gamertag") || "";
+            playerRealName = localStorage.getItem("bodachicos_real_name") || "";
 
             const tagDisplay = playerGamertag ? playerGamertag : (isEnLang ? "Unregistered" : "Sin registrar");
             document.getElementById("playerGamertag").innerText = tagDisplay;
@@ -748,7 +759,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const applyRemoteData = (data, foundKey) => {
                 if (!data) return;
                 if (foundKey && !playerGuestId) {
-                    playerGuestId = data.guestId || foundKey;
+                    playerGuestId = formatGuestId(data.guestId || foundKey);
                     localStorage.setItem("bodachicos_guest_id", playerGuestId);
                 }
                 if (data.gamerTag) {
@@ -850,8 +861,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(currentPartyId)}`);
                     const data = await res.json();
                     if (data.status === "success") {
-                        if (data.integrantesData) {
-                            partyMembersData = data.integrantesData;
+                        if (data.integrantesData && data.integrantesData.length > 0) {
+                            partyMembersData = data.integrantesData.map(m => ({
+                                id: formatGuestId(m.id),
+                                name: (m.name || "").trim()
+                            }));
                         } else if (data.integrantes) {
                             partyMembersData = data.integrantes.toString().split(",").map(s => ({ id: "", name: s.trim() }));
                         }
@@ -911,7 +925,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function selectMemberChoice(idx, memberName, memberId) {
             selectedRealName = memberName;
-            playerGuestId = memberId || "";
+            playerGuestId = formatGuestId(memberId);
+            if (playerGuestId) {
+                localStorage.setItem("bodachicos_guest_id", playerGuestId);
+            }
+            if (memberName) {
+                localStorage.setItem("bodachicos_real_name", memberName);
+                playerRealName = memberName;
+            }
 
             const inputEl = document.getElementById("gamertagInput");
             if (inputEl) inputEl.value = ""; // Limpiar input al cambiar de persona
@@ -924,52 +945,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-            // AUTO-FILL INTELIGENTE:
-            // 1. Busca directamente bajo la llave inmutable players/[playerGuestId]
-            // 2. Si no, busca un nodo que tenga la propiedad guestId == playerGuestId
-            // 3. Si no, busca por realName (para cuentas viejas previas a esta migración)
+            // Consultar ÚNICAMENTE el ID inmutable en Firebase para obtener su GamerTag
             if (db && playerGuestId) {
-                const cleanGuestId = playerGuestId.trim().replace(/[.#$/[\]]/g, "_");
-                db.ref("players/" + cleanGuestId).once("value").then(snap => {
+                db.ref("players/" + playerGuestId).once("value").then(snap => {
                     const playerNode = snap.val();
                     if (playerNode && playerNode.gamerTag) {
                         fillInput(playerNode.gamerTag);
-                    } else {
-                        // 2. Búsqueda por propiedad guestId
-                        db.ref("players").orderByChild("guestId").equalTo(playerGuestId).once("value").then(guestSnap => {
-                            const gData = guestSnap.val();
-                            if (gData) {
-                                const keys = Object.keys(gData);
-                                if (keys.length > 0 && gData[keys[0]].gamerTag) {
-                                    fillInput(gData[keys[0]].gamerTag);
-                                    return;
-                                }
-                            }
-                            // 3. Fallback histórico por realName
-                            if (selectedRealName) {
-                                db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(legacySnap => {
-                                    const legacyData = legacySnap.val();
-                                    if (legacyData) {
-                                        const keys = Object.keys(legacyData);
-                                        if (keys.length > 0 && legacyData[keys[0]].gamerTag) {
-                                            fillInput(legacyData[keys[0]].gamerTag);
-                                        }
-                                    }
-                                });
-                            }
-                        });
                     }
                 }).catch(e => console.warn("No se pudo pre-cargar el Gamertag:", e));
-            } else if (db && selectedRealName) {
-                db.ref("players").orderByChild("realName").equalTo(selectedRealName).once("value").then(legacySnap => {
-                    const legacyData = legacySnap.val();
-                    if (legacyData) {
-                        const keys = Object.keys(legacyData);
-                        if (keys.length > 0 && legacyData[keys[0]].gamerTag) {
-                            fillInput(legacyData[keys[0]].gamerTag);
-                        }
-                    }
-                });
             }
 
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
@@ -1023,33 +1006,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            let cleanGuestId = playerGuestId ? playerGuestId.trim().replace(/[.#$/[\]]/g, "_") : "";
-            
-            // Si no tenemos playerGuestId pero sí selectedRealName y currentPartyId, buscar si ya existe un nodo en Firebase para esa persona
-            if (!cleanGuestId && selectedRealName && db) {
-                try {
-                    const snapAll = await db.ref("players").once("value");
-                    const allData = snapAll.val();
-                    if (allData) {
-                        for (const k of Object.keys(allData)) {
-                            const p = allData[k];
-                            if (p && p.partyId === currentPartyId && p.realName && p.realName.trim().toLowerCase() === selectedRealName.trim().toLowerCase()) {
-                                playerGuestId = p.guestId || k;
-                                cleanGuestId = playerGuestId.trim().replace(/[.#$/[\]]/g, "_");
-                                localStorage.setItem("bodachicos_guest_id", playerGuestId);
-                                break;
-                            }
-                        }
-                    }
-                } catch(e) {}
-            }
-
+            playerGuestId = formatGuestId(playerGuestId || localStorage.getItem("bodachicos_guest_id"));
             const cleanGamertag = val.trim().replace(/[.#$/[\]]/g, "_");
-            const keyTag = cleanGuestId || cleanGamertag;
+            const keyTag = playerGuestId || cleanGamertag;
 
-            if (db) {
+            if (db && keyTag) {
                 try {
-                    // Descargar puntajes existentes de la llave oficial a local (la BD es la fuente de verdad)
+                    // Descargar puntajes existentes de la llave oficial en Firebase (la BD es la fuente de verdad)
                     const snap = await db.ref("players/" + keyTag).once("value");
                     const data = snap.val();
                     
@@ -1067,39 +1030,17 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                         if (data.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", data.bonusCoins);
                         if (data.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", data.timePlayedSeconds);
-                    } else {
-                        // Si la llave de guestId aún no tenía scores, pero el jugador tenía un nodo con su gamertag viejo:
-                        const previousTag = (playerGamertag || val).trim().replace(/[.#$/[\]]/g, "_");
-                        if (previousTag && previousTag !== keyTag) {
-                            const oldSnap = await db.ref("players/" + previousTag).once("value");
-                            const oldData = oldSnap.val();
-                            if (oldData) {
-                                if (oldData.scores) {
-                                    Object.keys(oldData.scores).forEach(g => {
-                                        localStorage.setItem("bodachicos_score_" + g, oldData.scores[g]);
-                                    });
-                                }
-                                if (oldData.maxDistPuebla) {
-                                    localStorage.setItem("bodachicos_maxdist_puebla", parseFloat(oldData.maxDistPuebla).toFixed(1));
-                                }
-                                if (oldData.pueblaWon) {
-                                    localStorage.setItem("bodachicos_puebla_won", "true");
-                                }
-                                if (oldData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", oldData.bonusCoins);
-                                if (oldData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", oldData.timePlayedSeconds);
-                                // Borrar el nodo viejo inmediatamente
-                                await db.ref("players/" + previousTag).remove();
-                            }
-                        }
                     }
 
-                    // Limpieza proactiva: si existe un nodo nombrado como el gamertag previo que no coincida con keyTag, eliminarlo
-                    const oldTagKey = (playerGamertag || "").trim().replace(/[.#$/[\]]/g, "_");
-                    if (oldTagKey && oldTagKey !== keyTag) {
-                        db.ref("players/" + oldTagKey).remove().catch(() => {});
-                    }
-                    if (cleanGamertag && cleanGamertag !== keyTag) {
-                        db.ref("players/" + cleanGamertag).remove().catch(() => {});
+                    // Limpieza proactiva: si la llave oficial es el ID, eliminar cualquier nodo huérfano con el apodo
+                    if (playerGuestId) {
+                        const oldTagKey = (playerGamertag || "").trim().replace(/[.#$/[\]]/g, "_");
+                        if (oldTagKey && oldTagKey !== playerGuestId) {
+                            db.ref("players/" + oldTagKey).remove().catch(() => {});
+                        }
+                        if (cleanGamertag && cleanGamertag !== playerGuestId) {
+                            db.ref("players/" + cleanGamertag).remove().catch(() => {});
+                        }
                     }
                 } catch (e) {
                     console.warn("No se pudo descargar progreso previo o limpiar:", e);

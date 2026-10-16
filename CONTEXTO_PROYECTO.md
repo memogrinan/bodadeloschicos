@@ -45,10 +45,10 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
     "status": "success",
     "id": "chicos",
     "nombre": "Chicos",
-    "integrantes": "Memo, Mariana Cordero",
+    "integrantes": "Guillermo Griñán, Mariana Cordero",
     "integrantesData": [
-      { "id": "GID_chicos_2", "name": "Memo" },
-      { "id": "GID_chicos_3", "name": "Mariana Cordero" }
+      { "id": "001", "name": "Guillermo Griñán" },
+      { "id": "002", "name": "Mariana Cordero" }
     ],
     "invitaCivil": "SI",
     "pasesSabado": 2,
@@ -58,9 +58,10 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
     "celebracion": "..."
   }
   ```
-- **La Columna O del Google Sheet:**
-  - Si los novios escriben un ID personalizado (ej. `MEMO`, `INV-01`), el Apps Script lo toma directamente.
-  - Si la columna O está vacía, el Apps Script genera automáticamente un ID inmutable: `GID_{partyId}_{rowIndex}` (ej. `GID_chicos_2`).
+- **La Columna O del Google Sheet ("ID Arcade"):**
+  - Los novios asignan IDs fijos en texto con formato `001`, `002`, `003`... directamente en la Columna O.
+  - Se eliminó cualquier dependencia del índice de fila (`rowIndex`) para que reordenar o insertar filas en el Sheet nunca altere el ID de ningún invitado.
+  - El frontend normaliza automáticamente cualquier ID asegurando el prefijo **`GID_`** (`001` -> `GID_001`), evitando que ningún motor numérico o base de datos se coma los ceros a la izquierda.
 - **Itinerario Condicional:** El bloque `#itineraryFridayBlock` (Boda Civil del viernes 12) se muestra únicamente si `invitaCivil === "SI"`.
 
 ---
@@ -68,20 +69,20 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 ## 4. Arquitectura del Arcade y Base de Datos (Firebase)
 
 ### A. Llave Primaria Inmutable (`Guest ID`)
-- En Firebase Realtime Database, todos los registros dentro de `/players/` se guardan utilizando el **`Guest ID`** como llave primaria (ej. `/players/GID_chicos_2`).
-- **Por qué esta decisión es crítica:** En versiones iniciales se usaba el `GamerTag` o el `Nombre Real` como llave. Esto provocaba que si el usuario cambiaba de apodo ("Mermino" a "Mermin"), se creaba un nuevo registro duplicando al usuario en el Leaderboard y perdiendo sus puntos. Con el `Guest ID`:
-  - Si el invitado cambia de apodo 10 veces, solo se actualiza la propiedad `gamerTag` dentro del mismo nodo.
-  - Si los novios cambian el nombre del invitado en el Excel (ej. de "Guillermo Griñán" a "Memo"), su ID sigue siendo el mismo y el progreso nunca se pierde.
+- En Firebase Realtime Database, todos los registros dentro de `/players/` se guardan utilizando el **`Guest ID`** como llave primaria estricta (ej. `/players/GID_001`, `/players/GID_002`).
+- **Por qué esta decisión es crítica:**
+  - El ID es la única fuente de verdad inmutable.
+  - La clave del registro en Firebase ignora el nombre real o apodo de la persona para su identidad estructural.
+  - Si el invitado cambia de apodo o los novios ajustan el nombre en el Google Sheet, **solo se actualizan las propiedades del registro existente**, NUNCA se crea una nueva línea o registro.
 
 ### B. Autocompletado Inteligente en Modal (`selectMemberChoice`)
 - Cuando un invitado abre el modal de Gamertag y toca el botón con su nombre:
   1. El input se limpia brevemente para evitar confusiones.
-  2. Consulta a Firebase bajo `/players/{playerGuestId}`. Si ya tiene un `gamerTag`, lo rellena y parpadea en verde (`bg-green-50`).
-  3. Si no lo encuentra por ID directo (cuenta no migrada), busca por la propiedad interna `guestId`, y finalmente por `realName` como respaldo histórico.
+  2. Consulta a Firebase bajo `/players/{playerGuestId}` directamente por su ID inmutable. Si ya tiene un `gamerTag`, lo rellena y parpadea en verde (`bg-green-50`).
 
 ### C. Cazafantasmas y Deduplicación
-- En `saveGamerTag()`, el sistema busca y elimina cualquier nodo obsoleto que tuviera el Gamertag anterior o que compartiera el mismo `realName` con otra llave, purgando registros duplicados.
-- En `renderLeaderboardTable()`, el código agrupa por `guestId` antes de ordenar, garantizando matemáticamente que jamás aparezcan dos filas para la misma persona en el ranking.
+- En `saveGamerTag()`, el sistema busca y elimina cualquier nodo obsoleto que tuviera el Gamertag como clave, purgando registros duplicados.
+- En `renderLeaderboardTable()`, el código agrupa por `guestId` inmutable (`GID_001`, `GID_002`), garantizando matemáticamente que jamás aparezcan dos filas para la misma persona en el ranking.
 
 ---
 
