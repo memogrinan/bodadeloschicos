@@ -25,9 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // CONFIGURACIÓN DE METAS (Score targets)
         const METAS = {
-            chico: 100,
-            chica: 15,
-            maddie: 20,
+            chico: 350,
+            chica: 30,
+            maddie: 25,
             puebla: 200
         };
 
@@ -1175,8 +1175,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     : `Toca a Maddie (🐶) cada vez que asome la cabeza por los hoyos de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
             } else if (activeGame === 'puebla') {
                 inst = isEnLang 
-                    ? `Use arrow keys ⬅️ / ➡️ or tap screen edges to drive to Puebla. Dodge traffic, potholes (🕳️) and construction (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: ${targetScore} pts.`
-                    : `Usa las flechas ⬅️ / ➡️ o toca la pantalla para conducir a Puebla. Rebasa al tráfico y esquiva baches (🕳️) u obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
+                    ? `Use arrow keys ⬅️ / ➡️, swipe left/right (recommended) or tap screen edges to drive to Puebla. Dodge traffic, potholes (🕳️) and construction (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: ${targetScore} pts.`
+                    : `Usa las flechas ⬅️ / ➡️, desliza tu dedo horizontalmente (swipe recomendado) o toca los lados de la pantalla para conducir a Puebla. Rebasa al tráfico y esquiva baches (🕳️) u obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
             }
             
             overlayInstructions.innerHTML = inst; 
