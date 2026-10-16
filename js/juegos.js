@@ -435,7 +435,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return Object.keys(METAS).every(g => {
                 const s = getScore(g);
                 if (g === 'puebla') {
-                    return localStorage.getItem("bodachicos_puebla_won") === "true" || s >= METAS.puebla;
+                    const pueblaDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+                    return localStorage.getItem("bodachicos_puebla_won") === "true" || s >= METAS.puebla || pueblaDist >= 120;
                 }
                 return s >= METAS[g];
             });
@@ -509,6 +510,9 @@ document.addEventListener("DOMContentLoaded", () => {
             let timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
             if (isNaN(timePlayed)) timePlayed = 0;
 
+            const maxDistPuebla = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+            const pueblaWon = (localStorage.getItem("bodachicos_puebla_won") === "true") || (scoresObj.puebla >= METAS.puebla) || (maxDistPuebla >= 120);
+
             const payload = {
                 gamerTag: playerGamertag.trim(),
                 guestId: playerGuestId || keyTag,
@@ -517,6 +521,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 scores: scoresObj,
                 chiCoins: coinsObj,
                 bonusCoins: bonus,
+                maxDistPuebla: maxDistPuebla,
+                pueblaWon: pueblaWon,
                 totalChiCoins: totalCoins,
                 totalScore: totalScoreSum,
                 timePlayedSeconds: timePlayed,
@@ -538,7 +544,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     chicoScore: scoresObj.chico || 0,
                     chicaScore: scoresObj.chica || 0,
                     maddieScore: scoresObj.maddie || 0,
-                    pueblaScore: scoresObj.puebla || 0
+                    pueblaScore: scoresObj.puebla || 0,
+                    maxDistPuebla: maxDistPuebla,
+                    pueblaWon: pueblaWon
                 };
                 
                 fetch(APPS_SCRIPT_URL, {
@@ -750,14 +758,32 @@ document.addEventListener("DOMContentLoaded", () => {
                             playerRealName = data.realName;
                             localStorage.setItem("bodachicos_real_name", playerRealName);
                         }
+                        if (data.maxDistPuebla) {
+                            const localDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+                            const fbDist = parseFloat(data.maxDistPuebla || 0);
+                            localStorage.setItem("bodachicos_maxdist_puebla", Math.max(localDist, fbDist).toFixed(1));
+                        }
+                        if (data.pueblaWon) {
+                            localStorage.setItem("bodachicos_puebla_won", "true");
+                        }
+                        if (data.bonusCoins) {
+                            const localBonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+                            const fbBonus = parseInt(data.bonusCoins || 0);
+                            localStorage.setItem("bodachicos_bonus_chicoins", Math.max(localBonus, fbBonus));
+                        }
+                        if (data.timePlayedSeconds) {
+                            const localTime = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
+                            const fbTime = parseInt(data.timePlayedSeconds || 0);
+                            localStorage.setItem("bodachicos_time_played", Math.max(localTime, fbTime));
+                        }
                         if (data.scores) {
                             Object.keys(data.scores).forEach(g => {
                                 const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
                                 const fbSc = parseInt(data.scores[g] || 0);
                                 localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
                             });
-                            updateScoresDashboard();
                         }
+                        updateScoresDashboard();
                     }
                     syncPlayerToFirebase();
                 }).catch(e => {
@@ -977,10 +1003,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     const snap = await db.ref("players/" + keyTag).once("value");
                     const data = snap.val();
                     
-                    if (data && data.scores) {
-                        Object.keys(data.scores).forEach(g => {
-                            localStorage.setItem("bodachicos_score_" + g, data.scores[g]);
-                        });
+                    if (data) {
+                        if (data.scores) {
+                            Object.keys(data.scores).forEach(g => {
+                                localStorage.setItem("bodachicos_score_" + g, data.scores[g]);
+                            });
+                        }
+                        if (data.maxDistPuebla) {
+                            localStorage.setItem("bodachicos_maxdist_puebla", parseFloat(data.maxDistPuebla).toFixed(1));
+                        }
+                        if (data.pueblaWon) {
+                            localStorage.setItem("bodachicos_puebla_won", "true");
+                        }
                         if (data.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", data.bonusCoins);
                         if (data.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", data.timePlayedSeconds);
                     } else {
@@ -989,10 +1023,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (previousTag && previousTag !== keyTag) {
                             const oldSnap = await db.ref("players/" + previousTag).once("value");
                             const oldData = oldSnap.val();
-                            if (oldData && oldData.scores) {
-                                Object.keys(oldData.scores).forEach(g => {
-                                    localStorage.setItem("bodachicos_score_" + g, oldData.scores[g]);
-                                });
+                            if (oldData) {
+                                if (oldData.scores) {
+                                    Object.keys(oldData.scores).forEach(g => {
+                                        localStorage.setItem("bodachicos_score_" + g, oldData.scores[g]);
+                                    });
+                                }
+                                if (oldData.maxDistPuebla) {
+                                    localStorage.setItem("bodachicos_maxdist_puebla", parseFloat(oldData.maxDistPuebla).toFixed(1));
+                                }
+                                if (oldData.pueblaWon) {
+                                    localStorage.setItem("bodachicos_puebla_won", "true");
+                                }
                                 if (oldData.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", oldData.bonusCoins);
                                 if (oldData.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", oldData.timePlayedSeconds);
                                 // Borrar el nodo viejo inmediatamente
@@ -1069,7 +1111,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const badge = document.getElementById("badge-" + game);
                 let isGamePassed = false;
                 if (game === 'puebla') {
-                    isGamePassed = localStorage.getItem("bodachicos_puebla_won") === "true";
+                    const pueblaDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+                    isGamePassed = localStorage.getItem("bodachicos_puebla_won") === "true" || gameScore >= target || pueblaDist >= 120;
                 } else {
                     isGamePassed = gameScore >= target;
                 }
@@ -1095,8 +1138,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const prizeStatus = document.getElementById("prizeStatus");
             if (totalMetasSuperadas === 4) {
                 prizeStatus.innerHTML = isEnLang 
-                    ? "🏆 Prize Unlocked! (+500 Bonus ChiCoins) Take a screenshot and redeem it at our wedding." 
-                    : "🏆 ¡Premio Desbloqueado! (+500 ChiCoins de Bono) Toma una captura y canjéala el día de la boda.";
+                    ? "🏆 Prize Unlocked! (+500 Bonus ChiCoins) Redeem it at our wedding." 
+                    : "🏆 ¡Premio Desbloqueado! (+500 ChiCoins de Bono) Canjéalo el día de la boda.";
                 prizeStatus.className = "bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-bold text-center animate-bounce shadow-md font-monogram";
             } else {
                 prizeStatus.innerHTML = isEnLang ? `Progress: ${totalMetasSuperadas}/4 targets` : `Progreso: ${totalMetasSuperadas}/4 metas`;
