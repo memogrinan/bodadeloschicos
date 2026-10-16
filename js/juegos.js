@@ -626,12 +626,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (colTitle && tabInfo[currentLeaderboardTab]) colTitle.innerText = tabInfo[currentLeaderboardTab].col;
             if (subtitle && tabInfo[currentLeaderboardTab]) subtitle.innerText = tabInfo[currentLeaderboardTab].sub;
 
-            // Deduplicación por guestId o key única para que NUNCA aparezcan registros dobles
+            // Deduplicación por guestId o identidad real para que NUNCA aparezcan registros dobles
             const uniqueMap = {};
             Object.keys(rawPlayersData).forEach(k => {
                 const p = rawPlayersData[k];
                 if (!p || !p.gamerTag) return;
-                const dedupeKey = p.guestId || k;
+                let dedupeKey = p.guestId || k;
+                if (p.realName && p.partyId && p.partyId !== "general") {
+                    dedupeKey = `${p.partyId}_${p.realName.trim().toLowerCase()}`;
+                }
                 if (!uniqueMap[dedupeKey]) {
                     uniqueMap[dedupeKey] = p;
                 } else {
@@ -742,50 +745,77 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("playerGamertag").innerText = tagDisplay;
             document.getElementById("bottomGamerTag").innerText = tagDisplay;
 
+            const applyRemoteData = (data, foundKey) => {
+                if (!data) return;
+                if (foundKey && !playerGuestId) {
+                    playerGuestId = data.guestId || foundKey;
+                    localStorage.setItem("bodachicos_guest_id", playerGuestId);
+                }
+                if (data.gamerTag) {
+                    playerGamertag = data.gamerTag;
+                    localStorage.setItem("bodachicos_gamertag", playerGamertag);
+                    document.getElementById("playerGamertag").innerText = playerGamertag;
+                    document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                }
+                if (data.realName && !playerRealName) {
+                    playerRealName = data.realName;
+                    localStorage.setItem("bodachicos_real_name", playerRealName);
+                }
+                if (data.partyId && !localStorage.getItem("bodachicos_party_id")) {
+                    currentPartyId = data.partyId;
+                    localStorage.setItem("bodachicos_party_id", currentPartyId);
+                }
+
+                let distToSave = parseFloat(data.maxDistPuebla || 0);
+                if (data.pueblaWon || (data.scores && data.scores.puebla >= METAS.puebla) || distToSave >= 120) {
+                    localStorage.setItem("bodachicos_puebla_won", "true");
+                    distToSave = Math.max(distToSave, 120.0);
+                }
+                const localDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+                localStorage.setItem("bodachicos_maxdist_puebla", Math.max(localDist, distToSave).toFixed(1));
+
+                if (data.bonusCoins) {
+                    const localBonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
+                    const fbBonus = parseInt(data.bonusCoins || 0);
+                    localStorage.setItem("bodachicos_bonus_chicoins", Math.max(localBonus, fbBonus));
+                }
+                if (data.timePlayedSeconds) {
+                    const localTime = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
+                    const fbTime = parseInt(data.timePlayedSeconds || 0);
+                    localStorage.setItem("bodachicos_time_played", Math.max(localTime, fbTime));
+                }
+                if (data.scores) {
+                    Object.keys(data.scores).forEach(g => {
+                        const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
+                        const fbSc = parseInt(data.scores[g] || 0);
+                        localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
+                    });
+                }
+                updateScoresDashboard();
+                syncPlayerToFirebase();
+            };
+
             // Restaurar puntuaciones de Firebase al cargar la página si existen
             const localKey = (playerGuestId || playerGamertag || "").trim().replace(/[.#$/[\]]/g, "_");
             if (db && localKey) {
                 db.ref("players/" + localKey).once("value").then(snapshot => {
                     const data = snapshot.val();
                     if (data) {
-                        if (data.gamerTag) {
-                            playerGamertag = data.gamerTag;
-                            localStorage.setItem("bodachicos_gamertag", playerGamertag);
-                            document.getElementById("playerGamertag").innerText = playerGamertag;
-                            document.getElementById("bottomGamerTag").innerText = playerGamertag;
-                        }
-                        if (data.realName && !playerRealName) {
-                            playerRealName = data.realName;
-                            localStorage.setItem("bodachicos_real_name", playerRealName);
-                        }
-                        if (data.maxDistPuebla) {
-                            const localDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
-                            const fbDist = parseFloat(data.maxDistPuebla || 0);
-                            localStorage.setItem("bodachicos_maxdist_puebla", Math.max(localDist, fbDist).toFixed(1));
-                        }
-                        if (data.pueblaWon) {
-                            localStorage.setItem("bodachicos_puebla_won", "true");
-                        }
-                        if (data.bonusCoins) {
-                            const localBonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
-                            const fbBonus = parseInt(data.bonusCoins || 0);
-                            localStorage.setItem("bodachicos_bonus_chicoins", Math.max(localBonus, fbBonus));
-                        }
-                        if (data.timePlayedSeconds) {
-                            const localTime = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
-                            const fbTime = parseInt(data.timePlayedSeconds || 0);
-                            localStorage.setItem("bodachicos_time_played", Math.max(localTime, fbTime));
-                        }
-                        if (data.scores) {
-                            Object.keys(data.scores).forEach(g => {
-                                const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
-                                const fbSc = parseInt(data.scores[g] || 0);
-                                localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
-                            });
-                        }
-                        updateScoresDashboard();
+                        applyRemoteData(data, localKey);
+                    } else if (playerGamertag) {
+                        // Respaldo de búsqueda si la llave en Firebase es diferente al apodo local
+                        db.ref("players").orderByChild("gamerTag").equalTo(playerGamertag).once("value").then(searchSnap => {
+                            const searchData = searchSnap.val();
+                            if (searchData) {
+                                const foundKey = Object.keys(searchData)[0];
+                                applyRemoteData(searchData[foundKey], foundKey);
+                            } else {
+                                syncPlayerToFirebase();
+                            }
+                        }).catch(() => syncPlayerToFirebase());
+                    } else {
+                        syncPlayerToFirebase();
                     }
-                    syncPlayerToFirebase();
                 }).catch(e => {
                     console.warn("Error al restaurar desde Firebase:", e);
                     syncPlayerToFirebase();
@@ -993,7 +1023,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            const cleanGuestId = playerGuestId ? playerGuestId.trim().replace(/[.#$/[\]]/g, "_") : "";
+            let cleanGuestId = playerGuestId ? playerGuestId.trim().replace(/[.#$/[\]]/g, "_") : "";
+            
+            // Si no tenemos playerGuestId pero sí selectedRealName y currentPartyId, buscar si ya existe un nodo en Firebase para esa persona
+            if (!cleanGuestId && selectedRealName && db) {
+                try {
+                    const snapAll = await db.ref("players").once("value");
+                    const allData = snapAll.val();
+                    if (allData) {
+                        for (const k of Object.keys(allData)) {
+                            const p = allData[k];
+                            if (p && p.partyId === currentPartyId && p.realName && p.realName.trim().toLowerCase() === selectedRealName.trim().toLowerCase()) {
+                                playerGuestId = p.guestId || k;
+                                cleanGuestId = playerGuestId.trim().replace(/[.#$/[\]]/g, "_");
+                                localStorage.setItem("bodachicos_guest_id", playerGuestId);
+                                break;
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }
+
             const cleanGamertag = val.trim().replace(/[.#$/[\]]/g, "_");
             const keyTag = cleanGuestId || cleanGamertag;
 
@@ -1127,7 +1177,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
 
-            const maxDistPuebla = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+            let maxDistPuebla = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
+            const isPueblaWon = (localStorage.getItem("bodachicos_puebla_won") === "true") || (getScore('puebla') >= METAS.puebla);
+            if (isPueblaWon && maxDistPuebla < 120) {
+                maxDistPuebla = 120.0;
+                localStorage.setItem("bodachicos_maxdist_puebla", "120.0");
+                localStorage.setItem("bodachicos_puebla_won", "true");
+            }
             const distPueblaEl = document.getElementById("dist-puebla");
             if (distPueblaEl) distPueblaEl.innerText = maxDistPuebla.toFixed(1);
 
@@ -1226,20 +1282,20 @@ document.addEventListener("DOMContentLoaded", () => {
             let inst = "";
             if (activeGame === 'chico') {
                 inst = isEnLang 
-                    ? `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-xs py-2 px-3 rounded-xl text-center font-bold tracking-wider mb-3 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONNECTING TO OUR LOVE...</div>Jump by tapping the screen or using SPACE to dodge meetings <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-5 h-5 mx-1 object-contain">, alarms <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-5 h-5 mx-1 object-contain"> and emails <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-5 h-5 mx-1 object-contain">. Catch controllers <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-5 h-5 mx-1 object-contain"> for 15 bonus pts.<br>Target: ${targetScore} pts.`
-                    : `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-xs py-2 px-3 rounded-xl text-center font-bold tracking-wider mb-3 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o usando ESPACIO para evitar juntas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-5 h-5 mx-1 object-contain">, alarmas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-5 h-5 mx-1 object-contain"> y correos <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-5 h-5 mx-1 object-contain">. Atrapa los controles <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-5 h-5 mx-1 object-contain"> para obtener 15 pts extra.<br>Meta: ${targetScore} pts.`;
+                    ? `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-[11px] py-1 px-2.5 rounded-lg text-center font-bold tracking-wider mb-2 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONNECTING TO OUR LOVE...</div>Jump by tapping or SPACE to dodge meetings <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-4 h-4 mx-0.5 object-contain">, alarms <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-4 h-4 mx-0.5 object-contain"> and emails <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-4 h-4 mx-0.5 object-contain">. Catch gamepads <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-4 h-4 mx-0.5 object-contain"> (+15 pts).<br>Target: ${targetScore} pts.`
+                    : `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-[11px] py-1 px-2.5 rounded-lg text-center font-bold tracking-wider mb-2 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o con ESPACIO para esquivar juntas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-4 h-4 mx-0.5 object-contain">, alarmas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-4 h-4 mx-0.5 object-contain"> y correos <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-4 h-4 mx-0.5 object-contain">. Atrapa controles <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-4 h-4 mx-0.5 object-contain"> (+15 pts).<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
                 inst = isEnLang 
-                    ? `Move Mariana (👰🏻) by tapping or dragging your finger to catch falling hearts (💖) and engagement rings (💍). Dodge storm clouds (🌩️)!<br>Target: ${targetScore} pts.`
-                    : `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos de compromiso (💍). ¡Esquiva las tormentas eléctricas (🌩️)!<br>Meta: ${targetScore} pts.`;
+                    ? `Move Mariana (👰🏻) by tapping or dragging to catch falling hearts (💖) and rings (💍). Dodge storm clouds (🌩️)!<br>Target: ${targetScore} pts.`
+                    : `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos (💍). ¡Esquiva tormentas (🌩️)!<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
                 inst = isEnLang 
-                    ? `Tap Maddie (🐶) whenever she pops her head out of the garden holes. You have 30 seconds. Watch out for poop (💩)!<br>Target: ${targetScore} clicks.`
-                    : `Toca a Maddie (🐶) cada vez que asome la cabeza por los hoyos de tierra. Tienes 30 segundos. ¡Cuidado con las popós (💩)!<br>Meta: ${targetScore} clics.`;
+                    ? `Tap Maddie (🐶) when she pops out of garden holes. You have 30s. Watch out for poop (💩)!<br>Target: ${targetScore} clicks.`
+                    : `Toca a Maddie (🐶) cuando asome de los hoyos. Tienes 30s. ¡Cuidado con popós (💩)!<br>Meta: ${targetScore} clics.`;
             } else if (activeGame === 'puebla') {
                 inst = isEnLang 
-                    ? `Use arrow keys ⬅️ / ➡️, swipe left/right (recommended) or tap screen edges to drive to Puebla. Dodge traffic, potholes (🕳️) and construction (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: ${targetScore} pts.`
-                    : `Usa las flechas ⬅️ / ➡️, desliza tu dedo horizontalmente (swipe recomendado) o toca los lados de la pantalla para conducir a Puebla. Rebasa al tráfico y esquiva baches (🕳️) u obras (🚧). ¡Recolecta chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
+                    ? `Use ⬅️ / ➡️, swipe left/right (recommended) or tap sides to drive to Puebla. Dodge traffic, potholes (🕳️) and works (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: ${targetScore} pts.`
+                    : `Usa flechas ⬅️ / ➡️, desliza tu dedo (swipe recomendado) o toca los lados para conducir a Puebla. Esquiva tráfico, baches (🕳️) u obras (🚧). ¡Toma chalupas (🌮) y turbos (⚡)!<br>Meta: ${targetScore} pts.`;
             }
             
             overlayInstructions.innerHTML = inst; 
