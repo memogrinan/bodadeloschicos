@@ -1490,8 +1490,8 @@
     <header id="inicio">
         <div class="bg-fixed header-bg"></div>
         <h1>Mariana & Memo</h1>
-        <div class="fecha-top">Sábado, 13 de Febrero • 2027</div>
-        <p>Cholula, Puebla, México</p>
+        <div class="fecha-top">13 de Febrero • 2027</div>
+        <p>Cholula, Puebla</p>
         
         <!-- CONTADOR EN TIEMPO REAL -->
         <div class="countdown-container" id="countdown">
@@ -1762,8 +1762,8 @@
                             </div>
 
                             <ul class="hotel-rates-list">
-                                <li><strong>Junior Suite:</strong> $2,200 MXN</li>
-                                <li><strong>Master Suite:</strong> $2,300 MXN</li>
+                                <li><strong>Junior Suite:</strong> $2,200 MXN / noche</li>
+                                <li><strong>Master Suite:</strong> $2,300 MXN / noche</li>
                             </ul>
 
                             <p class="hotel-note">
@@ -1832,7 +1832,7 @@
                             </div>
 
                             <ul class="hotel-rates-list">
-                                <li><strong>Tarifa por noche:</strong> $3,000 MXN</li>
+                                <li><strong>Tarifa por noche:</strong> $3,000 MXN / noche</li>
                                 <li><strong>Disponibilidad:</strong> Solo de sábado a domingo</li>
                             </ul>
 
@@ -2086,6 +2086,56 @@
             <h2 style="font-family: 'Prata', serif; font-style: italic; font-size: clamp(2.5rem, 8vw, 3.8rem); color: var(--olivo-base); margin-bottom: 10px;">Mesa de Regalos</h2>
             <p style="font-size: clamp(0.95rem, 2vw, 1.15rem); color: #555; line-height: 1.6; margin-bottom: 30px;">El mejor regalo es su presencia, pero si desean tener un detalle con nosotros, hemos creado esta lista de experiencias para nuestra luna de miel.</p>
             <a href="https://evento.uniko.co/bodadeloschicos/" target="_blank" rel="noopener noreferrer" class="btn btn-rsvp" style="background-color: var(--olivo-base); color: white; padding: 16px 45px; font-size: clamp(0.9rem, 1.8vw, 1.1rem); border-radius: 30px; text-decoration: none; display: inline-block;">Ver Mesa de Regalos 🎁</a>
+
+            <!-- DATOS BANCARIOS / TRANSFERENCIA -->
+            <div style="margin-top: 35px;">
+                <p style="font-size: clamp(0.85rem, 1.6vw, 1rem); color: #666; margin-bottom: 12px;">¿Prefieres realizarnos una transferencia?</p>
+                <button type="button" onclick="toggleBankDetails()" id="btnToggleBank" aria-expanded="false" style="background: transparent; color: var(--olivo-base); border: 1.5px solid var(--olivo-base); padding: 10px 22px; border-radius: 25px; font-weight: 600; font-size: clamp(0.85rem, 1.5vw, 0.95rem); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.25s ease; font-family: inherit;">
+                    <span>Ver datos bancarios</span>
+                    <svg id="bankChevron" viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor; transition: transform 0.3s ease;"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                </button>
+
+                <div id="bankDetailsContainer" style="max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.35s ease, opacity 0.3s ease; margin-top: 0; max-width: 440px; margin-left: auto; margin-right: auto; text-align: left;">
+                    <div style="background: white; border: 1px solid rgba(82, 88, 47, 0.18); border-radius: 20px; padding: 22px; box-shadow: 0 4px 18px rgba(0,0,0,0.04); margin-top: 15px;">
+                        
+                        <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #888; font-weight: 600;">Banco</span>
+                                <strong style="font-size: 1.05rem; color: #2c301a;">Santander</strong>
+                            </div>
+                            <span style="font-size: 1.4rem;">🏦</span>
+                        </div>
+
+                        <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px;">
+                            <span style="display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #888; font-weight: 600;">Titular de la cuenta</span>
+                            <strong style="font-size: 0.98rem; color: #2c301a;">Guillermo Grinan Rivera</strong>
+                        </div>
+
+                        <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div>
+                                <span style="display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #888; font-weight: 600;">CLABE Interbancaria</span>
+                                <strong style="font-size: 1.02rem; color: #2c301a; letter-spacing: 0.5px; font-family: monospace;">014180200101889658</strong>
+                            </div>
+                            <button type="button" onclick="copyBankValue('014180200101889658', this)" class="btn-copy-bank" title="Copiar CLABE" aria-label="Copiar CLABE" style="background: #f2f5eb; border: 1px solid rgba(82, 88, 47, 0.25); color: var(--olivo-base); padding: 7px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                <span>Copiar</span>
+                            </button>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div>
+                                <span style="display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #888; font-weight: 600;">Número de Cuenta</span>
+                                <strong style="font-size: 1.02rem; color: #2c301a; letter-spacing: 0.5px; font-family: monospace;">20010188965</strong>
+                            </div>
+                            <button type="button" onclick="copyBankValue('20010188965', this)" class="btn-copy-bank" title="Copiar Cuenta" aria-label="Copiar Cuenta" style="background: #f2f5eb; border: 1px solid rgba(82, 88, 47, 0.25); color: var(--olivo-base); padding: 7px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                <span>Copiar</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -2120,6 +2170,7 @@
                 <div style="text-align: center; margin-bottom: 22px; border-bottom: 1px dashed rgba(82, 88, 47, 0.2); padding-bottom: 16px;">
                     <h3 id="rsvpGuestTitle" style="color: var(--olivo-base); font-size: clamp(1.4rem, 5vw, 1.7rem); font-weight: 600; margin: 0;">¡Hola Familia!</h3>
                     <p id="rsvpPassesText" style="color: #666; font-size: clamp(0.8rem, 1.5vw, 0.95rem); margin-top: 4px;">Tienen 2 pases reservados para nuestra boda.</p>
+                    <p id="rsvpDeadlineNotice" style="color: #7a5d35; background: rgba(212, 175, 55, 0.14); display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: clamp(0.75rem, 1.3vw, 0.88rem); font-weight: 600; margin: 8px 0 0 0;">Favor de confirmar tu asistencia antes del 12 de enero de 2027 📅</p>
                 </div>
 
                 <form id="rsvpCustomForm" onsubmit="submitRSVPForm(event)">
@@ -2297,6 +2348,6 @@
             card.classList.toggle('flipped');
         }
     </script>
-<script src="js/index.js?v=31.0" defer></script>
+<script src="js/index.js?v=32.0" defer></script>
 </body>
 </html>

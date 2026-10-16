@@ -858,6 +858,13 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 ? (pases === 1 ? `We’ve reserved 1 seat for your party.` : `We’ve reserved ${pases} seats for your party.`)
                 : (pases === 1 ? `Tienes 1 pase reservado para nuestra boda.` : `Tienen ${pases} pases reservados para nuestra boda.`);
 
+            const deadlineNotice = document.getElementById("rsvpDeadlineNotice");
+            if (deadlineNotice) {
+                deadlineNotice.innerText = isEn 
+                    ? "Please confirm your attendance by January 12, 2027 📅" 
+                    : "Favor de confirmar tu asistencia antes del 12 de enero de 2027 📅";
+            }
+
             const integrantes = data.integrantes ? data.integrantes.toString().split(",").map(s => s.trim()) : [data.nombre];
             const isCivil = (data.invitaCivil && data.invitaCivil.toString().trim().toUpperCase() === "SI");
 
@@ -1582,3 +1589,62 @@ window.toggleHotelFlip = function(card) {
     if (!card) return;
     card.classList.toggle('flipped');
 };
+
+// ACORDEÓN Y COPIADO DE DATOS BANCARIOS (MESA DE REGALOS)
+window.toggleBankDetails = function() {
+    const container = document.getElementById("bankDetailsContainer");
+    const btn = document.getElementById("btnToggleBank");
+    const chevron = document.getElementById("bankChevron");
+    if (!container || !btn) return;
+    const isExpanded = btn.getAttribute("aria-expanded") === "true";
+    if (isExpanded) {
+        container.style.maxHeight = "0";
+        container.style.opacity = "0";
+        btn.setAttribute("aria-expanded", "false");
+        btn.querySelector("span").innerText = "Ver datos bancarios";
+        if (chevron) chevron.style.transform = "rotate(0deg)";
+    } else {
+        container.style.maxHeight = (container.scrollHeight + 40) + "px";
+        container.style.opacity = "1";
+        btn.setAttribute("aria-expanded", "true");
+        btn.querySelector("span").innerText = "Ocultar datos bancarios";
+        if (chevron) chevron.style.transform = "rotate(180deg)";
+    }
+};
+
+window.copyBankValue = function(val, btn) {
+    if (!val || !btn) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(val).then(() => showCopiedFeedback(btn)).catch(() => fallbackCopy(val, btn));
+    } else {
+        fallbackCopy(val, btn);
+    }
+};
+
+function fallbackCopy(val, btn) {
+    try {
+        const temp = document.createElement("input");
+        temp.value = val;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        showCopiedFeedback(btn);
+    } catch (e) {
+        console.error("No se pudo copiar el texto", e);
+    }
+}
+
+function showCopiedFeedback(btn) {
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = `<span style="font-weight: 700;">¡Copiado! ✓</span>`;
+    btn.style.background = "#52582f";
+    btn.style.color = "#ffffff";
+    setTimeout(() => {
+        btn.innerHTML = origHTML;
+        btn.style.background = "#f2f5eb";
+        btn.style.color = "var(--olivo-base)";
+    }, 2000);
+}
