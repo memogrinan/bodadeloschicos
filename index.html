@@ -2098,17 +2098,22 @@
                 <div id="bankDetailsContainer" style="max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.35s ease, opacity 0.3s ease; margin-top: 0; max-width: 440px; margin-left: auto; margin-right: auto; text-align: left;">
                     <div style="background: white; border: 1px solid rgba(82, 88, 47, 0.18); border-radius: 20px; padding: 22px; box-shadow: 0 4px 18px rgba(0,0,0,0.04); margin-top: 15px;">
                         
-                        <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px;">
                             <div>
                                 <span style="display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #888; font-weight: 600;">Banco</span>
                                 <strong style="font-size: 1.05rem; color: #2c301a;">Santander</strong>
                             </div>
-                            <span style="font-size: 1.4rem;">🏦</span>
                         </div>
 
-                        <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px;">
-                            <span style="display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #888; font-weight: 600;">Titular de la cuenta</span>
-                            <strong style="font-size: 0.98rem; color: #2c301a;">Guillermo Grinan Rivera</strong>
+                        <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div>
+                                <span style="display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #888; font-weight: 600;">Titular de la cuenta</span>
+                                <strong style="font-size: 0.98rem; color: #2c301a;">Guillermo Grinan Rivera</strong>
+                            </div>
+                            <button type="button" onclick="copyBankValue('Guillermo Grinan Rivera', this)" class="btn-copy-bank" title="Copiar Titular" aria-label="Copiar Titular" style="background: #f2f5eb; border: 1px solid rgba(82, 88, 47, 0.25); color: var(--olivo-base); padding: 7px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                <span>Copiar</span>
+                            </button>
                         </div>
 
                         <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(82, 88, 47, 0.15); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">

@@ -452,12 +452,11 @@ document.addEventListener("DOMContentLoaded", () => {
             Object.keys(METAS).forEach(g => {
                 sum += getChiCoins(g);
             });
-            let bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
-            if (isNaN(bonus)) bonus = 0;
-            if (areAllMetasPassed()) {
-                bonus += 500;
-            }
-            return sum + bonus;
+            // Bono fijo único de +500 si se superaron las 4 metas (no acumulativo)
+            const allMetasBonus = areAllMetasPassed() ? 500 : 0;
+            let adminBonus = parseInt(localStorage.getItem("bodachicos_admin_bonus") || "0");
+            if (isNaN(adminBonus)) adminBonus = 0;
+            return sum + allMetasBonus + adminBonus;
         }
 
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
@@ -513,12 +512,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 totalScoreSum += s;
             });
 
-            let bonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
-            if (isNaN(bonus)) bonus = 0;
-            if (areAllMetasPassed()) {
-                bonus += 500;
-            }
-            totalCoins += bonus;
+            // Bono fijo único de +500 si se superaron las 4 metas
+            const allMetasBonus = areAllMetasPassed() ? 500 : 0;
+            totalCoins += allMetasBonus;
+
+            let adminBonus = parseInt(localStorage.getItem("bodachicos_admin_bonus") || "0");
+            if (isNaN(adminBonus)) adminBonus = 0;
+            totalCoins += adminBonus;
+
             let timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
             if (isNaN(timePlayed)) timePlayed = 0;
 
@@ -532,7 +533,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 partyId: currentPartyId || "general",
                 scores: scoresObj,
                 chiCoins: coinsObj,
-                bonusCoins: bonus,
+                hasAllMetasBonus: (allMetasBonus > 0),
+                adminBonus: adminBonus,
+                bonusCoins: adminBonus,
                 maxDistPuebla: maxDistPuebla,
                 pueblaWon: pueblaWon,
                 totalChiCoins: totalCoins,
@@ -785,11 +788,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 const localDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
                 localStorage.setItem("bodachicos_maxdist_puebla", Math.max(localDist, distToSave).toFixed(1));
 
-                if (data.bonusCoins) {
-                    const localBonus = parseInt(localStorage.getItem("bodachicos_bonus_chicoins") || "0");
-                    const fbBonus = parseInt(data.bonusCoins || 0);
-                    localStorage.setItem("bodachicos_bonus_chicoins", Math.max(localBonus, fbBonus));
+                // Saneamiento de caché local de bonos antiguos
+                localStorage.removeItem("bodachicos_bonus_chicoins");
+                let adminCoins = 0;
+                if (data.adminBonus !== undefined) {
+                    adminCoins = parseInt(data.adminBonus || 0);
+                } else if (data.bonusCoins !== undefined) {
+                    const rawBonus = parseInt(data.bonusCoins || 0);
+                    if (rawBonus < 500 || rawBonus % 500 !== 0) {
+                        adminCoins = rawBonus;
+                    }
                 }
+                localStorage.setItem("bodachicos_admin_bonus", isNaN(adminCoins) ? 0 : adminCoins);
                 if (data.timePlayedSeconds) {
                     const localTime = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
                     const fbTime = parseInt(data.timePlayedSeconds || 0);
@@ -1028,7 +1038,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (data.pueblaWon) {
                             localStorage.setItem("bodachicos_puebla_won", "true");
                         }
-                        if (data.bonusCoins) localStorage.setItem("bodachicos_bonus_chicoins", data.bonusCoins);
+                        localStorage.removeItem("bodachicos_bonus_chicoins");
+                        if (data.adminBonus !== undefined) localStorage.setItem("bodachicos_admin_bonus", data.adminBonus);
                         if (data.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", data.timePlayedSeconds);
                     }
 
