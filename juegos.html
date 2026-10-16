@@ -136,17 +136,27 @@
 <body class="font-sans min-h-screen pb-12">
 
     <!-- CABECERA -->
-    <header class="bg-[#52582f] text-white py-4 px-4 shadow-md">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
-            <a href="index.html" class="self-center sm:self-center bg-white/20 hover:bg-white/30 text-white font-semibold py-1.5 px-4 rounded-full text-xs transition inline-flex items-center gap-1.5 shadow-xs">
-                ← Volver
-            </a>
-            <div class="text-center flex-grow">
+    <header class="bg-[#52582f] text-white py-3.5 px-4 shadow-md">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-3 text-center sm:text-left">
+            <!-- Barra superior móvil para Volver y Selector de Idioma al mismo nivel -->
+            <div class="w-full sm:w-auto flex justify-between items-center gap-2 order-1 sm:order-none">
+                <a href="index.html" class="bg-white/20 hover:bg-white/30 text-white font-semibold py-1.5 px-3.5 rounded-full text-xs transition inline-flex items-center gap-1.5 shadow-xs">
+                    ← Volver
+                </a>
+                <div class="sm:hidden flex items-center gap-1.5 bg-black/20 rounded-full px-2.5 py-1 text-xs font-semibold">
+                    <span class="text-white font-bold">🇲🇽 ES</span>
+                    <span class="opacity-40">|</span>
+                    <a href="en/juegos.html" class="opacity-75 hover:opacity-100 transition">🇺🇸 EN</a>
+                </div>
+            </div>
+
+            <div class="text-center flex-grow order-2 sm:order-none my-0.5 sm:my-0">
                 <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wide">ARCADE DE LOS CHICOS</h1>
                 <p class="text-[11px] sm:text-xs text-olivo-claro/80 mt-0.5">Supera las metas para ganar un premio el día de la boda</p>
             </div>
-            <!-- Selector de idioma -->
-            <div class="flex items-center gap-1.5 bg-black/20 rounded-full px-2.5 py-1 text-xs font-semibold">
+
+            <!-- Selector de idioma escritorio -->
+            <div class="hidden sm:flex items-center gap-1.5 bg-black/20 rounded-full px-2.5 py-1 text-xs font-semibold">
                 <span class="text-white font-bold">🇲🇽 ES</span>
                 <span class="opacity-40">|</span>
                 <a href="en/juegos.html" class="opacity-75 hover:opacity-100 transition">🇺🇸 EN</a>
