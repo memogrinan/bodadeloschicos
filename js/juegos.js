@@ -336,6 +336,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     osc1.stop(now + 0.22);
                     osc2.stop(now + 0.22);
                     return;
+                } else if (type === 'wedding_horn') {
+                    // Claxon festivo de boda: bip bip bip-bip-bip!
+                    const hornPattern = [
+                        { f: 440, t: 0, d: 0.12 },
+                        { f: 440, t: 0.18, d: 0.12 },
+                        { f: 440, t: 0.38, d: 0.09 },
+                        { f: 440, t: 0.49, d: 0.09 },
+                        { f: 440, t: 0.60, d: 0.24 },
+                    ];
+                    hornPattern.forEach(h => {
+                        const hOsc = audioCtx.createOscillator();
+                        const hGain = audioCtx.createGain();
+                        hOsc.type = 'square';
+                        hOsc.frequency.setValueAtTime(h.f, now + h.t);
+                        hGain.gain.setValueAtTime(0.18, now + h.t);
+                        hGain.gain.exponentialRampToValueAtTime(0.01, now + h.t + h.d - 0.02);
+                        hOsc.connect(hGain);
+                        hGain.connect(audioCtx.destination);
+                        hOsc.start(now + h.t);
+                        hOsc.stop(now + h.t + h.d);
+                    });
+                    return;
                 }
 
                 const osc = audioCtx.createOscillator();
@@ -978,6 +1000,59 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        function showReservedTagEasterEgg(type, rawName) {
+            let existing = document.getElementById("reservedTagModalOverlay");
+            if (existing) existing.remove();
+
+            const isMaddie = (type === "maddie");
+            if (isMaddie) {
+                playSound('bark');
+                setTimeout(() => playSound('bark'), 220);
+            } else {
+                playSound('wedding_horn');
+            }
+
+            const overlay = document.createElement("div");
+            overlay.id = "reservedTagModalOverlay";
+            overlay.className = "fixed inset-0 z-[99999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4";
+            
+            const title = isMaddie 
+                ? (isEnLang ? "👑 Maddie, Queen of the Arcade!" : "👑 ¡Maddie, Reina del Arcade!")
+                : (isEnLang ? "💒 Reserved for the Bride & Groom!" : "💒 ¡Reservado para los Novios!");
+            
+            const desc = isMaddie
+                ? (isEnLang 
+                    ? "🐾 Woof! You invoked Maddie! This GamerTag is exclusively reserved for the official wedding puppy. Please create your own gamer nickname to compete!" 
+                    : "🐾 ¡Woof! ¡Has invocado a Maddie! Este GamerTag está apartado exclusivamente para la perrihija oficial de la boda. ¡Por favor inventa tu propio apodo de jugador para competir!")
+                : (isEnLang
+                    ? "💒 That name belongs to the wedding couple! Mariana & Memo appreciate your love, but please pick your own gamer nickname for the Leaderboard!"
+                    : "💒 ¡Ese nombre le pertenece a los Novios! Mariana & Memo agradecen tu cariño, pero este apodo es exclusivo para ellos. ¡Elige tu propio apodo de jugador para subir al Leaderboard!");
+
+            const icon = isMaddie ? "🐶👑" : "👰🏻‍♀️🤵🏻‍♂️";
+
+            overlay.innerHTML = `
+                <div class="bg-gradient-to-b from-amber-50 to-amber-100 border-4 border-amber-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl font-monogram">
+                    <div class="text-6xl mb-3">${icon}</div>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-amber-950 mb-2">${title}</h3>
+                    <p class="text-sm text-amber-900 leading-relaxed mb-6 font-sans font-medium">${desc}</p>
+                    <button id="closeReservedModalBtn" class="w-full bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-all text-sm font-sans">
+                        ${isEnLang ? "Choose my own GamerTag 🎮" : "Elegir mi propio GamerTag 🎮"}
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            document.getElementById("closeReservedModalBtn").onclick = () => {
+                overlay.remove();
+                const inp = document.getElementById("gamertagInput");
+                if (inp) {
+                    inp.value = "";
+                    inp.focus();
+                }
+            };
+        }
+
         async function saveGamerTag() {
             const errorMsg = document.getElementById("gamertagErrorMsg");
             if (errorMsg) errorMsg.classList.add("hidden");
@@ -988,6 +1063,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     errorMsg.innerText = isEnLang ? "❌ Enter a GamerTag (Nickname) to play." : "❌ Escribe un GamerTag (Apodo) para jugar.";
                     errorMsg.classList.remove("hidden");
                 }
+                return;
+            }
+
+            const cleanNormalizedTag = val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+            const reservedMap = {
+                "maddie": "maddie",
+                "maddiux": "maddie",
+                "perrihija": "maddie",
+                "chico": "novios",
+                "chicos": "novios",
+                "chica": "novios",
+                "memo": "novios",
+                "mariana": "novios",
+                "guillermo": "novios"
+            };
+            if (reservedMap[cleanNormalizedTag]) {
+                showReservedTagEasterEgg(reservedMap[cleanNormalizedTag], val);
                 return;
             }
 
@@ -1485,6 +1577,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.restore();
         }
 
+        let maddieUfo = null;
+
         function initChicoGame() {
             memo = {
                 x: 45,
@@ -1499,6 +1593,7 @@ document.addEventListener("DOMContentLoaded", () => {
             obstacles = [];
             items = [];
             bgCacti = [];
+            maddieUfo = null;
             clouds = [
                 {x: 120, y: 60, speed: 0.6},
                 {x: 320, y: 90, speed: 0.4}
@@ -1598,6 +1693,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     ctx.fillText("✨", 80, 40);
                     ctx.fillText("✨", 180, 75);
                     ctx.fillText("✨", 320, 35);
+                }
+
+                // EASTER EGG: MADDIE OVNI VOLANDO EN LA NOCHE
+                if (maddieUfo && maddieUfo.active) {
+                    maddieUfo.x -= maddieUfo.speed;
+                    ctx.save();
+                    ctx.font = "28px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("🛸🐶", Math.round(maddieUfo.x), Math.round(maddieUfo.y));
+                    ctx.restore();
+                    if (maddieUfo.x < -60) maddieUfo = null;
                 }
             }
 
@@ -1778,12 +1884,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     it.y + it.height > memo.y + 4) {
                     score += 15;
                     playSound('coin');
-                        triggerHaptic(30);
+                    triggerHaptic(30);
+
+                    // EASTER EGG: MADDIE OVNI SI ESTÁS EN EL AIRE Y ES MODO NOCHE (>350 pts)
+                    if (!memo.isGrounded && isNightMode && !maddieUfo) {
+                        maddieUfo = {
+                            x: canvas.width + 40,
+                            y: 50,
+                            speed: 3.5,
+                            active: true
+                        };
+                        playSound('bark');
+                    }
                     
                     scorePopups.push({
                         x: it.x + it.width / 2,
                         y: it.y,
-                        text: "+15",
+                        text: (!memo.isGrounded && isNightMode) ? "+15 🛸" : "+15",
                         life: 25 
                     });
 
@@ -1926,12 +2043,17 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.restore();
         }
 
+        let ringStreak = 0;
+        let magnetTimer = 0;
+
         function initChicaGame() {
             basketX = canvas.width / 2 - 25;
             fallObjects = [];
             chicaPopups = [];
             lives = 3;
             chicaFrame = 0;
+            ringStreak = 0;
+            magnetTimer = 0;
 
             // Desactivar cualquier listener de clic o salto previo para que el mouse no haga sonido al hacer clic
             canvas.onclick = null;
@@ -2014,6 +2136,29 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.fillText("👰🏻‍♀️", Math.round(basketX + 25), 450);
             ctx.restore();
 
+            // EASTER EGG: MODO IMÁN DE AMOR (Mariana con gafas y aura magnética rosa)
+            if (magnetTimer > 0) {
+                magnetTimer--;
+                ctx.save();
+                ctx.strokeStyle = "rgba(236, 72, 153, 0.75)";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(basketX + 25, 435, 36 + (magnetTimer % 8) * 2, 0, Math.PI * 2);
+                ctx.stroke();
+                // Gafas de sol pixel-art (Deal With It)
+                ctx.font = "20px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("🕶️", Math.round(basketX + 25), 436);
+                ctx.restore();
+
+                // Atraer automáticamente corazones y anillos
+                fallObjects.forEach(o => {
+                    if (!o.isDanger) {
+                        o.x += (basketX + 25 - o.x) * 0.22;
+                    }
+                });
+            }
+
             // 5. VIDAS EN PANTALLA
             let heartUI = "";
             for (let h = 0; h < 3; h++) {
@@ -2041,6 +2186,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (obj.y >= 405 && obj.y <= 460 && obj.x >= basketX - 12 && obj.x <= basketX + 62) {
                     if (obj.isDanger) {
                         lives--;
+                        ringStreak = 0;
                         playSound('hit');
                         triggerHaptic([50, 50, 100]);
                         chicaPopups.push({ x: obj.x, y: 405, text: "❤️ -1", color: "#ef4444", life: 30 });
@@ -2049,6 +2195,19 @@ document.addEventListener("DOMContentLoaded", () => {
                         playSound('coin');
                         triggerHaptic(30); 
                         chicaPopups.push({ x: obj.x, y: 405, text: "+" + obj.pts, color: "#10b981", life: 30 });
+
+                        // EASTER EGG: 3 ANILLOS SEGUIDOS ACTIVAN EL IMÁN DE AMOR
+                        if (obj.emoji === "💍") {
+                            ringStreak++;
+                            if (ringStreak >= 3 && magnetTimer <= 0) {
+                                magnetTimer = 120; // 4 segundos a 30fps
+                                ringStreak = 0;
+                                playSound('coin');
+                                chicaPopups.push({ x: basketX + 25, y: 380, text: "💖 ¡IMÁN DE AMOR! 🧲", color: "#ec4899", life: 45 });
+                            }
+                        } else if (obj.emoji === "💖") {
+                            ringStreak = 0;
+                        }
                     }
                     fallObjects.splice(i, 1);
 
@@ -2063,6 +2222,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (obj.y > canvas.height + 20) {
                     if (!obj.isDanger) {
                         lives--;
+                        ringStreak = 0;
                         playSound('hit');
                         triggerHaptic([50, 50, 100]);
                     }
@@ -2100,6 +2260,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // ==========================================
         // JUEGO 3: MADDIE (¡Atrapa a la perrita! Obstáculo: Popós 💩)
         let maddieTimer, activeHole, activeDistractorHole, lastActiveHole, timeRemaining;
+        let activeGoldenHole = -1, goldenItemType = "🦴✨";
+        let lastPoopTapHole = -1, lastPoopTapTime = 0, poopPenaltyTimeout = null;
         
         function initMaddieGame() {
             maddieGrid.innerHTML = "";
@@ -2107,6 +2269,10 @@ document.addEventListener("DOMContentLoaded", () => {
             currentGameState.innerText = "Tiempo: 30s";
             lastActiveHole = -1;
             activeDistractorHole = -1;
+            activeGoldenHole = -1;
+            lastPoopTapHole = -1;
+            lastPoopTapTime = 0;
+            if (poopPenaltyTimeout) clearTimeout(poopPenaltyTimeout);
             
             updateMaddieRetroScore();
 
@@ -2153,9 +2319,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const prevDist = document.getElementById("hole-" + activeDistractorHole);
                 if (prevDist) prevDist.innerHTML = "";
             }
+            if (activeGoldenHole !== undefined && activeGoldenHole !== -1) {
+                const prevGold = document.getElementById("hole-" + activeGoldenHole);
+                if (prevGold) prevGold.innerHTML = "";
+            }
 
             activeHole = -1;
             activeDistractorHole = -1;
+            activeGoldenHole = -1;
 
             const isDecoyOnly = Math.random() < 0.25; // 25% de las veces sale ÚNICAMENTE una popó para destantear al jugador
 
@@ -2177,12 +2348,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     nextHole = Math.floor(Math.random() * 16);
                 } while (nextHole === lastActiveHole);
                 
-                activeHole = nextHole;
-                lastActiveHole = activeHole;
+                lastActiveHole = nextHole;
 
-                const next = document.getElementById("hole-" + activeHole);
-                if (next) {
-                    next.innerHTML = "<span class='select-none pointer-events-none text-4xl md:text-5xl animate-pop-up inline-block'>🐶</span>";
+                // EASTER EGG: 5% de probabilidad de Huesito Dorado o Rebanada de Pizza
+                const isGoldenChance = Math.random() < 0.05;
+                if (isGoldenChance) {
+                    activeGoldenHole = nextHole;
+                    goldenItemType = Math.random() > 0.5 ? "🦴✨" : "🍕";
+                    const next = document.getElementById("hole-" + nextHole);
+                    if (next) {
+                        next.innerHTML = `<span class='select-none pointer-events-none text-4xl md:text-5xl animate-bounce inline-block'>${goldenItemType}</span>`;
+                    }
+                } else {
+                    activeHole = nextHole;
+                    const next = document.getElementById("hole-" + activeHole);
+                    if (next) {
+                        next.innerHTML = "<span class='select-none pointer-events-none text-4xl md:text-5xl animate-pop-up inline-block'>🐶</span>";
+                    }
                 }
 
                 // 25% Probabilidad de distractor popó en otro hoyo simultáneo
@@ -2190,7 +2372,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     let distHole;
                     do {
                         distHole = Math.floor(Math.random() * 16);
-                    } while (distHole === activeHole);
+                    } while (distHole === nextHole);
                     
                     activeDistractorHole = distHole;
                     const distEl = document.getElementById("hole-" + activeDistractorHole);
@@ -2205,9 +2387,28 @@ document.addEventListener("DOMContentLoaded", () => {
             maddieTimer = setTimeout(maddiePop, popDelay);
         }
 
-
         function handleHoleClick(index) {
             if (!gameRunning) return;
+
+            // EASTER EGG 1: HUESITO DORADO / PIZZA (+5 PTS)
+            if (index === activeGoldenHole) {
+                score += 5;
+                playSound('bark');
+                playSound('coin');
+                triggerHaptic([30, 30, 60]);
+                document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
+                updateMaddieRetroScore();
+
+                const hitHole = document.getElementById("hole-" + index);
+                if (hitHole) {
+                    hitHole.innerHTML = "<span class='text-xs font-bold text-amber-500 animate-pop-up inline-block'>+5 MADDIE TIME!</span>";
+                    setTimeout(() => { if (hitHole) hitHole.innerHTML = ""; }, 500);
+                }
+                activeGoldenHole = -1;
+                clearTimeout(maddieTimer);
+                maddiePop();
+                return;
+            }
 
             if (index === activeHole) {
                 // ACIERTO: Captura a Maddie con ladrido tierno
@@ -2219,24 +2420,50 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateMaddieRetroScore();
                 
                 const hitHole = document.getElementById("hole-" + index);
-                hitHole.innerHTML = "";
+                if (hitHole) hitHole.innerHTML = "";
                 activeHole = -1;
 
                 clearTimeout(maddieTimer);
                 maddiePop();
                 
             } else if (index === activeDistractorHole) {
-                // ERROR: Tocaste la popó
-                score = Math.max(0, score - 2); // Penalización moderada de -2 puntos
-                playSound('hit');
-                        triggerHaptic([50, 50, 100]); 
-                
-                document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
-                updateMaddieRetroScore();
+                // EASTER EGG 2: DOBLE TAP A LA POPÓ (REFLEJO DE LIMPIARLA)
+                const now = Date.now();
+                if (lastPoopTapHole === index && (now - lastPoopTapTime < 380)) {
+                    // ¡Doble tap limpiador! Salva la penalización
+                    clearTimeout(poopPenaltyTimeout);
+                    lastPoopTapHole = -1;
+                    activeDistractorHole = -1;
+                    playSound('coin');
+                    triggerHaptic(40);
+                    const distHole = document.getElementById("hole-" + index);
+                    if (distHole) {
+                        distHole.innerHTML = "<span class='text-3xl inline-block animate-pop-up'>🧹✨</span>";
+                        setTimeout(() => { if (distHole) distHole.innerHTML = ""; }, 400);
+                    }
+                    return;
+                }
 
+                // Primer tap a la popó: dar margen de 380ms para segundo tap antes de aplicar castigo
+                lastPoopTapHole = index;
+                lastPoopTapTime = now;
                 const distHole = document.getElementById("hole-" + index);
-                if (distHole) distHole.innerHTML = "";
-                activeDistractorHole = -1;
+                if (distHole) {
+                    distHole.innerHTML = "<span class='select-none pointer-events-none text-4xl animate-bounce inline-block'>💩</span>";
+                }
+
+                clearTimeout(poopPenaltyTimeout);
+                poopPenaltyTimeout = setTimeout(() => {
+                    if (!gameRunning) return;
+                    score = Math.max(0, score - 2);
+                    playSound('hit');
+                    triggerHaptic([50, 50, 100]);
+                    document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
+                    updateMaddieRetroScore();
+                    if (distHole) distHole.innerHTML = "";
+                    activeDistractorHole = -1;
+                    lastPoopTapHole = -1;
+                }, 380);
             }
         }
 
@@ -2248,6 +2475,29 @@ document.addEventListener("DOMContentLoaded", () => {
         let rioFrioSpawned = false, sanMartinSpawned = false, cholulaSpawned = false, tollGates = [];
         let pueblaKeyDownHandler = null;
         let recentSignTexts = [];
+        let pueblaHornUsed = false;
+        let pueblaHornBannerTimer = 0;
+        let lastCarTapTime = 0;
+
+        function triggerPueblaHorn() {
+            if (!gameRunning || pueblaHornUsed) return;
+            pueblaHornUsed = true;
+            pueblaHornBannerTimer = 90; // ~3 seg a 30 fps
+            playSound('wedding_horn');
+            triggerHaptic([50, 40, 50, 40, 80]);
+
+            // Despejar los 2 autos de tráfico más cercanos frente al jugador
+            const aheadCars = roadObjects.filter(o => (o.isCar || o.trafficImg) && o.y < 430 && !o.isPulledAside);
+            aheadCars.sort((a, b) => b.y - a.y);
+            const targets = aheadCars.slice(0, 2);
+
+            targets.forEach(car => {
+                car.isPulledAside = true;
+                car.isCar = false; // Se orillan al acotamiento: ya no colisionan
+                car.lane = (car.lane <= 1) ? -0.8 : 2.8;
+                car.speed = 1.0; // Descienden suavemente fuera de pantalla y NUNCA regresan
+            });
+        }
 
         const PUEBLA_SIGNS = [
             { text: "CHOLULA", arrow: "↑", dist: "15 km" },
@@ -2298,6 +2548,9 @@ document.addEventListener("DOMContentLoaded", () => {
             rioFrioSpawned = false;
             sanMartinSpawned = false;
             cholulaSpawned = false;
+            pueblaHornUsed = false;
+            pueblaHornBannerTimer = 0;
+            lastCarTapTime = 0;
             roadFrame = 0;
             roadSpeed = 8.5;
             currentGameState.innerText = "Manejando";
@@ -2319,11 +2572,29 @@ document.addEventListener("DOMContentLoaded", () => {
             canvas.onclick = (e) => {
                 const rect = canvas.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                // Doble tap o click sobre el auto del jugador activa el Claxon Nupcial
+                const now = Date.now();
+                const isNearCar = Math.abs(clickX - playerX) < 50 && Math.abs(clickY - 440) < 50;
+                if (isNearCar && (now - lastCarTapTime < 450)) {
+                    triggerPueblaHorn();
+                    lastCarTapTime = 0;
+                    return;
+                }
+                if (isNearCar) {
+                    lastCarTapTime = now;
+                }
+
                 if (clickX < rect.width / 2) {
                     changeLane(-1);
                 } else {
                     changeLane(1);
                 }
+            };
+
+            canvas.ondblclick = () => {
+                triggerPueblaHorn();
             };
 
             canvas.ontouchstart = (e) => {
@@ -2350,6 +2621,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else if (Math.abs(diffX) < 15 && Math.abs(diffY) < 15) {
                     const rect = canvas.getBoundingClientRect();
                     const clickX = touchEndX - rect.left;
+                    const clickY = touchEndY - rect.top;
+
+                    // Doble tap táctil sobre el auto del jugador activa el Claxon Nupcial
+                    const now = Date.now();
+                    const isNearCar = Math.abs(clickX - playerX) < 55 && Math.abs(clickY - 440) < 55;
+                    if (isNearCar && (now - lastCarTapTime < 450)) {
+                        triggerPueblaHorn();
+                        lastCarTapTime = 0;
+                        return;
+                    }
+                    if (isNearCar) {
+                        lastCarTapTime = now;
+                    }
+
                     if (clickX < rect.width / 2) {
                         changeLane(-1);
                     } else {
@@ -2363,6 +2648,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     changeLane(-1);
                 } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
                     changeLane(1);
+                } else if (e.key === " " || e.key === "h" || e.key === "H") {
+                    triggerPueblaHorn();
                 }
             };
             window.addEventListener("keydown", pueblaKeyDownHandler);
@@ -2854,11 +3141,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Para dibujar autos PNG autocroppeados
                 let drawnCropped = false;
-                if (obj.isCar && obj.trafficImg && obj.trafficImg.img && obj.trafficImg.img.complete && obj.trafficImg.img.naturalWidth !== 0) {
+                ctx.save();
+                if (obj.isPulledAside && (Math.floor(roadFrame / 3) % 2 === 0)) {
+                    ctx.globalAlpha = 0.45;
+                }
+                if ((obj.isCar || obj.isPulledAside) && obj.trafficImg && obj.trafficImg.img && obj.trafficImg.img.complete && obj.trafficImg.img.naturalWidth !== 0) {
                     const def = obj.trafficImg;
                     const cropped = getTightlyCroppedSprite(def.img, def.cols, def.rows, def.c, def.r);
                     if (cropped) {
-                        ctx.save();
                         ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
                         ctx.shadowBlur = 4;
                         ctx.shadowOffsetY = 2;
@@ -2868,21 +3158,19 @@ document.addEventListener("DOMContentLoaded", () => {
                         const carW = Math.round(objWidth * 1.4);
                         const carH = Math.round(carW * (cropped.height / cropped.width));
                         ctx.drawImage(cropped, Math.round(currentLaneX - carW / 2), Math.round(obj.y - carH / 2), carW, carH);
-                        ctx.restore();
                         drawnCropped = true;
                     }
                 }
                 
                 if (!drawnCropped) {
-                    ctx.save();
                     ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
                     ctx.shadowBlur = 4;
                     ctx.shadowOffsetY = 2;
                     ctx.font = `${currentScale}px sans-serif`;
                     ctx.textAlign = "center";
                     ctx.fillText(obj.emoji, Math.round(currentLaneX), Math.round(obj.y));
-                    ctx.restore();
                 }
+                ctx.restore();
 
                 // COLISIÓN CON EL HITBOX JUSTO DEL AUTO ROJO DEPORTIVO (x=playerX, y=440, w=48, h=28)
                 const hitX = Math.abs(currentLaneX - playerX) < (18 + objWidth * 0.4);
@@ -2895,7 +3183,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         triggerHaptic(30); 
                         roadObjects.splice(i, 1);
                         continue;
-                    } else {
+                    } else if (obj.isCar) {
                         // Impacto real por solapamiento directo
                         const currentFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
                         triggerHaptic(250);
@@ -2985,6 +3273,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);
             currentGameScore.innerText = score.toString().padStart(5, '0');
+
+            // EASTER EGG: BANNER DEL CLAXON NUPCIAL "¡ABRAN PASO A LOS NOVIOS!"
+            if (pueblaHornBannerTimer > 0) {
+                pueblaHornBannerTimer--;
+                ctx.save();
+                ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+                ctx.fillRect(20, 42, canvas.width - 40, 32);
+                ctx.strokeStyle = "#fbbf24";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(20, 42, canvas.width - 40, 32);
+                ctx.fillStyle = "#fef08a";
+                ctx.font = "bold 13px font-monogram, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("🎺 ¡ABRAN PASO A LOS NOVIOS! 🚗💨", canvas.width / 2, 63);
+                ctx.restore();
+            }
 
             // HUD EN PANTALLA CON KILÓMETROS REALES
             ctx.save();

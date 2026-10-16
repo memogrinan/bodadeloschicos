@@ -1648,3 +1648,113 @@ function showCopiedFeedback(btn) {
         btn.style.color = "var(--olivo-base)";
     }, 2000);
 }
+
+// EASTER EGG: TOCAR 5 VECES EL LOGO FINAL EN LA PORTADA
+let footerLogoTapCount = 0;
+let footerLogoTapTimer = null;
+
+window.handleFooterLogoTap = function() {
+    footerLogoTapCount++;
+    clearTimeout(footerLogoTapTimer);
+    footerLogoTapTimer = setTimeout(() => {
+        footerLogoTapCount = 0;
+    }, 2500);
+
+    const logo = document.getElementById("footerWeddingLogo");
+    if (logo) {
+        logo.style.transform = `scale(${1 + footerLogoTapCount * 0.05})`;
+        logo.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        setTimeout(() => {
+            if (logo) logo.style.transform = "scale(1)";
+        }, 150);
+    }
+
+    if (footerLogoTapCount >= 5) {
+        footerLogoTapCount = 0;
+        triggerWeddingMarchEasterEgg();
+    }
+};
+
+function triggerWeddingMarchEasterEgg() {
+    // 1. Confeti dorado de celebración
+    if (typeof confetti === "function") {
+        const end = Date.now() + 3500;
+        const colors = ['#d4af37', '#ffd700', '#f4e4bc', '#52582f', '#ffffff'];
+        (function frame() {
+            confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0, y: 0.8 },
+                colors: colors
+            });
+            confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1, y: 0.8 },
+                colors: colors
+            });
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        }());
+    }
+
+    // 2. Chiptune de 8-bits de la Marcha Nupcial (Bridal Chorus / Here Comes the Bride)
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+            const actx = new AudioCtx();
+            if (actx.state === 'suspended') actx.resume();
+
+            const notes = [
+                { f: 246.94, d: 0.35 }, // B3
+                { f: 329.63, d: 0.55 }, // E4
+                { f: 329.63, d: 0.25 }, // E4
+                { f: 329.63, d: 0.70 }, // E4
+                { f: 246.94, d: 0.35 }, // B3
+                { f: 369.99, d: 0.55 }, // F#4
+                { f: 311.13, d: 0.25 }, // D#4
+                { f: 329.63, d: 0.70 }, // E4
+                { f: 246.94, d: 0.35 }, // B3
+                { f: 329.63, d: 0.35 }, // E4
+                { f: 440.00, d: 0.50 }, // A4
+                { f: 415.30, d: 0.35 }, // G#4
+                { f: 369.99, d: 0.35 }, // F#4
+                { f: 329.63, d: 0.35 }, // E4
+                { f: 311.13, d: 0.35 }, // D#4
+                { f: 329.63, d: 0.80 }  // E4
+            ];
+
+            let currTime = actx.currentTime + 0.05;
+            notes.forEach(n => {
+                const osc = actx.createOscillator();
+                const gain = actx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(n.f, currTime);
+                gain.gain.setValueAtTime(0.25, currTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, currTime + n.d - 0.04);
+                osc.connect(gain);
+                gain.connect(actx.destination);
+                osc.start(currTime);
+                osc.stop(currTime + n.d);
+                currTime += n.d;
+            });
+        }
+    } catch(e) {
+        console.warn("Audio error:", e);
+    }
+
+    // 3. Notificación flotante de felicitación
+    const toast = document.createElement("div");
+    toast.innerText = document.documentElement.lang === "en" 
+        ? "💒 Here come the bride & groom! ♡ Mariana & Memo"
+        : "💒 ¡Que vivan los novios! ♡ Mariana & Memo";
+    toast.style.cssText = "position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); background: #52582f; color: #fff; padding: 12px 26px; border-radius: 30px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 99999; pointer-events: none; opacity: 1; transition: opacity 0.5s ease;";
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 500);
+    }, 4500);
+}
