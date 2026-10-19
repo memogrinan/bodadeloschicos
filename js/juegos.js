@@ -2176,17 +2176,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const cx = w / 2;
             const groundY = 445;
 
-            // Siluetas de árboles y follaje nupcial a los lados
-            ctx.fillStyle = "rgba(163, 173, 115, 0.22)";
-            ctx.beginPath();
-            ctx.arc(35, groundY - 30, 48, 0, Math.PI * 2);
-            ctx.arc(60, groundY - 65, 36, 0, Math.PI * 2);
-            ctx.arc(w - 35, groundY - 30, 48, 0, Math.PI * 2);
-            ctx.arc(w - 60, groundY - 65, 36, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Sombra suave proyectada por el templo
-            ctx.fillStyle = "rgba(140, 70, 95, 0.08)";
+            // Sombra suave y armónica proyectada por el templo (en tono rosa crema, sin manchas verdes)
+            ctx.fillStyle = "rgba(140, 70, 95, 0.06)";
             ctx.fillRect(cx - 130, groundY - 225, 260, 225);
 
             ctx.strokeStyle = "rgba(160, 85, 110, 0.55)";
@@ -2231,7 +2222,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             ctx.lineWidth = 2.2;
 
-            // Frontón triangular
+            // Frontón triangular (Punta del techo en groundY - 225)
             ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
             ctx.beginPath();
             ctx.moveTo(cx - 80, groundY - 170);
@@ -2241,14 +2232,14 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.fill();
             ctx.stroke();
 
-            // Cúpula central
+            // Cúpula central (Ajustada para nacer armónicamente dentro del frontón sin cruces raros)
             ctx.fillStyle = "rgba(240, 210, 220, 0.5)";
             ctx.beginPath();
-            ctx.arc(cx, groundY - 180, 42, Math.PI, 0);
+            ctx.arc(cx, groundY - 175, 40, Math.PI, 0);
             ctx.fill();
             ctx.stroke();
 
-            // Cruz central
+            // Cruz central sobre el frontón
             ctx.beginPath();
             ctx.moveTo(cx, groundY - 225);
             ctx.lineTo(cx, groundY - 250);
@@ -2486,7 +2477,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (obj.emoji === "💍") {
                             ringStreak++;
                             if (ringStreak >= 3 && magnetTimer <= 0) {
-                                magnetTimer = 120; // 4 segundos a 30fps
+                                magnetTimer = 150; // 5 segundos a 30fps (+1 segundo extra de duración)
                                 ringStreak = 0;
                                 playSound('coin');
                                 chicaPopups.push({ x: basketX + 25, y: 380, text: "💖 ¡IMÁN DE AMOR! 🧲", color: "#ec4899", life: 45 });
