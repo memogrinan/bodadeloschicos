@@ -123,6 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const imgMaddieUfo = new Image();
         imgMaddieUfo.src = assetPrefix + 'ImagenesWeb/maddie_nave_espacial.png';
 
+        // SPRITE DE MADDIE EN SU JUEGO (WHACK-A-MADDIE)
+        const imgMaddieGame = new Image();
+        imgMaddieGame.src = assetPrefix + 'ImagenesWeb/maddie_juego.png';
+
         // AUDIOS DEDICADOS PARA EASTER EGGS
         const sfxCarHonk = new window.Audio(assetPrefix + 'Music/sound_effects/car_honk.mp3');
         sfxCarHonk.volume = 0.85;
@@ -2404,7 +2408,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     activeHole = nextHole;
                     const next = document.getElementById("hole-" + activeHole);
                     if (next) {
-                        next.innerHTML = "<span class='select-none pointer-events-none text-4xl md:text-5xl animate-pop-up inline-block'>🐶</span>";
+                        next.innerHTML = `<img src="${assetPrefix}ImagenesWeb/maddie_juego.png" class="select-none pointer-events-none w-[88%] h-[88%] object-contain animate-pop-up inline-block drop-shadow-md" alt="Maddie">`;
                     }
                 }
 
