@@ -121,26 +121,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // SPRITE EASTER EGG: MADDIE NAVE ESPACIAL
         const imgMaddieUfo = new Image();
-        imgMaddieUfo.src = assetPrefix + 'ImagenesWeb/maddie_nave_espacial.png';
+        imgMaddieUfo.src = assetPrefix + 'ImagenesWeb/maddie_nave_espacial.png?v=31';
 
         // SPRITE EASTER EGG: MARCIANO INVASOR
         const imgMarciano = new Image();
-        imgMarciano.src = assetPrefix + 'ImagenesWeb/marciano.png';
+        imgMarciano.src = assetPrefix + 'ImagenesWeb/marciano.png?v=31';
 
         // SPRITE DE MADDIE EN SU JUEGO (WHACK-A-MADDIE)
         const imgMaddieGame = new Image();
-        imgMaddieGame.src = assetPrefix + 'ImagenesWeb/maddie_juego.png';
+        imgMaddieGame.src = assetPrefix + 'ImagenesWeb/maddie_juego.png?v=31';
 
         // SPRITES DE LA CHICA (MARIANA) EN SU JUEGO
         const imgChicaGame = new Image();
-        imgChicaGame.src = assetPrefix + 'ImagenesWeb/emoji_chica.png';
+        imgChicaGame.src = assetPrefix + 'ImagenesWeb/emoji_chica.png?v=31';
 
         const imgChicaLentesGame = new Image();
-        imgChicaLentesGame.src = assetPrefix + 'ImagenesWeb/emoji_chica_lentes.png';
+        imgChicaLentesGame.src = assetPrefix + 'ImagenesWeb/emoji_chica_lentes.png?v=31';
 
-        // AUDIOS DEDICADOS PARA EASTER EGGS
+        // AUDIOS DEDICADOS PARA EASTER EGGS Y JUEGOS
         const sfxCarHonk = new window.Audio(assetPrefix + 'Music/sound_effects/car_honk.mp3');
         sfxCarHonk.volume = 0.85;
+
+        const sfxMaddieBark = new window.Audio(assetPrefix + 'Music/sound_effects/ladrido_maddie_single.mp3');
+        sfxMaddieBark.volume = 0.85;
 
         const sfxSpaceEngine = new window.Audio();
         if (sfxSpaceEngine.canPlayType && sfxSpaceEngine.canPlayType('audio/ogg; codecs="vorbis"')) {
@@ -295,7 +298,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 const now = audioCtx.currentTime;
 
                 if (type === 'bark') {
-                    // Ladrido alegre y simpático de perrito ("Woof!")
+                    // Si el audio real de Maddie está disponible, se reproduce con prioridad
+                    if (typeof sfxMaddieBark !== 'undefined') {
+                        try {
+                            sfxMaddieBark.currentTime = 0;
+                            sfxMaddieBark.play().catch(() => {});
+                            return;
+                        } catch (e) {}
+                    }
+                    // Ladrido sintetizado de respaldo si no hay audio
                     const osc1 = audioCtx.createOscillator();
                     const osc2 = audioCtx.createOscillator();
                     const barkGain = audioCtx.createGain();
@@ -1367,6 +1378,24 @@ document.addEventListener("DOMContentLoaded", () => {
             if (typeof bgMusic !== 'undefined') {
                 bgMusic.pause();
                 bgMusic.currentTime = 0;
+            }
+            if (typeof sfxSpaceEngine !== 'undefined') {
+                try {
+                    sfxSpaceEngine.pause();
+                    sfxSpaceEngine.currentTime = 0;
+                } catch (e) {}
+            }
+            if (typeof sfxCarHonk !== 'undefined') {
+                try {
+                    sfxCarHonk.pause();
+                    sfxCarHonk.currentTime = 0;
+                } catch (e) {}
+            }
+            if (typeof sfxMaddieBark !== 'undefined') {
+                try {
+                    sfxMaddieBark.pause();
+                    sfxMaddieBark.currentTime = 0;
+                } catch (e) {}
             }
 
             canvas.onclick = null;
