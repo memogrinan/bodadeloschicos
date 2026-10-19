@@ -1643,6 +1643,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let leaderWarningTimer = 0;
         let marcianoSpawnedThisRun = false;
         let maddieTouchedThisRun = false;
+        let nextObstacleFrame = 0;
+        let nextItemFrame = 0;
 
         function initChicoGame() {
             memo = {
@@ -1663,6 +1665,8 @@ document.addEventListener("DOMContentLoaded", () => {
             leaderWarningTimer = 0;
             marcianoSpawnedThisRun = false;
             maddieTouchedThisRun = false;
+            nextObstacleFrame = 55;
+            nextItemFrame = 140;
             clouds = [
                 {x: 120, y: 60, speed: 0.6},
                 {x: 320, y: 90, speed: 0.4}
@@ -2029,80 +2033,117 @@ document.addEventListener("DOMContentLoaded", () => {
                 memo.isGrounded = true;
             }
 
-            let spawnInterval = Math.max(45, 75 - Math.floor(chicoSpeed * 2));
-            
-            // Generar Obstáculos usando los sprites PNG pre-cargados
-            if (chicoFrame % spawnInterval === 0) {
-                let obsTypes = [
+            // GENERACIÓN DE OBSTÁCULOS CON ESPACIADO JUSTO Y DINÁMICO
+            if (chicoFrame >= nextObstacleFrame) {
+                // Tipos de obstáculos de oficina
+                const obsTypes = [
                     { img: imgCalendar, fallback: "📅" },
                     { img: imgClock, fallback: "⏰" },
                     { img: imgEmail, fallback: "📩" }
                 ];
-                let randObs = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+
+                // Patrón aleatorio: 80% obstáculo simple, 20% obstáculo doble (pegados juntos para saltarlos de un solo impulso)
+                const isDoubleObs = (score > 150 && Math.random() < 0.22);
+
+                const randObs1 = obsTypes[Math.floor(Math.random() * obsTypes.length)];
                 obstacles.push({
                     x: canvas.width,
-                    y: 312, 
+                    y: 312,
                     width: 32,
                     height: 32,
-                    img: randObs.img,
-                    fallback: randObs.fallback
+                    img: randObs1.img,
+                    fallback: randObs1.fallback
                 });
+
+                if (isDoubleObs) {
+                    const randObs2 = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+                    obstacles.push({
+                        x: canvas.width + 24, // Pegados uno junto al otro para saltarlos de un solo brinco limpio
+                        y: 312,
+                        width: 32,
+                        height: 32,
+                        img: randObs2.img,
+                        fallback: randObs2.fallback
+                    });
+                }
+
+                // DILEMA TENTADOR: Poner un control poco antes del obstáculo (riesgo vs recompensa)
+                // Ocurre de forma semialeatoria si toca generar control
+                if (chicoFrame >= nextItemFrame && Math.random() < 0.45) {
+                    // Control tentador colocado ~65px antes del obstáculo a baja o media altura
+                    items.push({
+                        x: canvas.width - 65,
+                        y: 275 - Math.floor(Math.random() * 25), // Tentador: cerca del suelo antes del obstáculo
+                        width: 30,
+                        height: 22,
+                        img: imgGamepad,
+                        fallback: "🎮"
+                    });
+                    nextItemFrame = chicoFrame + 180 + Math.floor(Math.random() * 120);
+                }
+
+                // Intervalo mínimo GARANTIZADO para que NUNCA queden dos obstáculos a una distancia imposible
+                // Con base en la velocidad actual, el dinosaurio necesita al menos un tiempo de aterrizaje
+                const minGapFrames = Math.max(48, Math.floor(190 / chicoSpeed));
+                const randomExtraFrames = Math.floor(Math.random() * 35);
+                nextObstacleFrame = chicoFrame + minGapFrames + randomExtraFrames;
             }
 
-            // Generar Controles con menor frecuencia (cada 200 fotogramas)
-            if (chicoFrame % 200 === 0) {
+            // GENERACIÓN DE CONTROLES FLOTANTES EN EL AIRE (si no salió en el dilema previo)
+            if (chicoFrame >= nextItemFrame) {
                 items.push({
                     x: canvas.width,
-                    y: 215 + Math.random() * 60,
+                    y: 215 + Math.random() * 55,
                     width: 30,
-                    height: 30,
+                    height: 22,
                     img: imgGamepad,
                     fallback: "🎮"
                 });
+                nextItemFrame = chicoFrame + 160 + Math.floor(Math.random() * 100);
             }
 
-            // Dibujar y procesar Obstáculos ( PNG de Alta Resolución )
+            // DIBUJAR Y PROCESAR OBSTÁCULOS (MOVIMIENTO FLUIDO Y SUAVE)
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.x -= chicoSpeed;
                 
+                const drawX = Math.round(obs.x);
+                const drawY = Math.round(obs.y);
+
                 if (obs.img.complete && obs.img.naturalWidth !== 0) {
-                    // Encendemos la interpolación bilineal suave de forma temporal antes de dibujar este sprite de alta resolución
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.drawImage(obs.img, Math.round(obs.x), Math.round(obs.y), obs.width, obs.height);
-                    ctx.imageSmoothingEnabled = false; // Lo apagamos inmediatamente después
+                    ctx.drawImage(obs.img, drawX, drawY, obs.width, obs.height);
                 } else {
                     ctx.font = "30px sans-serif";
                     ctx.textAlign = "left";
-                    ctx.fillText(obs.fallback, Math.round(obs.x), Math.round(obs.y) + 26);
+                    ctx.fillText(obs.fallback, drawX, drawY + 26);
                 }
 
-                // Detección de colisión estrecha (AABB)
-                if (obs.x < memo.x + memo.width - 6 &&
-                    obs.x + obs.width > memo.x + 6 &&
+                // Detección de colisión estrecha y justa (AABB)
+                if (obs.x < memo.x + memo.width - 8 &&
+                    obs.x + obs.width > memo.x + 8 &&
                     obs.y < memo.y + memo.height - 6 &&
                     obs.y + obs.height > memo.y + 6) {
                     triggerHaptic(200);
                     gameOver(score);
                     return;
                 }
-                if (obs.x < -40) obstacles.splice(i, 1);
+                if (obs.x < -50) obstacles.splice(i, 1);
             }
 
-            // Dibujar y procesar Controles Recolectables
+            // DIBUJAR Y PROCESAR CONTROLES RECOLECTABLES
             for (let i = items.length - 1; i >= 0; i--) {
                 let it = items[i];
                 it.x -= chicoSpeed;
                 
+                const drawX = Math.round(it.x);
+                const drawY = Math.round(it.y);
+
                 if (it.img.complete && it.img.naturalWidth !== 0) {
-                    // Suavizado temporal para encoger el gamepad limpio sin deformaciones
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.drawImage(it.img, Math.round(it.x), Math.round(it.y), it.width, it.height);
-                    ctx.imageSmoothingEnabled = false; 
+                    ctx.drawImage(it.img, drawX, drawY, it.width, it.height);
                 } else {
                     ctx.font = "26px sans-serif";
                     ctx.textAlign = "left";
-                    ctx.fillText(it.fallback, Math.round(it.x), Math.round(it.y) + 22);
+                    ctx.fillText(it.fallback, drawX, drawY + 20);
                 }
 
                 // Detección de recolección de gamepad estrecha
@@ -2124,7 +2165,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     items.splice(i, 1);
                     continue;
                 }
-                if (it.x < -40) items.splice(i, 1);
+                if (it.x < -50) items.splice(i, 1);
             }
 
             for (let i = scorePopups.length - 1; i >= 0; i--) {
