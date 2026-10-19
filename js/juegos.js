@@ -119,6 +119,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const imgSceneryChurch = new Image();
         imgSceneryChurch.src = assetPrefix + 'SpritesNecesarios/Map_Markers_Building_Church_Faith_Temple.png';
 
+        // SPRITE EASTER EGG: MADDIE NAVE ESPACIAL
+        const imgMaddieUfo = new Image();
+        imgMaddieUfo.src = assetPrefix + 'ImagenesWeb/maddie_nave_espacial.png';
+
+        // AUDIOS DEDICADOS PARA EASTER EGGS
+        const sfxCarHonk = new window.Audio(assetPrefix + 'Music/sound_effects/car_honk.mp3');
+        sfxCarHonk.volume = 0.85;
+
+        const sfxSpaceEngine = new window.Audio();
+        if (sfxSpaceEngine.canPlayType && sfxSpaceEngine.canPlayType('audio/ogg; codecs="vorbis"')) {
+            sfxSpaceEngine.src = assetPrefix + 'Music/sound_effects/spaceEngine_003.ogg';
+        } else {
+            sfxSpaceEngine.src = assetPrefix + 'Music/sound_effects/spaceEngine_003.m4a';
+        }
+        sfxSpaceEngine.volume = 0.12; // Suave de fondo, inferior a la música (0.2)
+
         // Comprobaciones de error de carga para los sprites
         const handleImageError = (name, src) => {
             console.error(`ERROR: No se pudo cargar el sprite '${name}' en: ${src}`);
@@ -337,48 +353,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     osc2.stop(now + 0.22);
                     return;
                 } else if (type === 'wedding_horn') {
-                    // Claxon automotriz dual-tone realista: 415 Hz y 495 Hz con textura metálica y filtro resonante
-                    const hornBeeps = [
-                        { t: 0, d: 0.13 },
-                        { t: 0.18, d: 0.13 },
-                        { t: 0.38, d: 0.08 },
-                        { t: 0.49, d: 0.08 },
-                        { t: 0.60, d: 0.30 }
-                    ];
-                    hornBeeps.forEach(b => {
-                        const start = now + b.t;
-                        const duration = b.d;
-                        const end = start + duration;
-
-                        const filter = audioCtx.createBiquadFilter();
-                        filter.type = 'lowpass';
-                        filter.frequency.setValueAtTime(2400, start);
-                        filter.Q.setValueAtTime(2.2, start);
-                        filter.connect(audioCtx.destination);
-
-                        const hornGain = audioCtx.createGain();
-                        hornGain.gain.setValueAtTime(0.001, start);
-                        hornGain.gain.linearRampToValueAtTime(0.20, start + 0.015);
-                        hornGain.gain.setValueAtTime(0.20, end - 0.02);
-                        hornGain.gain.linearRampToValueAtTime(0.001, end);
-                        hornGain.connect(filter);
-
-                        // Tono grave (415 Hz)
-                        const osc1 = audioCtx.createOscillator();
-                        osc1.type = 'sawtooth';
-                        osc1.frequency.setValueAtTime(415, start);
-                        osc1.connect(hornGain);
-                        osc1.start(start);
-                        osc1.stop(end);
-
-                        // Tono agudo (495 Hz - intervalo de tercera menor de bocina automotriz)
-                        const osc2 = audioCtx.createOscillator();
-                        osc2.type = 'sawtooth';
-                        osc2.frequency.setValueAtTime(495, start);
-                        osc2.connect(hornGain);
-                        osc2.start(start);
-                        osc2.stop(end);
-                    });
+                    // Reproducir el sonido de claxon auténtico recortado a 5 pitidos
+                    try {
+                        sfxCarHonk.currentTime = 0;
+                        sfxCarHonk.play().catch(e => console.log('Car honk audio err:', e));
+                    } catch (e) {}
                     return;
                 }
 
@@ -1471,6 +1450,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             gameRunning = false;
             clearInterval(gameInterval);
+
+            if (sfxSpaceEngine) {
+                try {
+                    sfxSpaceEngine.pause();
+                    sfxSpaceEngine.currentTime = 0;
+                } catch (e) {}
+            }
+            if (sfxCarHonk) {
+                try {
+                    sfxCarHonk.pause();
+                    sfxCarHonk.currentTime = 0;
+                } catch (e) {}
+            }
             
             const isSuccess = activeGame === 'puebla' ? isVictoryParam : (finalScore >= METAS[activeGame]);
 
@@ -1717,15 +1709,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     ctx.fillText("✨", 320, 35);
                 }
 
-                // EASTER EGG: MADDIE OVNI VOLANDO EN LA NOCHE
+                // EASTER EGG: MADDIE NAVE ESPACIAL VOLANDO EN LA NOCHE (Sincronizada con spaceEngine_003)
                 if (maddieUfo && maddieUfo.active) {
-                    maddieUfo.x -= maddieUfo.speed;
+                    const elapsed = Date.now() - maddieUfo.startTime;
+                    const progress = Math.min(1, elapsed / maddieUfo.duration);
+                    maddieUfo.x = maddieUfo.startX + (maddieUfo.endX - maddieUfo.startX) * progress;
+                    const hoverY = maddieUfo.y + Math.sin(progress * Math.PI * 8) * 3.5;
+
                     ctx.save();
-                    ctx.font = "28px sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.fillText("🛸🐶", Math.round(maddieUfo.x), Math.round(maddieUfo.y));
+                    ctx.imageSmoothingEnabled = true;
+                    if (imgMaddieUfo && imgMaddieUfo.complete && imgMaddieUfo.naturalWidth !== 0) {
+                        const ufoW = 54;
+                        const ufoH = Math.round(ufoW * (imgMaddieUfo.height / imgMaddieUfo.width));
+                        ctx.shadowColor = "rgba(147, 197, 253, 0.6)";
+                        ctx.shadowBlur = 8;
+                        ctx.drawImage(imgMaddieUfo, Math.round(maddieUfo.x - ufoW / 2), Math.round(hoverY - ufoH / 2), ufoW, ufoH);
+                    } else {
+                        ctx.font = "28px sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.fillText("🛸🐶", Math.round(maddieUfo.x), Math.round(hoverY));
+                    }
                     ctx.restore();
-                    if (maddieUfo.x < -60) maddieUfo = null;
+
+                    if (progress >= 1) {
+                        maddieUfo = null;
+                    }
                 }
             }
 
@@ -1908,14 +1916,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     playSound('coin');
                     triggerHaptic(30);
 
-                    // EASTER EGG: MADDIE OVNI SI ESTÁS EN EL AIRE Y ES MODO NOCHE (>350 pts)
+                    // EASTER EGG: MADDIE NAVE ESPACIAL SI ESTÁS EN EL AIRE Y ES MODO NOCHE (>350 pts)
                     if (!memo.isGrounded && isNightMode && !maddieUfo) {
                         maddieUfo = {
-                            x: canvas.width + 40,
-                            y: 50,
-                            speed: 3.5,
+                            startTime: Date.now(),
+                            duration: 5000, // 5.0 segundos exactos (duración del audio spaceEngine_003)
+                            startX: canvas.width + 45,
+                            endX: -65,
+                            y: 44,
                             active: true
                         };
+                        try {
+                            sfxSpaceEngine.currentTime = 0;
+                            sfxSpaceEngine.play().catch(e => console.log('Space engine audio err:', e));
+                        } catch (e) {}
                         playSound('bark');
                     }
                     
@@ -2544,16 +2558,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             targets.forEach((car, idx) => {
                 car.isPulledAside = true;
-                car.isCar = false; // Se orillan al acotamiento: ya no colisionan jamás
-                // Despejar el carril actual del jugador
+                car.isCar = false; // Se desactiva la colisión de inmediato para seguridad del jugador
+                // Despejar visiblemente hacia otro carril (cualquiera que NO sea el del jugador)
                 if (targetLane === 1) {
-                    car.lane = (idx === 0) ? -0.85 : 2.85;
+                    car.destLane = (idx === 0) ? 0 : 2;
                 } else if (targetLane === 0) {
-                    car.lane = 2.85;
+                    car.destLane = (idx === 0) ? 1 : 2;
                 } else {
-                    car.lane = -0.85;
+                    car.destLane = (idx === 0) ? 1 : 0;
                 }
-                car.speed = 1.0; // Descienden suavemente fuera de pantalla y NUNCA regresan
             });
         }
 
@@ -3175,8 +3188,19 @@ document.addEventListener("DOMContentLoaded", () => {
             for (let i = roadObjects.length - 1; i >= 0; i--) {
                 let obj = roadObjects[i];
                 
-                if (obj.isCar) {
-                    obj.y += roadSpeed - obj.speed; 
+                // Desplazamiento visible y fluido hacia el carril despejado
+                if (obj.isPulledAside && obj.destLane !== undefined) {
+                    const diff = obj.destLane - obj.lane;
+                    if (Math.abs(diff) > 0.02) {
+                        // Cruza de carril visiblemente a ~0.08 por frame (~0.35s de transición fluida)
+                        obj.lane += Math.sign(diff) * Math.min(Math.abs(diff), 0.08);
+                    } else {
+                        obj.lane = obj.destLane;
+                    }
+                }
+
+                if (obj.isCar || obj.isPulledAside) {
+                    obj.y += roadSpeed - (obj.speed || 4.5); 
                 } else {
                     obj.y += roadSpeed; 
                 }
@@ -3189,8 +3213,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Para dibujar autos PNG autocroppeados
                 let drawnCropped = false;
                 ctx.save();
-                if (obj.isPulledAside && (Math.floor(roadFrame / 3) % 2 === 0)) {
-                    ctx.globalAlpha = 0.45;
+                if (obj.isPulledAside && (Math.floor(roadFrame / 4) % 2 === 0)) {
+                    // Parpadeo sutil de direccional de cortesía al orillarse
+                    ctx.globalAlpha = 0.85;
                 }
                 if ((obj.isCar || obj.isPulledAside) && obj.trafficImg && obj.trafficImg.img && obj.trafficImg.img.complete && obj.trafficImg.img.naturalWidth !== 0) {
                     const def = obj.trafficImg;

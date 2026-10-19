@@ -1649,7 +1649,7 @@ function showCopiedFeedback(btn) {
     }, 2000);
 }
 
-// EASTER EGG: TOCAR 5 VECES EL LOGO FINAL EN LA PORTADA
+// EASTER EGG: DOBLE CLIC EN EL LOGO FINAL EN LA PORTADA
 let footerLogoTapCount = 0;
 let footerLogoTapTimer = null;
 
@@ -1658,18 +1658,18 @@ window.handleFooterLogoTap = function() {
     clearTimeout(footerLogoTapTimer);
     footerLogoTapTimer = setTimeout(() => {
         footerLogoTapCount = 0;
-    }, 2500);
+    }, 500);
 
     const logo = document.getElementById("footerWeddingLogo");
     if (logo) {
-        logo.style.transform = `scale(${1 + footerLogoTapCount * 0.05})`;
+        logo.style.transform = "scale(1.08)";
         logo.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
         setTimeout(() => {
             if (logo) logo.style.transform = "scale(1)";
         }, 150);
     }
 
-    if (footerLogoTapCount >= 5) {
+    if (footerLogoTapCount >= 2) {
         footerLogoTapCount = 0;
         triggerWeddingMarchEasterEgg();
     }
