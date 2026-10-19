@@ -127,6 +127,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const imgMaddieGame = new Image();
         imgMaddieGame.src = assetPrefix + 'ImagenesWeb/maddie_juego.png';
 
+        // SPRITES DE LA CHICA (MARIANA) EN SU JUEGO
+        const imgChicaGame = new Image();
+        imgChicaGame.src = assetPrefix + 'ImagenesWeb/emoji_chica.png';
+
+        const imgChicaLentesGame = new Image();
+        imgChicaLentesGame.src = assetPrefix + 'ImagenesWeb/emoji_chica_lentes.png';
+
         // AUDIOS DEDICADOS PARA EASTER EGGS
         const sfxCarHonk = new window.Audio(assetPrefix + 'Music/sound_effects/car_honk.mp3');
         sfxCarHonk.volume = 0.85;
@@ -2166,14 +2173,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // 4. DIBUJAR A LA NOVIA CASTAÑA DE CABELLO LARGO (EMOJI 👰🏻‍♀️)
+            // 4. DIBUJAR A LA NOVIA (SPRITE EMOJI CHICA O CON LENTES SI EASTER EGG ACTIVO)
+            const spriteChica = (magnetTimer > 0 && imgChicaLentesGame.complete && imgChicaLentesGame.naturalWidth > 0)
+                ? imgChicaLentesGame
+                : ((imgChicaGame.complete && imgChicaGame.naturalWidth > 0) ? imgChicaGame : null);
+
+            const brideDrawW = 56;
+            const brideDrawH = 56;
+            const brideDrawX = Math.round(basketX + 25 - brideDrawW / 2);
+            const brideDrawY = 404;
+
             ctx.save();
             ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
             ctx.shadowBlur = 6;
             ctx.shadowOffsetY = 3;
-            ctx.font = "48px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("👰🏻‍♀️", Math.round(basketX + 25), 450);
+
+            if (spriteChica) {
+                ctx.drawImage(spriteChica, brideDrawX, brideDrawY, brideDrawW, brideDrawH);
+            } else {
+                ctx.font = "48px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(magnetTimer > 0 ? "😎" : "👰🏻‍♀️", Math.round(basketX + 25), 450);
+            }
             ctx.restore();
 
             // EASTER EGG: MODO IMÁN DE AMOR (Mariana con gafas y aura magnética rosa)
@@ -2183,12 +2204,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 ctx.strokeStyle = "rgba(236, 72, 153, 0.75)";
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.arc(basketX + 25, 435, 36 + (magnetTimer % 8) * 2, 0, Math.PI * 2);
+                ctx.arc(basketX + 25, 432, 38 + (magnetTimer % 8) * 2, 0, Math.PI * 2);
                 ctx.stroke();
-                // Gafas de sol pixel-art (Deal With It)
-                ctx.font = "20px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText("🕶️", Math.round(basketX + 25), 436);
                 ctx.restore();
 
                 // Atraer automáticamente corazones y anillos
