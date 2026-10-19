@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             sfxSpaceEngine.src = assetPrefix + 'Music/sound_effects/spaceEngine_003.m4a';
         }
-        sfxSpaceEngine.volume = 0.12; // Suave de fondo, inferior a la música (0.2)
+        sfxSpaceEngine.volume = 0.70; // Volumen nítido y claro mientras cruza la nave espacial
 
         // Comprobaciones de error de carga para los sprites
         const handleImageError = (name, src) => {
@@ -1518,11 +1518,14 @@ document.addEventListener("DOMContentLoaded", () => {
             // Mostrar los contenedores gráficos del Game Over clásico
             document.getElementById("gameOverTitleContainer").classList.remove("hidden");
             
-            // Cambiar titulo si ganamos en puebla
+            // Cambiar titulo si ganamos según el juego
             const titleText = document.getElementById("gameOverTitleText");
             if (activeGame === 'puebla' && isSuccess) {
                 titleText.innerText = isEnLang ? "YOU ARRIVED!" : "¡LLEGASTE!";
                 titleText.className = "text-3xl md:text-4xl font-monogram font-bold tracking-widest text-[#16a34a] animate-pulse";
+            } else if (activeGame === 'maddie' && isSuccess) {
+                titleText.innerText = isEnLang ? "YOU CAUGHT MADDIE!" : "¡ATRAPASTE A MADDIE!";
+                titleText.className = "text-2xl md:text-3xl font-monogram font-bold tracking-widest text-[#f1c40f] animate-pulse";
             } else if (isSuccess) {
                 titleText.innerText = isEnLang ? "VICTORY!" : "¡VICTORIA!";
                 titleText.className = "text-3xl md:text-4xl font-monogram font-bold tracking-widest text-[#f1c40f] animate-pulse";
@@ -1994,45 +1997,80 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function drawChurchBackdrop(ctx, w, h) {
             ctx.save();
-            ctx.strokeStyle = "rgba(180, 100, 125, 0.42)";
-            ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-            ctx.lineWidth = 2.2;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
 
             const cx = w / 2;
             const groundY = 445;
+
+            // Siluetas de árboles y follaje nupcial a los lados
+            ctx.fillStyle = "rgba(163, 173, 115, 0.22)";
+            ctx.beginPath();
+            ctx.arc(35, groundY - 30, 48, 0, Math.PI * 2);
+            ctx.arc(60, groundY - 65, 36, 0, Math.PI * 2);
+            ctx.arc(w - 35, groundY - 30, 48, 0, Math.PI * 2);
+            ctx.arc(w - 60, groundY - 65, 36, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sombra suave proyectada por el templo
+            ctx.fillStyle = "rgba(140, 70, 95, 0.08)";
+            ctx.fillRect(cx - 130, groundY - 225, 260, 225);
+
+            ctx.strokeStyle = "rgba(160, 85, 110, 0.55)";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
 
             // Cuerpo principal de la parroquia
             ctx.fillRect(cx - 75, groundY - 170, 150, 170);
             ctx.strokeRect(cx - 75, groundY - 170, 150, 170);
 
-            // Puerta con arco
+            // Puerta con arco elegante de piedra
+            ctx.fillStyle = "rgba(180, 100, 125, 0.25)";
             ctx.beginPath();
-            ctx.moveTo(cx - 22, groundY);
-            ctx.lineTo(cx - 22, groundY - 55);
-            ctx.arc(cx, groundY - 55, 22, Math.PI, 0);
-            ctx.lineTo(cx + 22, groundY);
+            ctx.moveTo(cx - 24, groundY);
+            ctx.lineTo(cx - 24, groundY - 58);
+            ctx.arc(cx, groundY - 58, 24, Math.PI, 0);
+            ctx.lineTo(cx + 24, groundY);
+            ctx.closePath();
+            ctx.fill();
             ctx.stroke();
 
-            // Ventana circular central (Rosetón)
+            // Ventana circular central (Rosetón con cristales)
+            ctx.fillStyle = "rgba(255, 220, 230, 0.6)";
             ctx.beginPath();
-            ctx.arc(cx, groundY - 120, 20, 0, Math.PI * 2);
+            ctx.arc(cx, groundY - 120, 22, 0, Math.PI * 2);
+            ctx.fill();
             ctx.stroke();
             ctx.beginPath();
-            ctx.arc(cx, groundY - 120, 7, 0, Math.PI * 2);
+            ctx.arc(cx, groundY - 120, 8, 0, Math.PI * 2);
             ctx.stroke();
+
+            // Detalles radiales del rosetón
+            ctx.lineWidth = 1.5;
+            for (let a = 0; a < 4; a++) {
+                const angle = (a * Math.PI) / 4;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * 8, groundY - 120 + Math.sin(angle) * 8);
+                ctx.lineTo(cx + Math.cos(angle) * 22, groundY - 120 + Math.sin(angle) * 22);
+                ctx.stroke();
+            }
+            ctx.lineWidth = 2.2;
 
             // Frontón triangular
+            ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
             ctx.beginPath();
             ctx.moveTo(cx - 80, groundY - 170);
             ctx.lineTo(cx, groundY - 225);
             ctx.lineTo(cx + 80, groundY - 170);
+            ctx.closePath();
+            ctx.fill();
             ctx.stroke();
 
             // Cúpula central
+            ctx.fillStyle = "rgba(240, 210, 220, 0.5)";
             ctx.beginPath();
             ctx.arc(cx, groundY - 180, 42, Math.PI, 0);
+            ctx.fill();
             ctx.stroke();
 
             // Cruz central
@@ -2044,18 +2082,26 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.stroke();
 
             // Campanario Izquierdo
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
             ctx.fillRect(cx - 125, groundY - 215, 42, 215);
             ctx.strokeRect(cx - 125, groundY - 215, 42, 215);
+            ctx.fillStyle = "rgba(180, 100, 125, 0.2)";
+            ctx.fillRect(cx - 115, groundY - 190, 22, 40);
             ctx.strokeRect(cx - 115, groundY - 190, 22, 40);
+            // Campana izquierda
+            ctx.fillStyle = "#d4af37";
             ctx.beginPath();
             ctx.arc(cx - 104, groundY - 172, 6, 0, Math.PI * 2);
+            ctx.fill();
             ctx.stroke();
             // Techo torre izquierda
+            ctx.fillStyle = "rgba(240, 210, 220, 0.6)";
             ctx.beginPath();
             ctx.moveTo(cx - 130, groundY - 215);
             ctx.lineTo(cx - 104, groundY - 262);
             ctx.lineTo(cx - 78, groundY - 215);
             ctx.closePath();
+            ctx.fill();
             ctx.stroke();
             // Cruz izquierda
             ctx.beginPath();
@@ -2066,18 +2112,26 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.stroke();
 
             // Campanario Derecho
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
             ctx.fillRect(cx + 83, groundY - 215, 42, 215);
             ctx.strokeRect(cx + 83, groundY - 215, 42, 215);
+            ctx.fillStyle = "rgba(180, 100, 125, 0.2)";
+            ctx.fillRect(cx + 93, groundY - 190, 22, 40);
             ctx.strokeRect(cx + 93, groundY - 190, 22, 40);
+            // Campana derecha
+            ctx.fillStyle = "#d4af37";
             ctx.beginPath();
             ctx.arc(cx + 104, groundY - 172, 6, 0, Math.PI * 2);
+            ctx.fill();
             ctx.stroke();
             // Techo torre derecha
+            ctx.fillStyle = "rgba(240, 210, 220, 0.6)";
             ctx.beginPath();
             ctx.moveTo(cx + 78, groundY - 215);
             ctx.lineTo(cx + 104, groundY - 262);
             ctx.lineTo(cx + 130, groundY - 215);
             ctx.closePath();
+            ctx.fill();
             ctx.stroke();
             // Cruz derecha
             ctx.beginPath();
@@ -2564,29 +2618,40 @@ document.addEventListener("DOMContentLoaded", () => {
             playSound('wedding_horn');
             triggerHaptic([60, 40, 60, 40, 90]);
 
-            // Despejar prioritariamente los autos que se encuentren en nuestro mismo carril frente a nosotros
-            const aheadCars = roadObjects.filter(o => (o.isCar || o.trafficImg) && o.y < 430 && !o.isPulledAside);
-            
-            // Prioridad: primero autos en el carril del jugador (targetLane), luego los más cercanos en Y
-            aheadCars.sort((a, b) => {
-                const aSameLane = (a.lane === targetLane) ? 1 : 0;
-                const bSameLane = (b.lane === targetLane) ? 1 : 0;
-                if (bSameLane !== aSameLane) return bSameLane - aSameLane;
-                return b.y - a.y;
-            });
+            // Obtener todos los coches visibles en pantalla frente a nosotros
+            const aheadCars = roadObjects.filter(o => (o.isCar || o.trafficImg) && o.y < 440 && !o.isPulledAside);
 
-            const targets = aheadCars.slice(0, 2);
-
-            targets.forEach((car, idx) => {
+            aheadCars.forEach((car, idx) => {
                 car.isPulledAside = true;
                 car.isCar = false; // Se desactiva la colisión de inmediato para seguridad del jugador
-                // Despejar visiblemente hacia otro carril (cualquiera que NO sea el del jugador)
+
                 if (targetLane === 1) {
-                    car.destLane = (idx === 0) ? 0 : 2;
+                    // Si estamos en medio, SOLO se mueven los que estén en medio
+                    if (car.lane >= 0.7 && car.lane <= 1.3) {
+                        // Se alternan hacia izquierda (0) o derecha (2)
+                        car.destLane = (idx % 2 === 0) ? 0 : 2;
+                    } else {
+                        // Los que ya están en carril 0 o 2 no necesitan moverse
+                        car.destLane = Math.round(car.lane);
+                    }
                 } else if (targetLane === 0) {
-                    car.destLane = (idx === 0) ? 1 : 2;
-                } else {
-                    car.destLane = (idx === 0) ? 1 : 0;
+                    // Estamos a la izquierda: todos los coches se alejan moviéndose hacia la derecha
+                    if (car.lane <= 0.6) {
+                        car.destLane = 1;
+                    } else if (car.lane <= 1.5) {
+                        car.destLane = 2;
+                    } else {
+                        car.destLane = 2;
+                    }
+                } else if (targetLane === 2) {
+                    // Estamos a la derecha: todos los coches se alejan moviéndose hacia la izquierda
+                    if (car.lane >= 1.4) {
+                        car.destLane = 1;
+                    } else if (car.lane >= 0.5) {
+                        car.destLane = 0;
+                    } else {
+                        car.destLane = 0;
+                    }
                 }
             });
         }

@@ -74,7 +74,7 @@
             touch-action: manipulation;
         }
 
-        /* CRT SCANLINES & SCREEN OVERLAY */
+        /* CRT SCANLINES & SCREEN OVERLAY (Suave y nítido para sprites de alta resolución) */
         .crt-container {
             position: relative;
             overflow: hidden;
@@ -84,18 +84,11 @@
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 3px, 6px 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.04) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.005), rgba(0, 0, 255, 0.01));
+            background-size: 100% 4px, 8px 100%;
             z-index: 10;
             pointer-events: none;
-        }
-        @keyframes crt-flicker {
-            0% { opacity: 0.985; }
-            50% { opacity: 0.995; }
-            100% { opacity: 0.985; }
-        }
-        .crt-screen {
-            animation: crt-flicker 0.15s infinite;
+            opacity: 0.65;
         }
 
         /* MADDIE GARDEN HOLE DESIGN */
@@ -422,28 +415,32 @@
                 <!-- Lienzo de Canvas para Chico, Chica y Puebla -->
                 <canvas id="gameCanvas" width="360" height="480" class="bg-gray-800 w-full h-full hidden relative z-1"></canvas>
 
-                <!-- Contenedor para Maddie (con marco de jardín de madera y césped) -->
-                <div id="maddieContainer" class="hidden flex flex-col items-center justify-between w-full h-full p-3.5 relative z-1 select-none" style="background: radial-gradient(ellipse at 50% 25%, #3d8b40 0%, #256b29 55%, #134217 100%);">
+                <!-- Contenedor para Maddie (con marco de jardín de madera, flores silvestres y césped) -->
+                <div id="maddieContainer" class="hidden flex flex-col items-center justify-between w-full h-full p-3.5 relative z-1 select-none" style="background: radial-gradient(ellipse at 50% 20%, #43a047 0%, #2e7d32 45%, #1b5e20 85%, #0e3b12 100%);">
                     <!-- ENCABEZADO: TÍTULO Y MARCADOR -->
                     <div class="w-full flex flex-col items-center pointer-events-none">
-                        <div class="w-full flex justify-center items-center px-1 mb-1 text-[11px] font-bold text-white/80 opacity-70">
-                            <span class="tracking-widest uppercase">🌿 Maddie's Garden</span>
+                        <div class="w-full flex justify-center items-center gap-1.5 px-1 mb-1 text-[11px] font-bold text-white/90 drop-shadow-sm">
+                            <span>🌸</span>
+                            <span class="tracking-widest uppercase font-semibold">Maddie's Enchanted Garden</span>
+                            <span>🌼</span>
                         </div>
-                        <div id="maddieScoreboard" class="text-center select-none font-monogram text-white/95 text-lg md:text-xl tracking-widest bg-black/40 px-5 py-0.5 rounded-lg border border-white/10 shadow-inner">
+                        <div id="maddieScoreboard" class="text-center select-none font-monogram text-white/95 text-lg md:text-xl tracking-widest bg-black/45 px-5 py-0.5 rounded-xl border border-white/15 shadow-lg backdrop-blur-xs">
                             HI <span id="maddieHighScore" class="font-bold text-[#f1c40f]">00000</span> &nbsp;&nbsp; <span id="maddieCurrentScore" class="font-bold text-white">00000</span> &nbsp;&nbsp; <span class="text-[#e74c3c]">⏳</span> <span id="maddieTimeDisplay" class="font-bold text-[#e74c3c]">30</span>s
                         </div>
                     </div>
 
-                    <!-- CAJA DE ARENA / MADRIGUERA (ÁREA INTERACTIVA CON TAMAÑO FIJO INMUTABLE) -->
-                    <div class="p-2.5 rounded-2xl bg-[#2a170e]/80 border-4 border-[#795548] shadow-2xl my-auto w-[290px] h-[290px] min-w-[290px] min-h-[290px] flex items-center justify-center">
+                    <!-- CAJA DE ARENA / MADRIGUERA (ÁREA INTERACTIVA CON TAMAÑO FIJO INMUTABLE Y CERCA DE JARDÍN) -->
+                    <div class="p-2.5 rounded-2xl bg-[#341d11]/85 border-4 border-[#8d6e63] shadow-2xl my-auto w-[290px] h-[290px] min-w-[290px] min-h-[290px] flex items-center justify-center ring-2 ring-black/20">
                         <div id="maddieGrid" class="grid grid-cols-4 grid-rows-4 gap-2 w-full h-full">
                             <!-- Dynamically generated -->
                         </div>
                     </div>
 
                     <!-- PIE ILUSTRATIVO DECORATIVO (NO CLICKEABLE) -->
-                    <div class="w-full flex justify-center items-center gap-6 py-0.5 text-xs text-white/60 pointer-events-none select-none tracking-widest font-monogram">
-                        <span>🐾 TAP MADDIE WHENEVER SHE POPS UP 🐾</span>
+                    <div class="w-full flex justify-center items-center gap-2 py-0.5 text-xs text-emerald-100/80 pointer-events-none select-none tracking-widest font-monogram drop-shadow-xs">
+                        <span>🌱</span>
+                        <span>TAP MADDIE WHEN SHE POPS UP!</span>
+                        <span>🌱</span>
                     </div>
                 </div>
 
@@ -507,6 +504,6 @@
     </div>
 
     <!-- JAVASCRIPT GLOBAL Y LÓGICA DE JUEGOS -->
-    <script src="../js/juegos.js?v=29.0" defer></script>
+    <script src="../js/juegos.js?v=30.0" defer></script>
 </body>
 </html>
