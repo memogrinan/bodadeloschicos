@@ -50,18 +50,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const sprite = new Image();
         sprite.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/sprites.webp';
 
-        // CARGA DE SPRITES EN PNG
+        // CARGA DE SPRITES PIXEL ART NATIVOS (32x32)
         const imgCalendar = new Image();
-        imgCalendar.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp';
+        imgCalendar.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3_pixel.png';
 
         const imgClock = new Image();
-        imgClock.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp';
+        imgClock.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up_pixel.png';
 
         const imgEmail = new Image();
-        imgEmail.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp';
+        imgEmail.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed_pixel.png';
 
         const imgGamepad = new Image();
-        imgGamepad.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp';
+        imgGamepad.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Controller_Gamepad_pixel.png';
 
         // SPRITES PARA JUEGO 2: LA CHICA
         const imgChicaCrown = new Image();
@@ -1702,9 +1702,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     const mw = marcianoObj.w || 64;
                     const mh = marcianoObj.h || 38;
                     const mx = marcianoObj.x;
-                    const my = marcianoObj.y;
-                    if (clickX >= mx - mw / 2 - 15 && clickX <= mx + mw / 2 + 15 &&
-                        clickY >= my - mh / 2 - 15 && clickY <= my + mh / 2 + 15) {
+                    const my = marcianoObj.currentY || marcianoObj.y;
+                    if (clickX >= mx - mw / 2 - 20 && clickX <= mx + mw / 2 + 20 &&
+                        clickY >= my - mh / 2 - 20 && clickY <= my + mh / 2 + 20) {
                         marcianoObj.intercepted = true;
                         playSound('coin');
                         triggerHaptic([40, 30, 80]);
@@ -1863,7 +1863,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         duration: 7000, // 7 segundos para cruzar tranquilamente el cielo
                         startX: canvas.width + 40,
                         endX: -60,
-                        y: 48,
+                        y: 95, // Más abajo en el cielo para que no quede pegado al HUD superior
                         w: 64,
                         h: 38,
                         active: true,
@@ -2033,7 +2033,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 memo.isGrounded = true;
             }
 
-            // GENERACIÓN DE OBSTÁCULOS CON ESPACIADO JUSTO Y DINÁMICO
+            // GENERACIÓN DE OBSTÁCULOS CON ESPACIADO JUSTO, SIN DOBLES Y CON GRAN VARIABILIDAD
             if (chicoFrame >= nextObstacleFrame) {
                 // Tipos de obstáculos de oficina
                 const obsTypes = [
@@ -2042,50 +2042,36 @@ document.addEventListener("DOMContentLoaded", () => {
                     { img: imgEmail, fallback: "📩" }
                 ];
 
-                // Patrón aleatorio: 80% obstáculo simple, 20% obstáculo doble (pegados juntos para saltarlos de un solo impulso)
-                const isDoubleObs = (score > 150 && Math.random() < 0.22);
-
-                const randObs1 = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+                const randObs = obsTypes[Math.floor(Math.random() * obsTypes.length)];
                 obstacles.push({
                     x: canvas.width,
-                    y: 312,
+                    y: 313,
                     width: 32,
                     height: 32,
-                    img: randObs1.img,
-                    fallback: randObs1.fallback
+                    img: randObs.img,
+                    fallback: randObs.fallback
                 });
-
-                if (isDoubleObs) {
-                    const randObs2 = obsTypes[Math.floor(Math.random() * obsTypes.length)];
-                    obstacles.push({
-                        x: canvas.width + 24, // Pegados uno junto al otro para saltarlos de un solo brinco limpio
-                        y: 312,
-                        width: 32,
-                        height: 32,
-                        img: randObs2.img,
-                        fallback: randObs2.fallback
-                    });
-                }
 
                 // DILEMA TENTADOR: Poner un control poco antes del obstáculo (riesgo vs recompensa)
                 // Ocurre de forma semialeatoria si toca generar control
-                if (chicoFrame >= nextItemFrame && Math.random() < 0.45) {
+                if (chicoFrame >= nextItemFrame && Math.random() < 0.40) {
                     // Control tentador colocado ~65px antes del obstáculo a baja o media altura
                     items.push({
                         x: canvas.width - 65,
-                        y: 275 - Math.floor(Math.random() * 25), // Tentador: cerca del suelo antes del obstáculo
-                        width: 30,
-                        height: 22,
+                        y: 270 - Math.floor(Math.random() * 20), // Tentador: cerca del suelo antes del obstáculo
+                        width: 32,
+                        height: 32,
                         img: imgGamepad,
                         fallback: "🎮"
                     });
                     nextItemFrame = chicoFrame + 180 + Math.floor(Math.random() * 120);
                 }
 
-                // Intervalo mínimo GARANTIZADO para que NUNCA queden dos obstáculos a una distancia imposible
-                // Con base en la velocidad actual, el dinosaurio necesita al menos un tiempo de aterrizaje
-                const minGapFrames = Math.max(48, Math.floor(190 / chicoSpeed));
-                const randomExtraFrames = Math.floor(Math.random() * 35);
+                // Intervalo con separación garantizada y amplia variabilidad:
+                // Base mínima matemática para poder aterrizar y volver a saltar con margen cómodo
+                const minGapFrames = Math.max(38, Math.floor(190 / chicoSpeed));
+                // Variabilidad aleatoria: entre 12 y 70 frames adicionales para que el ritmo sea cambiante e impredecible
+                const randomExtraFrames = 12 + Math.floor(Math.random() * 58);
                 nextObstacleFrame = chicoFrame + minGapFrames + randomExtraFrames;
             }
 
@@ -2094,8 +2080,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 items.push({
                     x: canvas.width,
                     y: 215 + Math.random() * 55,
-                    width: 30,
-                    height: 22,
+                    width: 32,
+                    height: 32,
                     img: imgGamepad,
                     fallback: "🎮"
                 });
