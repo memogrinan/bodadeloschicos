@@ -123,6 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const imgMaddieUfo = new Image();
         imgMaddieUfo.src = assetPrefix + 'ImagenesWeb/maddie_nave_espacial.png';
 
+        // SPRITE EASTER EGG: MARCIANO INVASOR
+        const imgMarciano = new Image();
+        imgMarciano.src = assetPrefix + 'ImagenesWeb/marciano.png';
+
         // SPRITE DE MADDIE EN SU JUEGO (WHACK-A-MADDIE)
         const imgMaddieGame = new Image();
         imgMaddieGame.src = assetPrefix + 'ImagenesWeb/maddie_juego.png';
@@ -1606,6 +1610,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         let maddieUfo = null;
+        let marcianoObj = null;
+        let leaderWarningTimer = 0;
+        let marcianoSpawnedThisRun = false;
+        let maddieTouchedThisRun = false;
 
         function initChicoGame() {
             memo = {
@@ -1622,6 +1630,10 @@ document.addEventListener("DOMContentLoaded", () => {
             items = [];
             bgCacti = [];
             maddieUfo = null;
+            marcianoObj = null;
+            leaderWarningTimer = 0;
+            marcianoSpawnedThisRun = false;
+            maddieTouchedThisRun = false;
             clouds = [
                 {x: 120, y: 60, speed: 0.6},
                 {x: 320, y: 90, speed: 0.4}
@@ -1647,7 +1659,89 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
+            const checkSkyEasterEggTap = (clientX, clientY) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = (clientX - rect.left) * (canvas.width / rect.width);
+                const clickY = (clientY - rect.top) * (canvas.height / rect.height);
+
+                // 1. Tocar al Marciano
+                if (marcianoObj && marcianoObj.active && !marcianoObj.intercepted) {
+                    const mw = marcianoObj.w || 64;
+                    const mh = marcianoObj.h || 38;
+                    const mx = marcianoObj.x;
+                    const my = marcianoObj.y;
+                    if (clickX >= mx - mw / 2 - 15 && clickX <= mx + mw / 2 + 15 &&
+                        clickY >= my - mh / 2 - 15 && clickY <= my + mh / 2 + 15) {
+                        marcianoObj.intercepted = true;
+                        playSound('coin');
+                        triggerHaptic([40, 30, 80]);
+                        scorePopups.push({
+                            x: mx,
+                            y: my - 10,
+                            text: isEnLang ? "MARTIAN INTERCEPTED!" : "¡MARCIANO INTERCEPTADO!",
+                            color: "#facc15",
+                            life: 45
+                        });
+
+                        // Mensaje central: "¡SU LÍDER VIENE POR TI!"
+                        leaderWarningTimer = 90; // ~3 segundos a 30 fps
+
+                        // 3 segundos después aparece Maddie en su platillo volador
+                        setTimeout(() => {
+                            if (gameRunning && activeGame === 'chico') {
+                                maddieUfo = {
+                                    startTime: Date.now(),
+                                    duration: 5000, // 5.0 segundos exactos (duración de spaceEngine_003)
+                                    startX: canvas.width + 50,
+                                    endX: -70,
+                                    y: 44,
+                                    w: 58,
+                                    h: 48,
+                                    active: true
+                                };
+                                try {
+                                    sfxSpaceEngine.currentTime = 0;
+                                    sfxSpaceEngine.play().catch(e => console.log('Space engine audio err:', e));
+                                } catch (e) {}
+                                playSound('bark');
+                            }
+                        }, 3000);
+
+                        return true;
+                    }
+                }
+
+                // 2. Tocar a Maddie en su platillo volador
+                if (maddieUfo && maddieUfo.active && !maddieTouchedThisRun) {
+                    const uw = maddieUfo.w || 58;
+                    const uh = maddieUfo.h || 48;
+                    const ux = maddieUfo.x || 0;
+                    const uy = maddieUfo.y || 44;
+                    if (clickX >= ux - uw / 2 - 15 && clickX <= ux + uw / 2 + 15 &&
+                        clickY >= uy - uh / 2 - 15 && clickY <= uy + uh / 2 + 15) {
+                        maddieTouchedThisRun = true;
+                        score += 20;
+                        playSound('score');
+                        playSound('bark');
+                        triggerHaptic([50, 40, 50, 40, 100]);
+                        scorePopups.push({
+                            x: ux,
+                            y: uy + 12,
+                            text: isEnLang ? "ALIEN CONTACT! +20" : "¡CONTACTO ALIENÍGENA! +20",
+                            color: "#38bdf8",
+                            life: 55
+                        });
+                        return true;
+                    }
+                }
+
+                return false;
+            };
+
             canvas.onmousedown = (e) => {
+                if (checkSkyEasterEggTap(e.clientX, e.clientY)) {
+                    return; // Si interactuó con el cielo espacial, no salta
+                }
                 triggerJump();
             };
             canvas.onmouseup = () => {
@@ -1656,6 +1750,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             canvas.ontouchstart = (e) => {
                 e.preventDefault();
+                if (e.touches && e.touches.length > 0) {
+                    if (checkSkyEasterEggTap(e.touches[0].clientX, e.touches[0].clientY)) {
+                        return;
+                    }
+                }
                 triggerJump();
             };
             canvas.ontouchend = (e) => {
@@ -1723,25 +1822,81 @@ document.addEventListener("DOMContentLoaded", () => {
                     ctx.fillText("✨", 320, 35);
                 }
 
+                // SPAWN DEL MARCIANO A LOS 450 PUNTOS
+                if (score >= 450 && !marcianoSpawnedThisRun && !marcianoObj) {
+                    marcianoSpawnedThisRun = true;
+                    marcianoObj = {
+                        startTime: Date.now(),
+                        duration: 7000, // 7 segundos para cruzar tranquilamente el cielo
+                        startX: canvas.width + 40,
+                        endX: -60,
+                        y: 48,
+                        w: 64,
+                        h: 38,
+                        active: true,
+                        intercepted: false
+                    };
+                }
+
+                // DIBUJAR AL MARCIANO VOLANDO POR EL CIELO
+                if (marcianoObj && marcianoObj.active && !marcianoObj.intercepted) {
+                    const elapsed = Date.now() - marcianoObj.startTime;
+                    const progress = Math.min(1, elapsed / marcianoObj.duration);
+                    marcianoObj.x = marcianoObj.startX + (marcianoObj.endX - marcianoObj.startX) * progress;
+                    marcianoObj.currentY = marcianoObj.y + Math.sin(progress * Math.PI * 6) * 4;
+
+                    ctx.save();
+                    ctx.imageSmoothingEnabled = true;
+                    if (imgMarciano && imgMarciano.complete && imgMarciano.naturalWidth !== 0) {
+                        ctx.shadowColor = "rgba(74, 222, 128, 0.75)";
+                        ctx.shadowBlur = 8;
+                        ctx.drawImage(imgMarciano, Math.round(marcianoObj.x - marcianoObj.w / 2), Math.round(marcianoObj.currentY - marcianoObj.h / 2), marcianoObj.w, marcianoObj.h);
+                    } else {
+                        ctx.font = "26px sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.fillText("👽🛸", Math.round(marcianoObj.x), Math.round(marcianoObj.currentY));
+                    }
+                    ctx.restore();
+
+                    if (progress >= 1) {
+                        marcianoObj.active = false;
+                    }
+                }
+
+                // AVISO EN EL CENTRO DEL CIELO: "SU LÍDER VIENE POR TI"
+                if (leaderWarningTimer > 0) {
+                    leaderWarningTimer--;
+                    const pulse = Math.abs(Math.sin((90 - leaderWarningTimer) * 0.15));
+                    ctx.save();
+                    ctx.font = "bold 20px 'Monogram'";
+                    ctx.fillStyle = `rgba(239, 68, 68, ${0.75 + pulse * 0.25})`;
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+                    ctx.shadowBlur = 6;
+                    ctx.textAlign = "center";
+                    ctx.fillText(isEnLang ? "THEIR LEADER IS COMING FOR YOU!" : "¡SU LÍDER VIENE POR TI!", canvas.width / 2, 75);
+                    ctx.restore();
+                }
+
                 // EASTER EGG: MADDIE NAVE ESPACIAL VOLANDO EN LA NOCHE (Sincronizada con spaceEngine_003)
                 if (maddieUfo && maddieUfo.active) {
                     const elapsed = Date.now() - maddieUfo.startTime;
                     const progress = Math.min(1, elapsed / maddieUfo.duration);
                     maddieUfo.x = maddieUfo.startX + (maddieUfo.endX - maddieUfo.startX) * progress;
-                    const hoverY = maddieUfo.y + Math.sin(progress * Math.PI * 8) * 3.5;
+                    maddieUfo.currentY = maddieUfo.y + Math.sin(progress * Math.PI * 8) * 3.5;
 
                     ctx.save();
                     ctx.imageSmoothingEnabled = true;
                     if (imgMaddieUfo && imgMaddieUfo.complete && imgMaddieUfo.naturalWidth !== 0) {
-                        const ufoW = 54;
+                        const ufoW = maddieUfo.w || 58;
                         const ufoH = Math.round(ufoW * (imgMaddieUfo.height / imgMaddieUfo.width));
-                        ctx.shadowColor = "rgba(147, 197, 253, 0.6)";
-                        ctx.shadowBlur = 8;
-                        ctx.drawImage(imgMaddieUfo, Math.round(maddieUfo.x - ufoW / 2), Math.round(hoverY - ufoH / 2), ufoW, ufoH);
+                        maddieUfo.h = ufoH;
+                        ctx.shadowColor = "rgba(147, 197, 253, 0.75)";
+                        ctx.shadowBlur = 10;
+                        ctx.drawImage(imgMaddieUfo, Math.round(maddieUfo.x - ufoW / 2), Math.round(maddieUfo.currentY - ufoH / 2), ufoW, ufoH);
                     } else {
                         ctx.font = "28px sans-serif";
                         ctx.textAlign = "center";
-                        ctx.fillText("🛸🐶", Math.round(maddieUfo.x), Math.round(hoverY));
+                        ctx.fillText("🛸🐶", Math.round(maddieUfo.x), Math.round(maddieUfo.currentY));
                     }
                     ctx.restore();
 
@@ -1930,27 +2085,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     playSound('coin');
                     triggerHaptic(30);
 
-                    // EASTER EGG: MADDIE NAVE ESPACIAL SI ESTÁS EN EL AIRE Y ES MODO NOCHE (>350 pts)
-                    if (!memo.isGrounded && isNightMode && !maddieUfo) {
-                        maddieUfo = {
-                            startTime: Date.now(),
-                            duration: 5000, // 5.0 segundos exactos (duración del audio spaceEngine_003)
-                            startX: canvas.width + 45,
-                            endX: -65,
-                            y: 44,
-                            active: true
-                        };
-                        try {
-                            sfxSpaceEngine.currentTime = 0;
-                            sfxSpaceEngine.play().catch(e => console.log('Space engine audio err:', e));
-                        } catch (e) {}
-                        playSound('bark');
-                    }
-                    
                     scorePopups.push({
                         x: it.x + it.width / 2,
                         y: it.y,
-                        text: (!memo.isGrounded && isNightMode) ? "+15 🛸" : "+15",
+                        text: "+15",
                         life: 25 
                     });
 
@@ -1962,12 +2100,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             for (let i = scorePopups.length - 1; i >= 0; i--) {
                 let p = scorePopups[i];
-                p.y -= 1.5; 
+                p.y -= 1.2; 
                 p.life--;
 
+                const alpha = Math.max(0, Math.min(1, p.life / 25));
                 ctx.save();
                 ctx.font = "20px 'Monogram'";
-                ctx.fillStyle = `rgba(83, 83, 83, ${p.life / 25})`; 
+                if (p.color) {
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+                    ctx.shadowBlur = 4;
+                } else {
+                    ctx.fillStyle = isNightMode ? `rgba(240, 240, 240, ${alpha})` : `rgba(83, 83, 83, ${alpha})`;
+                }
                 ctx.textAlign = "center";
                 ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
                 ctx.restore();
