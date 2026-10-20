@@ -1317,6 +1317,12 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("activeGameTitle").innerText = gameTitles[game];
             document.getElementById("activeGameIcon").innerText = gameIcons[game];
             
+            // Ocultar scanlines CRT en 'chica' para que el emoji y la novia no tengan granulado/efecto tele
+            const crtEl = document.getElementById("crtOverlay");
+            if (crtEl) {
+                crtEl.style.display = (game === 'chica') ? "none" : "";
+            }
+
             resetGameUI();
         }
 
@@ -1659,13 +1665,17 @@ document.addEventListener("DOMContentLoaded", () => {
             };
             obstacles = [];
             items = [];
-            bgCacti = [];
+            bgCacti = [
+                { x: 120, type: 0, scale: 0.45, speedFactor: 0.16 + 0.45 * 0.34 },
+                { x: 260, type: 1, scale: 0.80, speedFactor: 0.16 + 0.80 * 0.34 },
+                { x: 370, type: 2, scale: 0.58, speedFactor: 0.16 + 0.58 * 0.34 }
+            ];
             maddieUfo = null;
             marcianoObj = null;
             leaderWarningTimer = 0;
             marcianoSpawnedThisRun = false;
             maddieTouchedThisRun = false;
-            nextObstacleFrame = 55;
+            nextObstacleFrame = 48;
             nextItemFrame = 140;
             clouds = [
                 {x: 120, y: 60, speed: 0.6},
@@ -1939,34 +1949,50 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // CACTUS DE FONDO EN SEGUNDO PLANO (PARALAJE SUAVE AL 35% DE VELOCIDAD, OPACIDAD TENUE)
-            if (bgCacti.length < 5 && Math.random() < 0.02) {
-                // Generate a random speed factor (0.1 to 0.45) to create depth
-                // Generate a random scale (0.5 to 1.3)
+            // CACTUS DE FONDO EN SEGUNDO PLANO (PARALAJE 2.5D: MÁS GRANDES = MÁS RÁPIDOS Y CERCANOS, MÁS PEQUEÑOS = MÁS LENTOS Y LEJANOS)
+            if (bgCacti.length < 6 && Math.random() < 0.035) {
+                // Escala entre 0.38 (lejano en el horizonte) y 0.88 (fondo cercano)
+                const scale = 0.38 + Math.random() * 0.50;
+                // Velocidad proporcional a la escala (entre ~0.29x y ~0.46x de chicoSpeed, siempre en segundo plano respecto al suelo 1.0x)
+                const speedFactor = 0.16 + (scale * 0.34);
+                // 3 tipos de cactus de la hoja de sprites: 0 = simple pequeño, 1 = doble pequeño, 2 = alto
+                const randType = Math.floor(Math.random() * 3);
                 bgCacti.push({
                     x: canvas.width + 40,
-                    type: Math.random() < 0.5 ? 0 : 1,
-                    speedFactor: 0.1 + Math.random() * 0.35,
-                    scale: 0.5 + Math.random() * 0.8
+                    type: randType,
+                    scale: scale,
+                    speedFactor: speedFactor
                 });
             }
 
             for (let i = bgCacti.length - 1; i >= 0; i--) {
                 let bg = bgCacti[i];
-                bg.x -= chicoSpeed * 0.35; 
+                bg.x -= chicoSpeed * bg.speedFactor; 
 
                 if (sprite.complete && sprite.naturalWidth >= 1000) {
                     ctx.save();
-                    ctx.globalAlpha = isNightMode ? 0.20 : 0.28; 
+                    // Perspectiva atmosférica: los cactus más pequeños/lejanos son más tenues
+                    const baseAlpha = isNightMode ? (0.12 + bg.scale * 0.12) : (0.16 + bg.scale * 0.18);
+                    ctx.globalAlpha = baseAlpha; 
+
+                    let sx, sy, sw, sh, baseW, baseH;
                     if (bg.type === 0) {
-                        ctx.drawImage(sprite, 446, 2, 34, 70, Math.round(bg.x), 316, 17, 35);
+                        sx = 446; sy = 2; sw = 34; sh = 70; baseW = 17; baseH = 35;
+                    } else if (bg.type === 1) {
+                        sx = 480; sy = 2; sw = 68; sh = 70; baseW = 34; baseH = 35;
                     } else {
-                        ctx.drawImage(sprite, 480, 2, 68, 70, Math.round(bg.x), 316, 34, 35);
+                        sx = 652; sy = 2; sw = 50; sh = 100; baseW = 25; baseH = 50;
                     }
+
+                    const drawW = Math.round(baseW * bg.scale);
+                    const drawH = Math.round(baseH * bg.scale);
+                    const drawY = 351 - drawH; // Base anclada a la línea del horizonte del suelo (y=351)
+
+                    ctx.drawImage(sprite, sx, sy, sw, sh, Math.round(bg.x), drawY, drawW, drawH);
                     ctx.restore();
                 }
 
-                if (bg.x < -60) {
+                if (bg.x < -80) {
                     bgCacti.splice(i, 1);
                 }
             }
@@ -2067,12 +2093,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     nextItemFrame = chicoFrame + 180 + Math.floor(Math.random() * 120);
                 }
 
-                // Intervalo con separación garantizada y amplia variabilidad:
-                // Base mínima matemática para poder aterrizar y volver a saltar con margen cómodo
-                const minGapFrames = Math.max(38, Math.floor(190 / chicoSpeed));
-                // Variabilidad aleatoria: entre 12 y 70 frames adicionales para que el ritmo sea cambiante e impredecible
-                const randomExtraFrames = 12 + Math.floor(Math.random() * 58);
-                nextObstacleFrame = chicoFrame + minGapFrames + randomExtraFrames;
+                // RITMO DINÁMICO DE ESPACIADO: ALTERNA ENTRE SALTOS RÁPIDOS CONSECUTIVOS, DISTANCIA MEDIA Y TRAMOS ABIERTOS
+                // 100% libre de obstáculos dobles imposibles (garantiza siempre tiempo para aterrizar)
+                const rhythmRoll = Math.random();
+                let gapFrames;
+                if (rhythmRoll < 0.38) {
+                    // 1. Rápido / Consecutivo (están juntos: salto ágil y emocionante tras aterrizar, 100% superable)
+                    gapFrames = 26 + Math.floor(Math.random() * 8); // 26 a 33 frames (~0.85s a 1.1s)
+                } else if (rhythmRoll < 0.75) {
+                    // 2. Distancia media normal (ritmo clásico)
+                    gapFrames = 36 + Math.floor(Math.random() * 16); // 36 a 51 frames (~1.2s a 1.7s)
+                } else {
+                    // 3. Tramo abierto / Separados (oportunidad para respirar o coger controles)
+                    gapFrames = 58 + Math.floor(Math.random() * 26); // 58 a 83 frames (~1.9s a 2.7s)
+                }
+                nextObstacleFrame = chicoFrame + gapFrames;
             }
 
             // GENERACIÓN DE CONTROLES FLOTANTES EN EL AIRE (si no salió en el dilema previo)
@@ -2370,6 +2405,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function updateChica() {
             chicaFrame++;
+            ctx.imageSmoothingEnabled = true;
+            ctx.mozImageSmoothingEnabled = true;
+            ctx.webkitImageSmoothingEnabled = true;
+            ctx.msImageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // 1. FONDO LIMPIO ROSA NUPCIAL SIN GRANULADO
@@ -2420,7 +2460,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // 4. DIBUJAR A LA NOVIA (SPRITE EMOJI CHICA O CON LENTES SI EASTER EGG ACTIVO)
+            // 4. DIBUJAR A LA NOVIA (SPRITE EMOJI CHICA O CON LENTES SI EASTER EGG ACTIVO, NÍTIDO Y SIN GRANULADO)
             const spriteChica = (magnetTimer > 0 && imgChicaLentesGame.complete && imgChicaLentesGame.naturalWidth > 0)
                 ? imgChicaLentesGame
                 : ((imgChicaGame.complete && imgChicaGame.naturalWidth > 0) ? imgChicaGame : null);
@@ -2430,10 +2470,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const brideDrawX = Math.round(basketX + 25 - brideDrawW / 2);
             const brideDrawY = 404;
 
+            // Sombra suave en el suelo para anclar la figura limpiamente
             ctx.save();
-            ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
-            ctx.shadowBlur = 6;
-            ctx.shadowOffsetY = 3;
+            ctx.fillStyle = "rgba(173, 20, 87, 0.22)";
+            ctx.beginPath();
+            ctx.ellipse(Math.round(basketX + 25), 458, 18, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.20)";
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetY = 2;
 
             if (spriteChica) {
                 ctx.drawImage(spriteChica, brideDrawX, brideDrawY, brideDrawW, brideDrawH);
