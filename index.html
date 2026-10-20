@@ -2224,6 +2224,25 @@
                         <textarea id="rsvpCelebracionInput" rows="2" placeholder="Ej. Cumpleaños o aniversario de bodas..." style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: clamp(14px, 2vw, 18px); outline: none; box-sizing: border-box; font-family: inherit; background: white; resize: vertical;"></textarea>
                     </div>
 
+                    <!-- SECCIÓN: CLUB DE AMIGOS DE MADDIE (PERRIHIJOS) -->
+                    <div id="rsvpDogsSection" style="margin-bottom: 20px; background: #f9faf7; padding: clamp(12px, 3vw, 16px); border-radius: 18px; border: 1px solid rgba(82, 88, 47, 0.15); text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <span style="font-size: 1.25rem;">🐾</span>
+                            <label style="font-size: clamp(0.85rem, 1.5vw, 1rem); font-weight: 600; color: var(--olivo-base); margin: 0;">¿Tienes perrihijo(s)? <span style="font-size: 0.75rem; color: #888; font-weight: normal;">(Opcional)</span></label>
+                        </div>
+                        <p style="font-size: clamp(0.72rem, 1.1vw, 0.85rem); color: #666; margin: 0 0 12px 0; line-height: 1.4;">
+                            A Maddie le daría mucha ilusión conocer a sus primos peludos. Sube una foto clara de su carita para el Club Secreto de Maddie.
+                        </p>
+                        
+                        <!-- Lista dinámica de perritos -->
+                        <div id="rsvpDogsList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+                        <!-- Botón para agregar otro perrito -->
+                        <button type="button" id="btnAddDog" onclick="addDogEntry()" style="margin-top: 10px; background: white; border: 1.5px dashed var(--olivo-base); color: var(--olivo-base); padding: 8px 16px; border-radius: 12px; font-size: clamp(0.75rem, 1.2vw, 0.85rem); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(82, 88, 47, 0.05)'" onmouseout="this.style.background='white'">
+                            <span>➕</span> Agregar otro perrito 🐾
+                        </button>
+                    </div>
+
                     <button type="submit" id="rsvpSubmitBtn" class="btn btn-rsvp" style="width: 100%; padding: 14px; font-size: clamp(0.95rem, 2vw, 1.15rem); border-radius: 14px; box-sizing: border-box;">Enviar Confirmación 💌</button>
                 </form>
             </div>
@@ -2373,6 +2392,6 @@
             card.classList.toggle('flipped');
         }
     </script>
-<script src="js/index.js?v=35.0" defer></script>
+<script src="js/index.js?v=36.0" defer></script>
 </body>
 </html>

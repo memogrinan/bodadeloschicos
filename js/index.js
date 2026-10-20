@@ -817,9 +817,18 @@ if (!document.getElementById('cg-dynamic-styles')) {
 
             if (data.celebracion && data.celebracion.trim() !== "") {
                 summaryHTML += `
-                    <div>
+                    <div style="margin-bottom: 14px;">
                         <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🎉 ${isEn ? "Special celebration:" : "Celebración especial:"}</h4>
                         <p style="margin: 0; color: #555;">${data.celebracion}</p>
+                    </div>
+                `;
+            }
+
+            if (data.perros && data.perros.trim() !== "") {
+                summaryHTML += `
+                    <div>
+                        <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🐾 ${isEn ? "Maddie's furry friends club:" : "Club de amigos peludos de Maddie:"}</h4>
+                        <p style="margin: 0; color: #555;">${data.perros}</p>
                     </div>
                 `;
             }
@@ -986,8 +995,148 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 document.getElementById("rsvpCelebracionInput").value = data.celebracion;
             }
 
+            // Inicializar sección de perritos del Club de Maddie
+            initRSVPDogs(data.perros);
+
             updateRSVPSubmitButtonText();
         }
+
+        // ==========================================
+        // CLUB DE AMIGOS DE MADDIE (GESTIÓN DE PERRIHIJOS)
+        // ==========================================
+        const MAX_DOGS = 3;
+
+        function compressDogImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const maxDim = 1200;
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            } else {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
+                        }
+                        const canvas = document.createElement("canvas");
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function createDogSlotHTML(index, defaultName = "") {
+            const isEn = document.documentElement.lang === "en";
+            const slotId = `rsvp_dog_${index}`;
+            const div = document.createElement("div");
+            div.id = slotId;
+            div.className = "rsvp-dog-entry";
+            div.style.cssText = "background: white; border: 1px solid #e2e8d8; border-radius: 14px; padding: 12px; position: relative;";
+
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.82rem; font-weight: 700; color: var(--olivo-base);">🐶 ${isEn ? `Dog #${index + 1}` : `Perrito #${index + 1}`}</span>
+                    ${index > 0 ? `<button type="button" onclick="removeDogSlot('${slotId}')" style="background: none; border: none; color: #dc2626; font-size: 0.75rem; font-weight: 600; cursor: pointer; padding: 2px 4px;">✕ ${isEn ? "Remove" : "Quitar"}</button>` : ""}
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="text" id="${slotId}_name" value="${defaultName}" placeholder="${isEn ? "Dog's Name (e.g. Baloo)" : "Nombre de tu perrito (ej. Baloo)"}" style="width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 15px; outline: none; box-sizing: border-box; font-family: inherit;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label for="${slotId}_file" style="cursor: pointer; background: #fdfaf6; border: 1.5px dashed #a3ad73; color: var(--olivo-base); font-weight: 600; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; flex-grow: 1; justify-content: center; transition: all 0.2s;">
+                            <span>📷</span> <span id="${slotId}_label">${isEn ? "Upload clear face photo" : "Subir foto de su carita"}</span>
+                        </label>
+                        <input type="file" id="${slotId}_file" accept="image/*" style="display: none;" onchange="handleDogPhotoSelect('${slotId}', event)">
+                        <div id="${slotId}_preview" style="display: none; width: 40px; height: 40px; border-radius: 8px; overflow: hidden; border: 1.5px solid var(--olivo-base); flex-shrink: 0;">
+                            <img src="" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function initRSVPDogs(savedDogsStr) {
+            const list = document.getElementById("rsvpDogsList");
+            const btn = document.getElementById("btnAddDog");
+            if (!list) return;
+            list.innerHTML = "";
+            if (savedDogsStr && savedDogsStr.trim() !== "") {
+                const names = savedDogsStr.split(",").map(s => s.trim()).filter(Boolean);
+                names.forEach((name, i) => {
+                    if (i < MAX_DOGS) list.appendChild(createDogSlotHTML(i, name));
+                });
+            } else {
+                list.appendChild(createDogSlotHTML(0, ""));
+            }
+            if (btn) {
+                btn.style.display = (list.children.length >= MAX_DOGS) ? "none" : "inline-flex";
+            }
+        }
+
+        function addDogEntry(defaultName = "") {
+            const list = document.getElementById("rsvpDogsList");
+            const btn = document.getElementById("btnAddDog");
+            if (!list) return;
+            const currentCount = list.children.length;
+            if (currentCount >= MAX_DOGS) return;
+
+            list.appendChild(createDogSlotHTML(currentCount, defaultName));
+            if (list.children.length >= MAX_DOGS && btn) {
+                btn.style.display = "none";
+            }
+        }
+        window.addDogEntry = addDogEntry;
+
+        function removeDogSlot(slotId) {
+            const slot = document.getElementById(slotId);
+            if (slot) slot.remove();
+            const list = document.getElementById("rsvpDogsList");
+            const btn = document.getElementById("btnAddDog");
+            if (list && btn && list.children.length < MAX_DOGS) {
+                btn.style.display = "inline-flex";
+            }
+        }
+        window.removeDogSlot = removeDogSlot;
+
+        async function handleDogPhotoSelect(slotId, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const isEn = document.documentElement.lang === "en";
+            const labelEl = document.getElementById(`${slotId}_label`);
+            const previewEl = document.getElementById(`${slotId}_preview`);
+            if (labelEl) labelEl.innerText = isEn ? "Optimizing photo... ⏳" : "Optimizando foto... ⏳";
+            try {
+                const compressedBase64 = await compressDogImage(file);
+                const slotEl = document.getElementById(slotId);
+                if (slotEl) {
+                    slotEl.dataset.photoBase64 = compressedBase64;
+                    slotEl.dataset.fileName = file.name;
+                }
+                if (previewEl) {
+                    previewEl.querySelector("img").src = compressedBase64;
+                    previewEl.style.display = "block";
+                }
+                if (labelEl) labelEl.innerText = isEn ? "Photo ready ✓" : "Foto lista ✓";
+            } catch (e) {
+                console.error("Error al comprimir foto de perrito:", e);
+                if (labelEl) labelEl.innerText = isEn ? "Error. Try another" : "Error. Intenta otra";
+            }
+        }
+        window.handleDogPhotoSelect = handleDogPhotoSelect;
 
         async function submitRSVPForm(e) {
             e.preventDefault();
@@ -1023,12 +1172,31 @@ if (!document.getElementById('cg-dynamic-styles')) {
 
             const celebracionVal = document.getElementById("rsvpCelebracionInput").value.trim();
 
+            // Extraer perritos ingresados
+            const dogsList = document.getElementById("rsvpDogsList");
+            const dogsPayload = [];
+            if (dogsList) {
+                const slots = dogsList.querySelectorAll(".rsvp-dog-entry");
+                slots.forEach((slot, i) => {
+                    const nameInp = slot.querySelector("input[type='text']");
+                    const name = (nameInp ? nameInp.value : "").trim();
+                    const photoBase64 = slot.dataset.photoBase64 || "";
+                    if (name || photoBase64) {
+                        dogsPayload.push({
+                            name: name || `Perrito ${i + 1}`,
+                            photoBase64: photoBase64
+                        });
+                    }
+                });
+            }
+
             const payload = {
                 id: currentRSVPData.id,
                 estadoSabado: estadoSabadoList.join(" | "),
                 estadoCivil: isCivil ? estadoCivilList.join(" | ") : "N/A",
                 alergias: alergiasList.join(" | "),
-                celebracion: celebracionVal
+                celebracion: celebracionVal,
+                dogs: dogsPayload
             };
 
             try {
@@ -1043,6 +1211,9 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 currentRSVPData.estadoCivil = payload.estadoCivil;
                 currentRSVPData.alergias = payload.alergias;
                 currentRSVPData.celebracion = payload.celebracion;
+                if (dogsPayload.length > 0) {
+                    currentRSVPData.perros = dogsPayload.map(d => d.name).join(", ");
+                }
 
                 renderRSVPSummaryView(currentRSVPData);
 

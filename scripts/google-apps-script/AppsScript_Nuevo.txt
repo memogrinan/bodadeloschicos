@@ -56,7 +56,9 @@ function doGet(e) {
     estadoSabado: estadoSabadoList.length > 0 ? estadoSabadoList.join(" | ") : firstRow[5],
     estadoCivil: estadoCivilList.length > 0 ? estadoCivilList.join(" | ") : firstRow[6],
     alergias: alergiasList.length > 0 ? alergiasList.join(" | ") : "",
-    celebracion: firstRow[8]
+    celebracion: firstRow[8],
+    perros: firstRow[15] || "",
+    fotosPerros: firstRow[16] || ""
   };
   
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
@@ -170,7 +172,57 @@ function doPost(e) {
       sheet.getRange(matchingRowsInfo[0].rowIndex, 9).setValue(contents.celebracion || "");
     }
 
-    // 2. Calcular analíticos globales precisos
+    // 2. Procesar perrihijos (Club Secreto de Maddie: Fotos a Drive y Nombres al Sheet)
+    var dogNamesList = [];
+    var dogLinksList = [];
+    if (contents.dogs && contents.dogs.length > 0) {
+      try {
+        var folderName = "🐾 Perrihijos Boda Chicos";
+        var folders = DriveApp.getFoldersByName(folderName);
+        var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+
+        contents.dogs.forEach(function(dog, idx) {
+          var dogName = (dog.name || "").toString().trim() || ("Perrito " + (idx + 1));
+          dogNamesList.push(dogName);
+
+          if (dog.photoBase64) {
+            try {
+              var splitBase = dog.photoBase64.split(",");
+              var rawData = splitBase.length > 1 ? splitBase[1] : splitBase[0];
+              var contentType = "image/jpeg";
+              if (dog.photoBase64.indexOf("data:") === 0) {
+                contentType = dog.photoBase64.substring(5, dog.photoBase64.indexOf(";"));
+              }
+              var decoded = Utilities.base64Decode(rawData);
+              var safeGuest = (familyName || partyId).replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-_]/g, "").trim();
+              var safeDog = dogName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-_]/g, "").trim();
+              var fileName = partyId + " - " + safeGuest + " - Perro " + safeDog + ".jpg";
+
+              var blob = Utilities.newBlob(decoded, contentType, fileName);
+              var file = folder.createFile(blob);
+              file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+              dogLinksList.push(file.getUrl());
+            } catch (fileErr) {
+              Logger.log("Error al guardar archivo en Drive: " + fileErr.toString());
+            }
+          }
+        });
+      } catch (driveErr) {
+        Logger.log("Error al acceder a Google Drive: " + driveErr.toString());
+      }
+    }
+
+    var dogNamesStr = dogNamesList.join(", ");
+    var dogLinksStr = dogLinksList.join(", ");
+
+    if (dogNamesStr !== "" || dogLinksStr !== "") {
+      matchingRowsInfo.forEach(function(info) {
+        if (dogNamesStr !== "") sheet.getRange(info.rowIndex, 16).setValue(dogNamesStr);
+        if (dogLinksStr !== "") sheet.getRange(info.rowIndex, 17).setValue(dogLinksStr);
+      });
+    }
+
+    // 3. Calcular analíticos globales precisos
     SpreadsheetApp.flush();
     var updatedRows = sheet.getDataRange().getValues();
     var confirmadosSabado = 0;
@@ -191,7 +243,7 @@ function doPost(e) {
       }
     }
 
-    // 3. Notificación por correo instantánea con emoji 🍽️
+    // 4. Notificación por correo instantánea con emoji 🍽️
     var recipient = "memoge55@gmail.com";
     var subject = "💌 Nueva Confirmación RSVP: " + (familyName || partyId);
     
@@ -201,7 +253,9 @@ function doPost(e) {
                "💒 Boda & Fiesta (Sábado): " + contents.estadoSabado + "\n" +
                "🥂 Boda Civil (Viernes): " + (contents.estadoCivil || "N/A") + "\n" +
                "🍽️ Restricciones alimenticias: " + (contents.alergias || "Ninguna") + "\n" +
-               "🎉 Celebración especial: " + (contents.celebracion || "Ninguna") + "\n\n" +
+               "🎉 Celebración especial: " + (contents.celebracion || "Ninguna") + "\n" +
+               (dogNamesStr !== "" ? ("🐾 Perrihijo(s): " + dogNamesStr + "\n") : "") +
+               (dogLinksStr !== "" ? ("📷 Fotos en Drive: " + dogLinksStr + "\n") : "") + "\n" +
                "─────────────────────────────\n" +
                "📊 RESUMEN GENERAL ACUMULADO:\n" +
                "• Confirmados (Sábado): " + confirmadosSabado + " personas\n" +
