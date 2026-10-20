@@ -542,13 +542,32 @@ document.addEventListener("DOMContentLoaded", () => {
             return s.replace(/[.#$/[\]]/g, "_");
         }
 
+        // DETECCIÓN INMEDIATA DE CAMBIO DE INVITACIÓN EN URL
         const urlParams = new URLSearchParams(window.location.search);
-        const pParam = urlParams.get("p") || urlParams.get("id") || urlParams.get("invitado");
-        if (pParam) {
-            currentPartyId = pParam.trim().toLowerCase();
+        const pParam = (urlParams.get("p") || urlParams.get("id") || urlParams.get("invitado") || "").trim().toLowerCase();
+        const storedPartyId = (localStorage.getItem("bodachicos_party_id") || "").trim().toLowerCase();
+
+        if (pParam && storedPartyId && pParam !== storedPartyId) {
+            console.log(`[Sesión] Cambio de pase detectado (${pParam} vs previo ${storedPartyId}). Reseteando sesión.`);
+            localStorage.setItem("bodachicos_party_id", pParam);
+            currentPartyId = pParam;
+            localStorage.removeItem("bodachicos_gamertag");
+            localStorage.removeItem("bodachicos_real_name");
+            localStorage.removeItem("bodachicos_guest_id");
+            ['chico', 'chica', 'maddie', 'puebla'].forEach(g => localStorage.removeItem('bodachicos_score_' + g));
+            localStorage.removeItem('bodachicos_admin_bonus');
+            localStorage.removeItem('bodachicos_bonus_chicoins');
+            localStorage.removeItem('bodachicos_maxdist_puebla');
+            localStorage.removeItem('bodachicos_puebla_won');
+            localStorage.removeItem('bodachicos_time_played');
+            playerGamertag = "";
+            playerRealName = "";
+            playerGuestId = "";
+        } else if (pParam) {
+            currentPartyId = pParam;
             localStorage.setItem("bodachicos_party_id", currentPartyId);
         } else {
-            currentPartyId = localStorage.getItem("bodachicos_party_id") || "chicos";
+            currentPartyId = storedPartyId || "chicos";
         }
 
         let currentLeaderboardTab = "general";
@@ -868,10 +887,13 @@ document.addEventListener("DOMContentLoaded", () => {
             updateScoresDashboard();
         }
 
-        async function fetchPlayerRecordFromFirebase(guestId, gamertag) {
+        let selectedRealName = "";
+        let selectedGuestId = "";
+
+        async function fetchPlayerRecordByGuest(guestId, realName) {
             if (!db) return null;
             const cleanGId = guestId ? formatGuestId(guestId) : "";
-            const cleanTag = gamertag ? gamertag.trim().replace(/[.#$/[\]]/g, "_") : "";
+            const cleanName = realName ? realName.trim() : "";
 
             // 1. Probar por Guest ID directo como llave en /players/<id>
             if (cleanGId) {
@@ -881,15 +903,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {}
             }
 
-            // 2. Probar por Gamertag directo como llave en /players/<tag>
-            if (cleanTag) {
-                try {
-                    const snap = await db.ref("players/" + cleanTag).once("value");
-                    if (snap.exists() && snap.val()) return { key: cleanTag, data: snap.val() };
-                } catch (e) {}
-            }
-
-            // 3. Probar por búsqueda de child 'guestId'
+            // 2. Probar por búsqueda de child 'guestId'
             if (cleanGId) {
                 try {
                     const snap = await db.ref("players").orderByChild("guestId").equalTo(cleanGId).once("value");
@@ -900,10 +914,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {}
             }
 
-            // 4. Probar por búsqueda de child 'gamerTag'
-            if (gamertag && gamertag.trim()) {
+            // 3. Probar por búsqueda de child 'realName'
+            if (cleanName) {
                 try {
-                    const snap = await db.ref("players").orderByChild("gamerTag").equalTo(gamertag.trim()).once("value");
+                    const snap = await db.ref("players").orderByChild("realName").equalTo(cleanName).once("value");
                     if (snap.exists() && snap.val()) {
                         const keys = Object.keys(snap.val());
                         if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
@@ -914,33 +928,29 @@ document.addEventListener("DOMContentLoaded", () => {
             return null;
         }
 
+        async function fetchPlayerRecordByGamertag(gamertag) {
+            if (!db || !gamertag || !gamertag.trim()) return null;
+            const cleanTag = gamertag.trim().replace(/[.#$/[\]]/g, "_");
+
+            // 1. Probar por Gamertag directo como llave en /players/<tag>
+            try {
+                const snap = await db.ref("players/" + cleanTag).once("value");
+                if (snap.exists() && snap.val()) return { key: cleanTag, data: snap.val() };
+            } catch (e) {}
+
+            // 2. Probar por búsqueda de child 'gamerTag'
+            try {
+                const snap = await db.ref("players").orderByChild("gamerTag").equalTo(gamertag.trim()).once("value");
+                if (snap.exists() && snap.val()) {
+                    const keys = Object.keys(snap.val());
+                    if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
+                }
+            } catch (e) {}
+
+            return null;
+        }
+
         async function checkGamertag() {
-            // DETECTAR SI LA URL TRAE UN ENLACE DE INVITACIÓN NUEVO O DIFERENTE
-            const urlParams = new URLSearchParams(window.location.search);
-            const pParam = (urlParams.get("p") || urlParams.get("id") || urlParams.get("invitado") || "").trim().toLowerCase();
-            const storedPartyId = (localStorage.getItem("bodachicos_party_id") || "").trim().toLowerCase();
-
-            if (pParam && storedPartyId && pParam !== storedPartyId) {
-                console.log(`[Sesión] Nueva invitación detectada en URL (${pParam} vs previa ${storedPartyId}). Reseteando sesión previa.`);
-                localStorage.setItem("bodachicos_party_id", pParam);
-                currentPartyId = pParam;
-                
-                // Desloguear la sesión del jugador previo
-                localStorage.removeItem("bodachicos_gamertag");
-                localStorage.removeItem("bodachicos_real_name");
-                localStorage.removeItem("bodachicos_guest_id");
-                clearLocalPlayerScores();
-                playerGamertag = "";
-                playerRealName = "";
-                playerGuestId = "";
-                partyMembersData = [];
-            } else if (pParam) {
-                currentPartyId = pParam;
-                localStorage.setItem("bodachicos_party_id", currentPartyId);
-            } else {
-                currentPartyId = storedPartyId || "chicos";
-            }
-
             playerGuestId = formatGuestId(localStorage.getItem("bodachicos_guest_id") || "");
             playerGamertag = localStorage.getItem("bodachicos_gamertag") || "";
             playerRealName = localStorage.getItem("bodachicos_real_name") || "";
@@ -960,7 +970,10 @@ document.addEventListener("DOMContentLoaded", () => {
             // Si SÍ hay un jugador activo, consultar Firebase primero para tener los datos más recientes
             if (db) {
                 try {
-                    const record = await fetchPlayerRecordFromFirebase(playerGuestId, playerGamertag);
+                    const record = (playerGuestId || playerRealName) 
+                        ? await fetchPlayerRecordByGuest(playerGuestId, playerRealName)
+                        : await fetchPlayerRecordByGamertag(playerGamertag);
+
                     if (record && record.data) {
                         applyPlayerScores(record.data, record.key);
                         if (record.data.guestId && !playerGuestId) {
@@ -984,8 +997,27 @@ document.addEventListener("DOMContentLoaded", () => {
             const container = document.getElementById("memberSelectContainer");
             const buttonsList = document.getElementById("memberButtonsList");
             const inputEl = document.getElementById("gamertagInput");
+            const btn = document.getElementById("saveGamerTagBtn");
+            const errorMsg = document.getElementById("gamertagErrorMsg");
 
-            if (inputEl) inputEl.value = playerGamertag || "";
+            if (errorMsg) errorMsg.classList.add("hidden");
+
+            // Resetear selección actual en el modal
+            selectedRealName = "";
+            selectedGuestId = "";
+
+            // BLOQUEAR input y botón hasta que se seleccione quién es
+            if (inputEl) {
+                inputEl.value = "";
+                inputEl.disabled = true;
+                inputEl.placeholder = isEnLang ? "👆 First select who you are above" : "👆 Primero selecciona quién eres arriba";
+                inputEl.className = "w-full mt-2 p-3 border-2 border-gray-200 rounded-xl text-center font-bold text-lg outline-none bg-gray-100 text-gray-400 cursor-not-allowed transition";
+            }
+            if (btn) {
+                btn.disabled = true;
+                btn.className = "w-full mt-3 bg-gray-300 text-gray-500 font-bold py-3 rounded-xl cursor-not-allowed transition shadow-none";
+                btn.innerText = isEnLang ? "Select a Guest 👆" : "Selecciona un Invitado 👆";
+            }
 
             if (modal) {
                 modal.classList.remove("hidden");
@@ -994,7 +1026,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (currentPartyId && partyMembersData.length === 0) {
                 if (container) container.classList.remove("hidden");
-                if (buttonsList) buttonsList.innerHTML = `<p class="text-xs text-gray-400 italic py-2 text-center animate-pulse">⌛ Cargando integrantes de la invitación...</p>`;
+                if (buttonsList) {
+                    buttonsList.innerHTML = `
+                        <div class="p-3.5 bg-amber-50 border-2 border-amber-300/80 rounded-2xl text-center shadow-xs">
+                            <span class="inline-block text-2xl animate-spin mb-1">⏳</span>
+                            <p class="text-xs font-bold text-amber-900 tracking-wide">${isEnLang ? "Loading invitation members..." : "Cargando integrantes de la invitación..."}</p>
+                            <p class="text-[10px] text-amber-700 mt-0.5">${isEnLang ? "Please wait a moment to choose your name" : "Por favor espera un momento para elegir tu nombre"}</p>
+                        </div>
+                    `;
+                }
 
                 try {
                     const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(currentPartyId)}`);
@@ -1011,17 +1051,35 @@ document.addEventListener("DOMContentLoaded", () => {
                         renderMemberButtons();
                     } else {
                         if (container) container.classList.add("hidden");
+                        unlockGamertagForSoloGuest();
                     }
                 } catch (e) {
                     console.warn("No se pudo cargar la lista de integrantes del RSVP:", e);
                     if (container) container.classList.add("hidden");
+                    unlockGamertagForSoloGuest();
                 }
             } else if (partyMembersData && partyMembersData.length > 0) {
                 if (container) container.classList.remove("hidden");
                 renderMemberButtons();
             } else {
                 if (container) container.classList.add("hidden");
-                selectedRealName = playerRealName || "";
+                unlockGamertagForSoloGuest();
+            }
+        }
+
+        function unlockGamertagForSoloGuest() {
+            const inputEl = document.getElementById("gamertagInput");
+            const btn = document.getElementById("saveGamerTagBtn");
+            if (inputEl) {
+                inputEl.disabled = false;
+                inputEl.value = playerGamertag || "";
+                inputEl.placeholder = isEnLang ? "Your GamerTag (Nickname)" : "Tu GamerTag (Apodo)";
+                inputEl.className = "w-full mt-2 p-3 border-2 border-olivo-base bg-white rounded-xl text-center font-bold text-lg outline-none focus:ring-2 focus:ring-olivo-base/30 text-gray-800 transition shadow-inner";
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.className = "w-full mt-3 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md cursor-pointer";
+                btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
             }
         }
 
@@ -1032,83 +1090,96 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!partyMembersData || partyMembersData.length === 0) {
                 if (container) container.classList.add("hidden");
+                unlockGamertagForSoloGuest();
                 return;
             }
 
             if (container) container.classList.remove("hidden");
             buttonsList.innerHTML = "";
-            
-            let defaultIdx = -1;
-            selectedRealName = "";
-            playerGuestId = "";
-            
-            if (playerRealName) {
-                const found = partyMembersData.findIndex(m => m.name.toLowerCase() === playerRealName.toLowerCase());
-                if (found >= 0) {
-                    defaultIdx = found;
-                    selectedRealName = partyMembersData[defaultIdx].name;
-                    playerGuestId = partyMembersData[defaultIdx].id;
-                }
-            }
 
             partyMembersData.forEach((memberObj, idx) => {
-                const isSel = (idx === defaultIdx);
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.onclick = () => selectMemberChoice(idx, memberObj.name, memberObj.id);
-                btn.className = `w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn ${isSel ? 'border-olivo-base bg-amber-50 text-olivo-base shadow-xs' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`;
-                btn.innerHTML = `<span>👤 ${memberObj.name}</span><span class="check-icon ${isSel ? '' : 'hidden'} font-bold">✓</span>`;
+                btn.className = "w-full text-left px-3.5 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-olivo-base/50 hover:bg-amber-50/50 text-xs font-bold transition flex items-center justify-between member-btn cursor-pointer";
+                btn.innerHTML = `<span>👤 ${memberObj.name}</span><span class="check-icon hidden text-olivo-base font-extrabold text-sm">✓</span>`;
                 buttonsList.appendChild(btn);
             });
+
+            // Si solo hay 1 integrante en la invitación, auto-seleccionarlo de inmediato
+            if (partyMembersData.length === 1) {
+                selectMemberChoice(0, partyMembersData[0].name, partyMembersData[0].id);
+            }
         }
 
         async function selectMemberChoice(idx, memberName, memberId) {
-            selectedRealName = memberName;
-            playerGuestId = formatGuestId(memberId);
-            if (playerGuestId) {
-                localStorage.setItem("bodachicos_guest_id", playerGuestId);
-            }
-            if (memberName) {
-                localStorage.setItem("bodachicos_real_name", memberName);
-                playerRealName = memberName;
-            }
+            selectedRealName = (memberName || "").trim();
+            selectedGuestId = formatGuestId(memberId);
 
-            const inputEl = document.getElementById("gamertagInput");
-            if (inputEl) inputEl.value = ""; // Limpiar input al cambiar de persona
-
-            const fillInput = (tag) => {
-                if (inputEl) {
-                    inputEl.value = tag;
-                    inputEl.classList.add("bg-green-50");
-                    setTimeout(() => inputEl.classList.remove("bg-green-50"), 1000);
-                }
-            };
-
+            // Resaltar visualmente el botón seleccionado
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
             const checks = document.querySelectorAll("#memberButtonsList .check-icon");
             buttons.forEach((btn, i) => {
                 if (i === idx) {
-                    btn.className = "w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn border-olivo-base bg-amber-50 text-olivo-base shadow-xs";
+                    btn.className = "w-full text-left px-3.5 py-3 rounded-xl border-2 border-olivo-base bg-amber-50 text-olivo-base font-bold shadow-xs transition flex items-center justify-between member-btn cursor-pointer";
                     if (checks[i]) checks[i].classList.remove("hidden");
                 } else {
-                    btn.className = "w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn border-gray-200 bg-white text-gray-700 hover:bg-gray-50";
+                    btn.className = "w-full text-left px-3.5 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-olivo-base/50 text-xs font-bold transition flex items-center justify-between member-btn cursor-pointer";
                     if (checks[i]) checks[i].classList.add("hidden");
                 }
             });
 
-            // Consultar Firebase primero para este integrante específico antes de usar cualquier dato
+            const inputEl = document.getElementById("gamertagInput");
+            const btnEl = document.getElementById("saveGamerTagBtn");
+            const errorMsg = document.getElementById("gamertagErrorMsg");
+            if (errorMsg) errorMsg.classList.add("hidden");
+
+            // Estado de consulta para evitar escritura antes de tiempo
+            if (inputEl) {
+                inputEl.value = "";
+                inputEl.disabled = true;
+                inputEl.placeholder = isEnLang ? "⌛ Checking guest profile..." : "⌛ Consultando perfil en la base de datos...";
+                inputEl.className = "w-full mt-2 p-3 border-2 border-amber-300 rounded-xl text-center font-bold text-lg outline-none bg-amber-50 text-amber-800 animate-pulse transition";
+            }
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.className = "w-full mt-3 bg-gray-300 text-gray-500 font-bold py-3 rounded-xl cursor-not-allowed transition shadow-none";
+                btnEl.innerText = isEnLang ? "⌛ Checking..." : "⌛ Consultando...";
+            }
+
+            // Consultar Firebase ÚNICAMENTE para este integrante específico (ignora lo que hay en el celular)
             try {
-                const record = await fetchPlayerRecordFromFirebase(playerGuestId, memberName);
+                const record = await fetchPlayerRecordByGuest(selectedGuestId, selectedRealName);
                 if (record && record.data) {
-                    if (record.data.gamerTag) fillInput(record.data.gamerTag);
+                    // El jugador ya tiene perfil en Firebase: cargar sus scores reales y pre-llenar su GamerTag
                     applyPlayerScores(record.data, record.key);
+                    if (inputEl) {
+                        inputEl.value = record.data.gamerTag || "";
+                        inputEl.placeholder = isEnLang ? "Your GamerTag" : "Tu GamerTag";
+                    }
                 } else {
-                    // Si no tiene registro en Firebase, iniciar en ceros absolutos (evita heredar datos del usuario anterior)
-                    applyPlayerScores(null, playerGuestId);
+                    // El jugador no tiene perfil en Firebase aún: arrancar en ceros absolutos
+                    applyPlayerScores(null, selectedGuestId);
+                    if (inputEl) {
+                        inputEl.value = "";
+                        inputEl.placeholder = isEnLang ? "Choose your GamerTag" : "Elige tu GamerTag (Apodo)";
+                    }
                 }
             } catch (e) {
                 console.warn("Error al consultar Firebase en selectMemberChoice:", e);
-                applyPlayerScores(null, playerGuestId);
+                applyPlayerScores(null, selectedGuestId);
+            }
+
+            // Habilitar la edición de Gamertag y el botón de inicio
+            if (inputEl) {
+                inputEl.disabled = false;
+                inputEl.className = "w-full mt-2 p-3 border-2 border-olivo-base bg-white rounded-xl text-center font-bold text-lg outline-none focus:ring-2 focus:ring-olivo-base/30 text-gray-800 transition shadow-inner";
+                inputEl.focus();
+            }
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.className = "w-full mt-3 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md cursor-pointer";
+                btnEl.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
             }
         }
 
@@ -1169,7 +1240,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const errorMsg = document.getElementById("gamertagErrorMsg");
             if (errorMsg) errorMsg.classList.add("hidden");
 
-            const val = document.getElementById("gamertagInput").value.trim();
+            const container = document.getElementById("memberSelectContainer");
+            const isSelectVisible = container && !container.classList.contains("hidden");
+
+            if (isSelectVisible && partyMembersData.length > 0 && (!selectedRealName || !selectedGuestId)) {
+                if (errorMsg) {
+                    errorMsg.innerText = isEnLang ? "👆 Please select who you are from the list above." : "👆 Por favor selecciona qué invitado eres de la lista superior.";
+                    errorMsg.classList.remove("hidden");
+                }
+                return;
+            }
+
+            const val = (document.getElementById("gamertagInput").value || "").trim();
             if (!val) {
                 if (errorMsg) {
                     errorMsg.innerText = isEnLang ? "❌ Enter a GamerTag (Nickname) to play." : "❌ Escribe un GamerTag (Apodo) para jugar.";
@@ -1195,24 +1277,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const container = document.getElementById("memberSelectContainer");
-            const isSelectVisible = container && !container.classList.contains("hidden");
-            
-            if (isSelectVisible && partyMembersData.length === 0) {
-                if (errorMsg) {
-                    errorMsg.innerText = isEnLang ? "⌛ Please wait while invitation loads or check connection." : "⌛ Espera a que cargue la invitación o revisa tu conexión.";
-                    errorMsg.classList.remove("hidden");
-                }
-                return;
-            }
-            if (isSelectVisible && !selectedRealName) {
-                if (errorMsg) {
-                    errorMsg.innerText = isEnLang ? "👆 Please select who you are from the list above." : "👆 Por favor selecciona qué invitado eres de la lista superior.";
-                    errorMsg.classList.remove("hidden");
-                }
-                return;
-            }
-
             const btn = document.getElementById("saveGamerTagBtn");
             if (btn) {
                 btn.innerText = isEnLang ? "Connecting to Arcade..." : "Conectando al Arcade...";
@@ -1220,38 +1284,43 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            playerGuestId = formatGuestId(playerGuestId || localStorage.getItem("bodachicos_guest_id"));
-            const cleanGamertag = val.trim().replace(/[.#$/[\]]/g, "_");
-            const keyTag = playerGuestId || cleanGamertag;
+            const effectiveGuestId = selectedGuestId || playerGuestId;
+            const effectiveRealName = selectedRealName || playerRealName;
 
-            if (db && keyTag) {
+            // Validar si el gamertag ya está en uso por OTRA persona en Firebase
+            if (db) {
                 try {
-                    // Consultar Firebase primero para asegurar los puntajes reales de este jugador
-                    const record = await fetchPlayerRecordFromFirebase(playerGuestId, val);
-                    if (record && record.data) {
-                        applyPlayerScores(record.data, record.key);
-                    } else {
-                        // Jugador nuevo o sin datos previos: inicializar en ceros absolutos (nunca arrastrar puntajes previos)
-                        applyPlayerScores(null, keyTag);
-                    }
-
-                    // Limpieza proactiva: si la llave oficial es el ID, eliminar cualquier nodo huérfano con el apodo
-                    if (playerGuestId) {
-                        const oldTagKey = (playerGamertag || "").trim().replace(/[.#$/[\]]/g, "_");
-                        if (oldTagKey && oldTagKey !== playerGuestId) {
-                            db.ref("players/" + oldTagKey).remove().catch(() => {});
+                    const tagSnap = await db.ref("players").orderByChild("gamerTag").equalTo(val).once("value");
+                    if (tagSnap.exists() && tagSnap.val()) {
+                        const entries = Object.entries(tagSnap.val());
+                        const isTakenByOther = entries.some(([k, node]) => {
+                            const nodeGId = formatGuestId(node.guestId || k);
+                            return nodeGId && nodeGId !== effectiveGuestId;
+                        });
+                        if (isTakenByOther) {
+                            if (errorMsg) {
+                                errorMsg.innerText = isEnLang ? `❌ GamerTag '${val}' is already taken. Please choose another.` : `❌ El GamerTag '${val}' ya está en uso por otro invitado. Por favor elige otro.`;
+                                errorMsg.classList.remove("hidden");
+                            }
+                            if (btn) {
+                                btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
+                                btn.disabled = false;
+                                btn.classList.remove("opacity-70", "cursor-wait");
+                            }
+                            return;
                         }
-                        if (cleanGamertag && cleanGamertag !== playerGuestId) {
-                            db.ref("players/" + cleanGamertag).remove().catch(() => {});
-                        }
                     }
-                } catch (e) {
-                    console.warn("No se pudo descargar progreso previo o limpiar:", e);
-                    applyPlayerScores(null, keyTag);
-                }
-            } else {
-                applyPlayerScores(null, keyTag);
+                } catch (e) {}
             }
+
+            // Establecer la sesión activa LIGADA a la persona elegida
+            playerGuestId = effectiveGuestId;
+            playerRealName = effectiveRealName;
+            playerGamertag = val;
+
+            localStorage.setItem("bodachicos_gamertag", playerGamertag);
+            if (playerRealName) localStorage.setItem("bodachicos_real_name", playerRealName);
+            if (playerGuestId) localStorage.setItem("bodachicos_guest_id", playerGuestId);
 
             if (btn) {
                 btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
@@ -1259,17 +1328,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.remove("opacity-70", "cursor-wait");
             }
 
-            localStorage.setItem("bodachicos_gamertag", val);
-            if (selectedRealName) {
-                localStorage.setItem("bodachicos_real_name", selectedRealName);
-                if (playerGuestId) localStorage.setItem("bodachicos_guest_id", playerGuestId);
-                playerRealName = selectedRealName;
-            }
-            playerGamertag = val;
-            
             document.getElementById("playerGamertag").innerText = playerGamertag;
             document.getElementById("bottomGamerTag").innerText = playerGamertag;
-            
+
             closeGamertagModal();
             updateScoresDashboard();
             syncPlayerToFirebase();
