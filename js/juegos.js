@@ -525,8 +525,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
         let currentPartyId = "";
-        // let partyMembers = []; (eliminado en favor de partyMembersData)
         let selectedRealName = "";
+        let selectedGuestId = "";
         let playerGuestId = "";
         let partyMembersData = [];
         let playerRealName = "";
@@ -886,9 +886,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             updateScoresDashboard();
         }
-
-        let selectedRealName = "";
-        let selectedGuestId = "";
 
         async function fetchPlayerRecordByGuest(guestId, realName) {
             if (!db) return null;
