@@ -28,10 +28,17 @@
                 <p class="text-xs text-slate-400 font-semibold">Panel de Administración del Stand • Canje de ChiCoins</p>
             </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">
                 <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span> Firebase Conectado
             </span>
+            <button onclick="downloadBackupJSON()" class="text-xs bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-xl transition text-white font-semibold flex items-center gap-1.5 shadow">
+                <span>📥</span> Descargar Backup
+            </button>
+            <label class="text-xs bg-sky-600 hover:bg-sky-500 px-3 py-2 rounded-xl transition text-white font-semibold flex items-center gap-1.5 cursor-pointer shadow">
+                <span>📤</span> Restaurar Backup
+                <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="restoreBackupJSON(event)">
+            </label>
             <a href="juegos.html" class="text-xs bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl transition text-slate-200 font-semibold">Ir al Arcade 🎮</a>
         </div>
     </header>
@@ -161,6 +168,6 @@
     </main>
 
     <!-- FIREBASE INTERFACE & LOGIC -->
-<script src="js/admin.js?v=15.0" defer></script>
+<script src="js/admin.js?v=16.0" defer></script>
 </body>
 </html>

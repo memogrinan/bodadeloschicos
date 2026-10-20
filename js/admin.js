@@ -115,13 +115,14 @@
         function addPhysicalBonus(amount, reason) {
             if (!selectedPlayerKey) return;
             const p = allPlayers[selectedPlayerKey];
-            const currentBonus = p.bonusCoins || 0;
+            const currentBonus = (p.adminBonus !== undefined ? p.adminBonus : p.bonusCoins) || 0;
             const newBonus = currentBonus + amount;
             const currentTotal = p.totalChiCoins || 0;
             const newTotal = currentTotal + amount;
 
             db.ref("players/" + selectedPlayerKey).update({
                 bonusCoins: newBonus,
+                adminBonus: newBonus,
                 totalChiCoins: newTotal,
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
@@ -135,21 +136,21 @@
             const currentTotal = p.totalChiCoins || 0;
 
             if (currentTotal < cost) {
-                if (!confirm(`El saldo del jugador (${currentTotal} 🪙) es menor al costo (${cost} 🪙). ¿Deseas aplicar el canje de todos modos?`)) {
-                    return;
-                }
+                alert(`❌ Saldo insuficiente: ${p.gamerTag || 'El jugador'} tiene ${currentTotal.toLocaleString()} 🪙 y el artículo cuesta ${cost.toLocaleString()} 🪙.\nFaltan ${(cost - currentTotal).toLocaleString()} 🪙 para poder canjear.`);
+                return;
             }
 
-            const currentBonus = p.bonusCoins || 0;
+            const currentBonus = (p.adminBonus !== undefined ? p.adminBonus : p.bonusCoins) || 0;
             const newBonus = currentBonus - cost;
             const newTotal = currentTotal - cost;
 
             db.ref("players/" + selectedPlayerKey).update({
                 bonusCoins: newBonus,
+                adminBonus: newBonus,
                 totalChiCoins: newTotal,
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
-                alert(`🛍️ Canje exitoso: ${itemName} para ${p.gamerTag}. Nuevo saldo: ${newTotal} 🪙`);
+                alert(`🛍️ Canje exitoso: ${itemName} para ${p.gamerTag}.\nNuevo saldo restante: ${newTotal.toLocaleString()} 🪙`);
             }).catch(err => alert("Error: " + err.message));
         }
 
@@ -175,6 +176,7 @@
                     scores: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
                     chiCoins: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
                     bonusCoins: 0,
+                    adminBonus: 0,
                     totalChiCoins: 0,
                     totalScore: 0,
                     timePlayedSeconds: 0,
@@ -207,7 +209,10 @@
                 if (confirm("¿Estás absolutamente seguro? ESTO NO SE PUEDE DESHACER.")) {
                     db.ref("players").remove().then(() => {
                         alert("✅ Base de datos reseteada a ceros exitosamente.");
-                        closePlayerModal();
+                        document.getElementById("noSelectionState").classList.remove("hidden");
+                        document.getElementById("selectionState").classList.add("hidden");
+                        document.getElementById("selectionState").classList.remove("flex");
+                        selectedPlayerKey = null;
                     }).catch(err => {
                         alert("❌ Error al borrar: " + err.message);
                     });
@@ -215,4 +220,53 @@
             } else if (pass !== null) {
                 alert("❌ Contraseña incorrecta. Abortando.");
             }
+        }
+
+        // COPIAS DE SEGURIDAD (BACKUP & RESTORE EN UN CLIC)
+        function downloadBackupJSON() {
+            if (!allPlayers || Object.keys(allPlayers).length === 0) {
+                alert("No hay datos de jugadores actualmente para respaldar.");
+                return;
+            }
+            const dateStr = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allPlayers, null, 2));
+            const dlAnchor = document.createElement("a");
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `backup-boda-arcade-${dateStr}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+
+        function restoreBackupJSON(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (!parsed || typeof parsed !== "object") {
+                        alert("❌ Archivo inválido: El archivo seleccionado no contiene datos JSON válidos.");
+                        return;
+                    }
+                    const count = Object.keys(parsed).length;
+                    const confirmRestore = confirm(`⚠️ ¿Deseas RESTAURAR la base de datos con los datos de este archivo?\n\nJugadores en el respaldo: ${count}\n\nEsto sobreescribirá los registros actuales en Firebase.`);
+                    if (!confirmRestore) {
+                        event.target.value = "";
+                        return;
+                    }
+
+                    db.ref("players").set(parsed).then(() => {
+                        alert(`✅ ¡Base de datos restaurada exitosamente con ${count} jugadores!`);
+                    }).catch(err => {
+                        alert("❌ Error al restaurar en Firebase: " + err.message);
+                    });
+                } catch (err) {
+                    alert("❌ Error al procesar el archivo JSON: " + err.message);
+                } finally {
+                    event.target.value = "";
+                }
+            };
+            reader.readAsText(file);
         }

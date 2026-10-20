@@ -1,21 +1,36 @@
 
-// GLOBAL URL PARAMETER PRESERVER
-// Asegura que el parámetro '?p=' (Party ID) viaje a todas las páginas internas.
+// GLOBAL URL PARAMETER PRESERVER & SESSION ISOLATION
+// Asegura que el parámetro '?p=' (Party ID) viaje a todas las páginas internas y detecta cambios de invitación
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const partyId = urlParams.get('p') || localStorage.getItem('bodachicos_party_id');
+    const pParam = (urlParams.get('p') || urlParams.get('id') || urlParams.get('invitado') || '').trim().toLowerCase();
+    const storedParty = (localStorage.getItem('bodachicos_party_id') || '').trim().toLowerCase();
     
-    if (partyId) {
-        // Guardamos o actualizamos en cache
-        localStorage.setItem('bodachicos_party_id', partyId);
-        
+    // Si viene un link con una invitación DISTINTA a la guardada en este dispositivo:
+    if (pParam && storedParty && pParam !== storedParty) {
+        console.log(`[Sesión] Nueva invitación detectada en URL (${pParam} vs previa ${storedParty}). Limpiando sesión previa para evitar cruce de puntos.`);
+        localStorage.setItem('bodachicos_party_id', pParam);
+        localStorage.removeItem('bodachicos_gamertag');
+        localStorage.removeItem('bodachicos_real_name');
+        localStorage.removeItem('bodachicos_guest_id');
+        ['chico', 'chica', 'maddie', 'puebla'].forEach(g => localStorage.removeItem('bodachicos_score_' + g));
+        localStorage.removeItem('bodachicos_admin_bonus');
+        localStorage.removeItem('bodachicos_bonus_chicoins');
+        localStorage.removeItem('bodachicos_maxdist_puebla');
+        localStorage.removeItem('bodachicos_puebla_won');
+        localStorage.removeItem('bodachicos_time_played');
+    } else if (pParam) {
+        localStorage.setItem('bodachicos_party_id', pParam);
+    }
+    
+    const activeParty = pParam || storedParty;
+    if (activeParty) {
         document.querySelectorAll('a').forEach(link => {
             const href = link.getAttribute('href');
-            // Solo inyectar en links que apunten a htmls internos o al root
-            if (href && (href.includes('.html') || href === '/') && !href.startsWith('http') && !href.startsWith('tel') && !href.startsWith('javascript')) {
+            if (href && (href.includes('.html') || href === '/' || href.startsWith('/en') || href.startsWith('../')) && !href.startsWith('http') && !href.startsWith('tel') && !href.startsWith('javascript')) {
                 try {
                     const urlObj = new URL(link.href, window.location.origin);
-                    urlObj.searchParams.set('p', partyId);
+                    urlObj.searchParams.set('p', activeParty);
                     link.href = urlObj.toString();
                 } catch(e) {}
             }
@@ -593,6 +608,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
             };
 
+            // Guardar en el espacio aislado local de este keyTag para evitar cruces en el mismo dispositivo
+            try {
+                localStorage.setItem("bodachicos_scoped_" + keyTag, JSON.stringify(payload));
+            } catch (e) {}
+
             db.ref("players/" + keyTag).update(payload).catch(err => console.error("Error al sincronizar con Firebase:", err));
 
             // Enviar analíticos a Google Sheets (Trix) silenciosamente
@@ -794,13 +814,134 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        function checkGamertag() {
-            let savedGuestId = localStorage.getItem("bodachicos_guest_id") || "";
-            if (savedGuestId === "GID_chicos_2") savedGuestId = "GID_001";
-            if (savedGuestId === "GID_chicos_3") savedGuestId = "GID_002";
-            playerGuestId = formatGuestId(savedGuestId);
-            if (playerGuestId) localStorage.setItem("bodachicos_guest_id", playerGuestId);
+        function clearLocalPlayerScores() {
+            ['chico', 'chica', 'maddie', 'puebla'].forEach(g => {
+                localStorage.removeItem('bodachicos_score_' + g);
+            });
+            localStorage.removeItem('bodachicos_admin_bonus');
+            localStorage.removeItem('bodachicos_bonus_chicoins');
+            localStorage.removeItem('bodachicos_maxdist_puebla');
+            localStorage.removeItem('bodachicos_puebla_won');
+            localStorage.removeItem('bodachicos_time_played');
+        }
 
+        function applyPlayerScores(remoteData, keyTag) {
+            clearLocalPlayerScores();
+
+            if (remoteData) {
+                if (remoteData.scores) {
+                    Object.keys(remoteData.scores).forEach(g => {
+                        localStorage.setItem("bodachicos_score_" + g, parseInt(remoteData.scores[g]) || 0);
+                    });
+                }
+                let adminBonus = 0;
+                if (remoteData.adminBonus !== undefined) adminBonus = parseInt(remoteData.adminBonus) || 0;
+                else if (remoteData.bonusCoins !== undefined) adminBonus = parseInt(remoteData.bonusCoins) || 0;
+                localStorage.setItem("bodachicos_admin_bonus", adminBonus);
+
+                if (remoteData.maxDistPuebla) {
+                    localStorage.setItem("bodachicos_maxdist_puebla", parseFloat(remoteData.maxDistPuebla).toFixed(1));
+                }
+                if (remoteData.pueblaWon || (remoteData.scores && remoteData.scores.puebla >= METAS.puebla) || (parseFloat(remoteData.maxDistPuebla || 0) >= 120)) {
+                    localStorage.setItem("bodachicos_puebla_won", "true");
+                }
+                if (remoteData.timePlayedSeconds) {
+                    localStorage.setItem("bodachicos_time_played", parseInt(remoteData.timePlayedSeconds) || 0);
+                }
+            } else if (keyTag) {
+                // Si no hay datos remotos, buscar en el espacio aislado local de ESTE usuario
+                try {
+                    const scoped = JSON.parse(localStorage.getItem("bodachicos_scoped_" + keyTag) || "null");
+                    if (scoped) {
+                        if (scoped.scores) {
+                            Object.keys(scoped.scores).forEach(g => {
+                                localStorage.setItem("bodachicos_score_" + g, parseInt(scoped.scores[g]) || 0);
+                            });
+                        }
+                        if (scoped.adminBonus !== undefined) localStorage.setItem("bodachicos_admin_bonus", parseInt(scoped.adminBonus) || 0);
+                        if (scoped.maxDistPuebla) localStorage.setItem("bodachicos_maxdist_puebla", scoped.maxDistPuebla);
+                        if (scoped.pueblaWon) localStorage.setItem("bodachicos_puebla_won", "true");
+                        if (scoped.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", parseInt(scoped.timePlayedSeconds) || 0);
+                    }
+                } catch (e) {}
+            }
+            updateScoresDashboard();
+        }
+
+        async function fetchPlayerRecordFromFirebase(guestId, gamertag) {
+            if (!db) return null;
+            const cleanGId = guestId ? formatGuestId(guestId) : "";
+            const cleanTag = gamertag ? gamertag.trim().replace(/[.#$/[\]]/g, "_") : "";
+
+            // 1. Probar por Guest ID directo como llave en /players/<id>
+            if (cleanGId) {
+                try {
+                    const snap = await db.ref("players/" + cleanGId).once("value");
+                    if (snap.exists() && snap.val()) return { key: cleanGId, data: snap.val() };
+                } catch (e) {}
+            }
+
+            // 2. Probar por Gamertag directo como llave en /players/<tag>
+            if (cleanTag) {
+                try {
+                    const snap = await db.ref("players/" + cleanTag).once("value");
+                    if (snap.exists() && snap.val()) return { key: cleanTag, data: snap.val() };
+                } catch (e) {}
+            }
+
+            // 3. Probar por búsqueda de child 'guestId'
+            if (cleanGId) {
+                try {
+                    const snap = await db.ref("players").orderByChild("guestId").equalTo(cleanGId).once("value");
+                    if (snap.exists() && snap.val()) {
+                        const keys = Object.keys(snap.val());
+                        if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
+                    }
+                } catch (e) {}
+            }
+
+            // 4. Probar por búsqueda de child 'gamerTag'
+            if (gamertag && gamertag.trim()) {
+                try {
+                    const snap = await db.ref("players").orderByChild("gamerTag").equalTo(gamertag.trim()).once("value");
+                    if (snap.exists() && snap.val()) {
+                        const keys = Object.keys(snap.val());
+                        if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
+                    }
+                } catch (e) {}
+            }
+
+            return null;
+        }
+
+        async function checkGamertag() {
+            // DETECTAR SI LA URL TRAE UN ENLACE DE INVITACIÓN NUEVO O DIFERENTE
+            const urlParams = new URLSearchParams(window.location.search);
+            const pParam = (urlParams.get("p") || urlParams.get("id") || urlParams.get("invitado") || "").trim().toLowerCase();
+            const storedPartyId = (localStorage.getItem("bodachicos_party_id") || "").trim().toLowerCase();
+
+            if (pParam && storedPartyId && pParam !== storedPartyId) {
+                console.log(`[Sesión] Nueva invitación detectada en URL (${pParam} vs previa ${storedPartyId}). Reseteando sesión previa.`);
+                localStorage.setItem("bodachicos_party_id", pParam);
+                currentPartyId = pParam;
+                
+                // Desloguear la sesión del jugador previo
+                localStorage.removeItem("bodachicos_gamertag");
+                localStorage.removeItem("bodachicos_real_name");
+                localStorage.removeItem("bodachicos_guest_id");
+                clearLocalPlayerScores();
+                playerGamertag = "";
+                playerRealName = "";
+                playerGuestId = "";
+                partyMembersData = [];
+            } else if (pParam) {
+                currentPartyId = pParam;
+                localStorage.setItem("bodachicos_party_id", currentPartyId);
+            } else {
+                currentPartyId = storedPartyId || "chicos";
+            }
+
+            playerGuestId = formatGuestId(localStorage.getItem("bodachicos_guest_id") || "");
             playerGamertag = localStorage.getItem("bodachicos_gamertag") || "";
             playerRealName = localStorage.getItem("bodachicos_real_name") || "";
 
@@ -808,94 +949,33 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("playerGamertag").innerText = tagDisplay;
             document.getElementById("bottomGamerTag").innerText = tagDisplay;
 
-            const applyRemoteData = (data, foundKey) => {
-                if (!data) return;
-                if (foundKey && !playerGuestId) {
-                    playerGuestId = formatGuestId(data.guestId || foundKey);
-                    localStorage.setItem("bodachicos_guest_id", playerGuestId);
-                }
-                if (data.gamerTag) {
-                    playerGamertag = data.gamerTag;
-                    localStorage.setItem("bodachicos_gamertag", playerGamertag);
-                    document.getElementById("playerGamertag").innerText = playerGamertag;
-                    document.getElementById("bottomGamerTag").innerText = playerGamertag;
-                }
-                if (data.realName && !playerRealName) {
-                    playerRealName = data.realName;
-                    localStorage.setItem("bodachicos_real_name", playerRealName);
-                }
-                if (data.partyId && !localStorage.getItem("bodachicos_party_id")) {
-                    currentPartyId = data.partyId;
-                    localStorage.setItem("bodachicos_party_id", currentPartyId);
-                }
-
-                let distToSave = parseFloat(data.maxDistPuebla || 0);
-                if (data.pueblaWon || (data.scores && data.scores.puebla >= METAS.puebla) || distToSave >= 120) {
-                    localStorage.setItem("bodachicos_puebla_won", "true");
-                    distToSave = Math.max(distToSave, 120.0);
-                }
-                const localDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
-                localStorage.setItem("bodachicos_maxdist_puebla", Math.max(localDist, distToSave).toFixed(1));
-
-                // Saneamiento de caché local de bonos antiguos
-                localStorage.removeItem("bodachicos_bonus_chicoins");
-                let adminCoins = 0;
-                if (data.adminBonus !== undefined) {
-                    adminCoins = parseInt(data.adminBonus || 0);
-                } else if (data.bonusCoins !== undefined) {
-                    const rawBonus = parseInt(data.bonusCoins || 0);
-                    if (rawBonus < 500 || rawBonus % 500 !== 0) {
-                        adminCoins = rawBonus;
-                    }
-                }
-                localStorage.setItem("bodachicos_admin_bonus", isNaN(adminCoins) ? 0 : adminCoins);
-                if (data.timePlayedSeconds) {
-                    const localTime = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
-                    const fbTime = parseInt(data.timePlayedSeconds || 0);
-                    localStorage.setItem("bodachicos_time_played", Math.max(localTime, fbTime));
-                }
-                if (data.scores) {
-                    Object.keys(data.scores).forEach(g => {
-                        const localSc = parseInt(localStorage.getItem("bodachicos_score_" + g) || "0");
-                        const fbSc = parseInt(data.scores[g] || 0);
-                        localStorage.setItem("bodachicos_score_" + g, Math.max(fbSc, localSc));
-                    });
-                }
+            // Si NO hay Gamertag activo para este usuario, arrancar en ceros y abrir modal
+            if (!playerGamertag) {
+                clearLocalPlayerScores();
                 updateScoresDashboard();
-                syncPlayerToFirebase();
-            };
-
-            // Restaurar puntuaciones de Firebase al cargar la página si existen
-            const localKey = (playerGuestId || playerGamertag || "").trim().replace(/[.#$/[\]]/g, "_");
-            if (db && localKey) {
-                db.ref("players/" + localKey).once("value").then(snapshot => {
-                    const data = snapshot.val();
-                    if (data) {
-                        applyRemoteData(data, localKey);
-                    } else if (playerGamertag) {
-                        // Respaldo de búsqueda si la llave en Firebase es diferente al apodo local
-                        db.ref("players").orderByChild("gamerTag").equalTo(playerGamertag).once("value").then(searchSnap => {
-                            const searchData = searchSnap.val();
-                            if (searchData) {
-                                const foundKey = Object.keys(searchData)[0];
-                                applyRemoteData(searchData[foundKey], foundKey);
-                            } else {
-                                syncPlayerToFirebase();
-                            }
-                        }).catch(() => syncPlayerToFirebase());
-                    } else {
-                        syncPlayerToFirebase();
-                    }
-                }).catch(e => {
-                    console.warn("Error al restaurar desde Firebase:", e);
-                    syncPlayerToFirebase();
-                });
-            } else if (playerGamertag && !db) {
-                syncPlayerToFirebase();
+                prepareGamertagModal();
+                return;
             }
 
-            if (!savedTag) {
-                prepareGamertagModal();
+            // Si SÍ hay un jugador activo, consultar Firebase primero para tener los datos más recientes
+            if (db) {
+                try {
+                    const record = await fetchPlayerRecordFromFirebase(playerGuestId, playerGamertag);
+                    if (record && record.data) {
+                        applyPlayerScores(record.data, record.key);
+                        if (record.data.guestId && !playerGuestId) {
+                            playerGuestId = formatGuestId(record.data.guestId);
+                            localStorage.setItem("bodachicos_guest_id", playerGuestId);
+                        }
+                    } else {
+                        // El jugador tiene Gamertag pero no existe en Firebase: iniciar en ceros
+                        const localKey = playerGuestId || playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
+                        applyPlayerScores(null, localKey);
+                        syncPlayerToFirebase();
+                    }
+                } catch (e) {
+                    console.warn("Error al restaurar desde Firebase:", e);
+                }
             }
         }
 
@@ -982,7 +1062,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        function selectMemberChoice(idx, memberName, memberId) {
+        async function selectMemberChoice(idx, memberName, memberId) {
             selectedRealName = memberName;
             playerGuestId = formatGuestId(memberId);
             if (playerGuestId) {
@@ -1004,16 +1084,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-            // Consultar ÚNICAMENTE el ID inmutable en Firebase para obtener su GamerTag
-            if (db && playerGuestId) {
-                db.ref("players/" + playerGuestId).once("value").then(snap => {
-                    const playerNode = snap.val();
-                    if (playerNode && playerNode.gamerTag) {
-                        fillInput(playerNode.gamerTag);
-                    }
-                }).catch(e => console.warn("No se pudo pre-cargar el Gamertag:", e));
-            }
-
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
             const checks = document.querySelectorAll("#memberButtonsList .check-icon");
             buttons.forEach((btn, i) => {
@@ -1025,6 +1095,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (checks[i]) checks[i].classList.add("hidden");
                 }
             });
+
+            // Consultar Firebase primero para este integrante específico antes de usar cualquier dato
+            try {
+                const record = await fetchPlayerRecordFromFirebase(playerGuestId, memberName);
+                if (record && record.data) {
+                    if (record.data.gamerTag) fillInput(record.data.gamerTag);
+                    applyPlayerScores(record.data, record.key);
+                } else {
+                    // Si no tiene registro en Firebase, iniciar en ceros absolutos (evita heredar datos del usuario anterior)
+                    applyPlayerScores(null, playerGuestId);
+                }
+            } catch (e) {
+                console.warn("Error al consultar Firebase en selectMemberChoice:", e);
+                applyPlayerScores(null, playerGuestId);
+            }
         }
 
         function showReservedTagEasterEgg(type, rawName) {
@@ -1141,25 +1226,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (db && keyTag) {
                 try {
-                    // Descargar puntajes existentes de la llave oficial en Firebase (la BD es la fuente de verdad)
-                    const snap = await db.ref("players/" + keyTag).once("value");
-                    const data = snap.val();
-                    
-                    if (data) {
-                        if (data.scores) {
-                            Object.keys(data.scores).forEach(g => {
-                                localStorage.setItem("bodachicos_score_" + g, data.scores[g]);
-                            });
-                        }
-                        if (data.maxDistPuebla) {
-                            localStorage.setItem("bodachicos_maxdist_puebla", parseFloat(data.maxDistPuebla).toFixed(1));
-                        }
-                        if (data.pueblaWon) {
-                            localStorage.setItem("bodachicos_puebla_won", "true");
-                        }
-                        localStorage.removeItem("bodachicos_bonus_chicoins");
-                        if (data.adminBonus !== undefined) localStorage.setItem("bodachicos_admin_bonus", data.adminBonus);
-                        if (data.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", data.timePlayedSeconds);
+                    // Consultar Firebase primero para asegurar los puntajes reales de este jugador
+                    const record = await fetchPlayerRecordFromFirebase(playerGuestId, val);
+                    if (record && record.data) {
+                        applyPlayerScores(record.data, record.key);
+                    } else {
+                        // Jugador nuevo o sin datos previos: inicializar en ceros absolutos (nunca arrastrar puntajes previos)
+                        applyPlayerScores(null, keyTag);
                     }
 
                     // Limpieza proactiva: si la llave oficial es el ID, eliminar cualquier nodo huérfano con el apodo
@@ -1174,7 +1247,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 } catch (e) {
                     console.warn("No se pudo descargar progreso previo o limpiar:", e);
+                    applyPlayerScores(null, keyTag);
                 }
+            } else {
+                applyPlayerScores(null, keyTag);
             }
 
             if (btn) {
@@ -1214,6 +1290,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const current = getScore(game);
             if (newScore > current) {
                 localStorage.setItem("bodachicos_score_" + game, newScore);
+                const keyTag = playerGuestId || (playerGamertag ? playerGamertag.trim().replace(/[.#$/[\]]/g, "_") : "");
+                if (keyTag) {
+                    try {
+                        const scoped = JSON.parse(localStorage.getItem("bodachicos_scoped_" + keyTag) || "{}");
+                        if (!scoped.scores) scoped.scores = {};
+                        scoped.scores[game] = newScore;
+                        localStorage.setItem("bodachicos_scoped_" + keyTag, JSON.stringify(scoped));
+                    } catch (e) {}
+                }
             }
         }
 
