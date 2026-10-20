@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // CARGA DE SPRITES PIXEL ART NATIVOS (32x32)
         const imgCalendar = new Image();
-        imgCalendar.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Software_Calendar_Dates_Organizer_Month_3_pixel.png';
+        imgCalendar.src = assetPrefix + 'SpritesNecesarios/calendario.png?v=37.0';
 
         const imgClock = new Image();
         imgClock.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up_pixel.png';
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(`ERROR: No se pudo cargar el sprite '${name}' en: ${src}`);
         };
         sprite.onerror = () => handleImageError('ImagenesWeb/Juegos/Dino/Optimizadas/sprites.webp', sprite.src);
-        imgCalendar.onerror = () => handleImageError('Calendar.png', imgCalendar.src);
+        imgCalendar.onerror = () => handleImageError('calendario.png', imgCalendar.src);
         imgClock.onerror = () => handleImageError('Clock.png', imgClock.src);
         imgEmail.onerror = () => handleImageError('Email.png', imgEmail.src);
         imgGamepad.onerror = () => handleImageError('Gamepad.png', imgGamepad.src);
