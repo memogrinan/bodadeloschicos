@@ -1659,6 +1659,19 @@
             <!-- BLOQUE DEL VIERNES (SOLO VISIBLE PARA INVITADOS A BODA CIVIL) -->
             <div id="itineraryFridayBlock" style="display: none;">
                 <span class="timeline-day-title">Viernes 12 de Febrero</span>
+                
+                <!-- BOTONES DE AGREGAR AL CALENDARIO (VIERNES) -->
+                <div class="calendar-btn-container">
+                    <!-- Enlace dinámico a Google Calendar -->
+                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Boda+Civil+Mariana+%26+Memo&dates=20270212T220000Z/20270213T040000Z&details=%C2%A1Nuestra+Boda+Civil%21+Te+invitamos+a+nuestra+ceremonia+%C3%ADntima+y+c%C3%B3ctel+de+bienvenida+en+Cholula%2C+Puebla.+Conoce+todos+los+detalles+en+nuestra+p%C3%A1gina+web%3A+https%3A%2F%2Fbodadeloschicos.com%2F&location=Hacienda+San+Jos%C3%A9+Actipan+%28Catacumba%29%2C+Cholula%2C+Puebla" target="_blank" rel="noopener noreferrer" class="btn-cal">
+                        <svg viewBox="0 0 24 24" class="cal-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg> Agregar a Google Calendar
+                    </a>
+                    <!-- Llamada de descarga dinámica de archivo .ics para iPhone (Apple Calendar) -->
+                    <a href="javascript:void(0);" onclick="downloadICS('friday');" class="btn-cal">
+                        <svg viewBox="0 0 24 24" class="cal-icon"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg> Agregar a Apple Calendar
+                    </a>
+                </div>
+
                 <div class="timeline-item">
                     <span class="time-label">4:00 P.M.</span>
                     <p class="event-title">Boda Civil</p>
@@ -2360,6 +2373,6 @@
             card.classList.toggle('flipped');
         }
     </script>
-<script src="js/index.js?v=34.0" defer></script>
+<script src="js/index.js?v=35.0" defer></script>
 </body>
 </html>

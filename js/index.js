@@ -305,15 +305,31 @@ if (!document.getElementById('cg-dynamic-styles')) {
         updateTimer();
 
         // Función para descargar el archivo .ics para Apple Calendar (iOS)
-        function downloadICS() {
+        function downloadICS(day = "saturday") {
             const isEn = document.documentElement.lang === "en";
-            const summary = isEn ? "Mariana & Memo's Wedding" : "Boda Mariana & Memo";
-            const description = isEn 
-                ? "We are getting married! Join us in celebrating our special day in Cholula, Puebla. Find all the details on our wedding website: https://bodadeloschicos.com/en/" 
-                : "¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.com/";
-            const location = isEn 
-                ? "Ceremony at Parroquia de San Andrés Apóstol / Reception at Hacienda San José Actipan" 
-                : "Ceremonia en Parroquia de San Andrés Apóstol / Recepción en Hacienda San José Actipan";
+            const isFriday = (day === "friday");
+
+            const summary = isFriday 
+                ? (isEn ? "Mariana & Memo's Civil Wedding" : "Boda Civil Mariana & Memo")
+                : (isEn ? "Mariana & Memo's Wedding" : "Boda Mariana & Memo");
+
+            const description = isFriday
+                ? (isEn 
+                    ? "Our Civil Wedding! Join us for our intimate ceremony and welcome cocktail in Cholula, Puebla. Find all the details on our wedding website: https://bodadeloschicos.com/en/" 
+                    : "¡Nuestra Boda Civil! Te invitamos a nuestra ceremonia íntima y cóctel de bienvenida en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.com/")
+                : (isEn 
+                    ? "We are getting married! Join us in celebrating our special day in Cholula, Puebla. Find all the details on our wedding website: https://bodadeloschicos.com/en/" 
+                    : "¡Nos casamos! Te invitamos a celebrar junto a nosotros este día tan especial en Cholula, Puebla. Conoce todos los detalles en nuestra página web: https://bodadeloschicos.com/");
+
+            const location = isFriday
+                ? "Hacienda San José Actipan (Catacumba), Cholula, Puebla"
+                : (isEn 
+                    ? "Ceremony at Parroquia de San Andrés Apóstol / Reception at Hacienda San José Actipan" 
+                    : "Ceremonia en Parroquia de San Andrés Apóstol / Recepción en Hacienda San José Actipan");
+
+            const dtStart = isFriday ? "20270212T220000Z" : "20270213T210000Z";
+            const dtEnd = isFriday ? "20270213T040000Z" : "20270214T053000Z";
+            const filename = isFriday ? "Boda_Civil_Mariana_y_Memo.ics" : "Boda_Mariana_y_Memo.ics";
 
             const icsContent = [
                 "BEGIN:VCALENDAR",
@@ -321,8 +337,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 "PRODID:-//Boda Mariana y Memo//NONSGML v1.0//MX",
                 "CALSCALE:GREGORIAN",
                 "BEGIN:VEVENT",
-                "DTSTART:20270213T210000Z", // 15:00 CST en formato UTC
-                "DTEND:20270214T053000Z",   // 23:30 CST en formato UTC
+                `DTSTART:${dtStart}`,
+                `DTEND:${dtEnd}`,
                 `SUMMARY:${summary}`,
                 `DESCRIPTION:${description}`,
                 `LOCATION:${location}`,
@@ -333,12 +349,13 @@ if (!document.getElementById('cg-dynamic-styles')) {
             const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
             const link = document.createElement("a");
             link.href = window.URL.createObjectURL(blob);
-            link.setAttribute("download", "Boda_Mariana_y_Memo.ics");
+            link.setAttribute("download", filename);
             
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
+        window.downloadICS = downloadICS;
 
         // Control del carrusel
         let currentSlide = 0;
