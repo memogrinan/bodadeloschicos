@@ -1068,7 +1068,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     ${index > 0 ? `<button type="button" onclick="removeDogSlot('${slotId}')" style="background: none; border: none; color: #dc2626; font-size: 0.75rem; font-weight: 600; cursor: pointer; padding: 2px 4px;">✕ ${isEn ? "Remove" : "Quitar"}</button>` : ""}
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <input type="text" id="${slotId}_name" value="${defaultName}" placeholder="${isEn ? "Dog's Name (e.g. Baloo)" : "Nombre de tu perrito (ej. Baloo)"}" style="width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 15px; outline: none; box-sizing: border-box; font-family: inherit;">
+                    <input type="text" id="${slotId}_name" value="${defaultName}" placeholder="${isEn ? "Dog's Name (e.g. Maddie)" : "Nombre de tu perrito (ej. Maddie)"}" style="width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 15px; outline: none; box-sizing: border-box; font-family: inherit;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <label id="${slotId}_label_box" for="${slotId}_file" style="cursor: pointer; background: ${labelBg}; border: ${labelBorder}; color: ${labelColor}; font-weight: 600; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; flex-grow: 1; justify-content: center; transition: all 0.2s;">
                             <span id="${slotId}_icon">${icon}</span> <span id="${slotId}_label">${labelText}</span>
