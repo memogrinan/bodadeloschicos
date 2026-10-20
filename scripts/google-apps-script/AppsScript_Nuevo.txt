@@ -45,6 +45,24 @@ function doGet(e) {
     }
   });
   
+  var headers = rows[0] || [];
+  var colPerroNombres = -1;
+  var colPerroFotos = -1;
+  for (var h = 0; h < headers.length; h++) {
+    var headerText = (headers[h] || "").toString().trim().toLowerCase();
+    var hasPerr = headerText.indexOf("perr") !== -1 || headerText.indexOf("mascot") !== -1 || headerText.indexOf("dog") !== -1;
+    var hasFoto = headerText.indexOf("foto") !== -1 || headerText.indexOf("drive") !== -1 || headerText.indexOf("link") !== -1 || headerText.indexOf("url") !== -1 || headerText.indexOf("imagen") !== -1;
+    
+    if (hasFoto && hasPerr) {
+      colPerroFotos = h;
+    } else if (hasPerr) {
+      colPerroNombres = h;
+    }
+  }
+
+  var savedPerros = (colPerroNombres !== -1 && firstRow[colPerroNombres]) ? firstRow[colPerroNombres].toString().trim() : "";
+  var savedFotos = (colPerroFotos !== -1 && firstRow[colPerroFotos]) ? firstRow[colPerroFotos].toString().trim() : "";
+
   var data = {
     status: "success",
     id: firstRow[0],
@@ -57,8 +75,8 @@ function doGet(e) {
     estadoCivil: estadoCivilList.length > 0 ? estadoCivilList.join(" | ") : firstRow[6],
     alergias: alergiasList.length > 0 ? alergiasList.join(" | ") : "",
     celebracion: firstRow[8],
-    perros: firstRow[15] || "",
-    fotosPerros: firstRow[16] || ""
+    perros: savedPerros,
+    fotosPerros: savedFotos
   };
   
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);

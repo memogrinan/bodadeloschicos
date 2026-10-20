@@ -1075,11 +1075,23 @@ if (!document.getElementById('cg-dynamic-styles')) {
             const btn = document.getElementById("btnAddDog");
             if (!list) return;
             list.innerHTML = "";
-            if (savedDogsStr && savedDogsStr.trim() !== "") {
-                const names = savedDogsStr.split(",").map(s => s.trim()).filter(Boolean);
-                names.forEach((name, i) => {
-                    if (i < MAX_DOGS) list.appendChild(createDogSlotHTML(i, name));
-                });
+
+            // Sanitizar: si el valor guardado es una URL o contiene links (ej. columna de links de invitación), ignorarlo
+            let validDogsStr = (savedDogsStr || "").toString().trim();
+            if (validDogsStr.startsWith("http://") || validDogsStr.startsWith("https://") || validDogsStr.toLowerCase().indexOf("bodadeloschicos.com") !== -1) {
+                validDogsStr = "";
+            }
+
+            if (validDogsStr !== "") {
+                const names = validDogsStr.split(",").map(s => s.trim()).filter(Boolean);
+                const filteredNames = names.filter(n => !n.startsWith("http://") && !n.startsWith("https://") && n.indexOf("://") === -1);
+                if (filteredNames.length > 0) {
+                    filteredNames.forEach((name, i) => {
+                        if (i < MAX_DOGS) list.appendChild(createDogSlotHTML(i, name));
+                    });
+                } else {
+                    list.appendChild(createDogSlotHTML(0, ""));
+                }
             } else {
                 list.appendChild(createDogSlotHTML(0, ""));
             }
