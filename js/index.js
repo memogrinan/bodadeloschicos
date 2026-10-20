@@ -1012,7 +1012,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 reader.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
-                        const maxDim = 1200;
+                        // Resolución optimizada para impresión en pancartas (2500px a 0.92 = nítido a 30-40 cm)
+                        const maxDim = 2500;
                         let width = img.width;
                         let height = img.height;
                         if (width > maxDim || height > maxDim) {
@@ -1029,7 +1030,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
                         canvas.height = height;
                         const ctx = canvas.getContext("2d");
                         ctx.drawImage(img, 0, 0, width, height);
-                        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+                        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
                         resolve(dataUrl);
                     };
                     img.onerror = reject;

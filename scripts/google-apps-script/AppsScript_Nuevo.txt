@@ -216,9 +216,36 @@ function doPost(e) {
     var dogLinksStr = dogLinksList.join(", ");
 
     if (dogNamesStr !== "" || dogLinksStr !== "") {
+      // Buscar columnas dinámicas para Perros / Fotos de Perros en el encabezado (Fila 1)
+      var headers = rowsData[0] || [];
+      var colPerroNombres = -1;
+      var colPerroFotos = -1;
+
+      for (var h = 0; h < headers.length; h++) {
+        var headerText = (headers[h] || "").toString().trim().toLowerCase();
+        var hasPerr = headerText.indexOf("perr") !== -1 || headerText.indexOf("mascot") !== -1 || headerText.indexOf("dog") !== -1;
+        var hasFoto = headerText.indexOf("foto") !== -1 || headerText.indexOf("drive") !== -1 || headerText.indexOf("link") !== -1 || headerText.indexOf("url") !== -1 || headerText.indexOf("imagen") !== -1;
+        
+        if (hasFoto && hasPerr) {
+          colPerroFotos = h + 1;
+        } else if (hasPerr) {
+          colPerroNombres = h + 1;
+        }
+      }
+
+      // Si no existen en los encabezados, crearlos al final para no pisar ninguna columna existente
+      if (colPerroNombres === -1) {
+        colPerroNombres = sheet.getLastColumn() + 1;
+        sheet.getRange(1, colPerroNombres).setValue("🐾 Perrihijos");
+      }
+      if (colPerroFotos === -1) {
+        colPerroFotos = sheet.getLastColumn() + 1;
+        sheet.getRange(1, colPerroFotos).setValue("📷 Fotos Perros (Drive)");
+      }
+
       matchingRowsInfo.forEach(function(info) {
-        if (dogNamesStr !== "") sheet.getRange(info.rowIndex, 16).setValue(dogNamesStr);
-        if (dogLinksStr !== "") sheet.getRange(info.rowIndex, 17).setValue(dogLinksStr);
+        if (dogNamesStr !== "") sheet.getRange(info.rowIndex, colPerroNombres).setValue(dogNamesStr);
+        if (dogLinksStr !== "") sheet.getRange(info.rowIndex, colPerroFotos).setValue(dogLinksStr);
       });
     }
 
@@ -244,7 +271,7 @@ function doPost(e) {
     }
 
     // 4. Notificación por correo instantánea con emoji 🍽️
-    var recipient = "memoge55@gmail.com";
+    var recipient = "memoge55@gmail.com, mariana.cordero.p@gmail.com";
     var subject = "💌 Nueva Confirmación RSVP: " + (familyName || partyId);
     
     var body = "¡Hola Mariana y Memo!\n\n" +
