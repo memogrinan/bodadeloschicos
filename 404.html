@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>404 — Camino no encontrado | Boda Mariana & Memo</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/ImagenesWeb/Optimizadas/favicon.webp?v=29.0" type="image/webp">
+    
+    <!-- Google Fonts: Cormorant Garamond & Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&family=VT323&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        olivo: {
+                            DEFAULT: '#52582f',
+                            dark: '#3d4223',
+                            light: '#727a42',
+                            claro: '#8f9a56'
+                        },
+                        oro: {
+                            DEFAULT: '#c5a059',
+                            dark: '#a8843e',
+                            light: '#dfbe7e'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Montserrat"', 'sans-serif'],
+                        arcade: ['"VT323"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at 50% 20%, #fdfbf7 0%, #f7f3eb 55%, #ede6d8 100%);
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        @keyframes floatPup {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-8px) rotate(1.5deg);
+            }
+        }
+
+        .maddie-float {
+            animation: floatPup 4.5s ease-in-out infinite;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(197, 160, 89, 0.25);
+            box-shadow: 0 20px 45px -15px rgba(82, 88, 47, 0.12), 0 0 20px rgba(197, 160, 89, 0.10);
+        }
+
+        .btn-gold-glow:hover {
+            box-shadow: 0 8px 24px -4px rgba(197, 160, 89, 0.45);
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between items-center px-4 py-6 text-gray-800 antialiased selection:bg-olivo/20 selection:text-olivo-dark">
+
+    <!-- BARRA SUPERIOR CON SELECTOR DE IDIOMA -->
+    <header class="w-full max-w-2xl flex justify-between items-center py-2">
+        <a href="/" class="flex items-center gap-2 group">
+            <span class="font-serif text-2xl font-bold tracking-widest text-olivo group-hover:text-olivo-dark transition">M & M</span>
+            <span class="text-xs uppercase tracking-widest text-oro font-semibold">• 13.02.2027</span>
+        </a>
+
+        <!-- Selector de idioma interactivo -->
+        <div class="inline-flex items-center gap-1.5 bg-white/70 backdrop-blur-md border border-oro/30 rounded-full px-3 py-1 text-xs font-semibold shadow-xs">
+            <button id="btnEs" onclick="setLang('es')" class="transition px-1.5 py-0.5 rounded-full text-olivo font-bold bg-olivo/10">🇲🇽 ES</button>
+            <span class="text-gray-300">|</span>
+            <button id="btnEn" onclick="setLang('en')" class="transition px-1.5 py-0.5 rounded-full text-gray-500 hover:text-olivo">🇺🇸 EN</button>
+        </div>
+    </header>
+
+    <!-- TARJETA PRINCIPAL 404 -->
+    <main class="w-full max-w-lg my-auto py-4">
+        <div class="glass-card rounded-3xl p-7 sm:p-9 text-center relative overflow-hidden">
+            <!-- Destello de fondo decorativo -->
+            <div class="absolute -top-20 -right-20 w-44 h-44 bg-oro/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-20 -left-20 w-44 h-44 bg-olivo/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- ILUSTRACIÓN DE MADDIE -->
+            <div class="relative inline-block mb-4">
+                <div class="w-32 h-32 sm:w-36 sm:h-36 mx-auto rounded-full bg-gradient-to-b from-white to-amber-50/80 p-2 border-2 border-oro/35 shadow-lg flex items-center justify-center">
+                    <img src="/ImagenesWeb/maddie_logo.png" 
+                         alt="Maddie la perrita de honor" 
+                         class="w-full h-full object-contain maddie-float filter drop-shadow-md">
+                </div>
+                <div class="absolute -bottom-1 -right-1 bg-white border border-oro/40 rounded-full px-2.5 py-0.5 shadow-sm text-xs font-bold text-olivo flex items-center gap-1">
+                    <span>🐾</span>
+                    <span>404</span>
+                </div>
+            </div>
+
+            <!-- NÚMERO 404 Y TÍTULO ELEGANTE -->
+            <h1 class="font-serif text-5xl sm:text-6xl font-bold tracking-tight text-olivo mb-1">
+                404
+            </h1>
+            
+            <h2 id="heroTitle" class="font-serif text-2xl sm:text-3xl font-semibold text-gray-900 leading-snug mb-3">
+                ¡Guau! Parece que este camino no lleva a la boda...
+            </h2>
+
+            <p id="heroDesc" class="text-sm sm:text-base text-gray-600 font-normal leading-relaxed mb-7 max-w-md mx-auto">
+                Incluso a Maddie, nuestra perrita de honor, a veces se le pierde la pista. No te preocupes, ¡la celebración sigue esperándote! Usa los siguientes accesos para volver a tiempo:
+            </p>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
+                <a id="btnHome" href="/" 
+                   class="btn-gold-glow inline-flex justify-center items-center gap-2 bg-[#52582f] hover:bg-[#3d4223] text-white font-medium py-3 px-6 rounded-full text-sm shadow-md transition duration-200">
+                    <span>🏛️</span>
+                    <span id="btnHomeText">Volver a la Invitación</span>
+                </a>
+
+                <a id="btnArcade" href="/juegos.html" 
+                   class="inline-flex justify-center items-center gap-2 bg-white/90 hover:bg-white text-olivo border border-olivo/30 hover:border-olivo font-medium py-3 px-6 rounded-full text-sm shadow-xs transition duration-200">
+                    <span>🎮</span>
+                    <span id="btnArcadeText">Ir al Arcade Retro</span>
+                </a>
+            </div>
+
+            <!-- DETALLE DIVERTIDO -->
+            <div class="mt-7 pt-5 border-t border-gray-200/60 text-xs text-gray-500 flex justify-center items-center gap-1.5">
+                <span class="text-amber-500">✨</span>
+                <span id="tipText">Tip: En el Arcade puedes ayudar a Maddie a escapar de los ovnis</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- PIE DE PÁGINA NUPCIAL -->
+    <footer class="w-full max-w-2xl text-center py-3 text-xs text-gray-500 font-light">
+        <p>Boda Mariana & Guillermo • Cholula, Puebla</p>
+    </footer>
+
+    <!-- SCRIPT DE INTERACCIÓN BILINGÜE -->
+    <script>
+        const content = {
+            es: {
+                title: "¡Guau! Parece que este camino no lleva a la boda...",
+                desc: "Incluso a Maddie, nuestra perrita de honor, a veces se le pierde la pista. No te preocupes, ¡la celebración sigue esperándote! Usa los siguientes accesos para volver a tiempo:",
+                btnHome: "Volver a la Invitación",
+                btnHomeLink: "/",
+                btnArcade: "Ir al Arcade Retro",
+                btnArcadeLink: "/juegos.html",
+                tip: "Tip: En el Arcade puedes ayudar a Maddie a escapar de los ovnis"
+            },
+            en: {
+                title: "Woof! Looks like this road doesn't lead to the wedding...",
+                desc: "Even Maddie, our maid-of-honor pup, gets a little lost sometimes. Don't worry, the celebration is waiting for you! Use these shortcuts to get back on track:",
+                btnHome: "Back to Invitation",
+                btnHomeLink: "/en/",
+                btnArcade: "Play Retro Arcade",
+                btnArcadeLink: "/en/juegos.html",
+                tip: "Tip: You can help Maddie outrun UFOs in our 80s Retro Arcade"
+            }
+        };
+
+        function setLang(lang) {
+            const data = content[lang] || content.es;
+            document.getElementById("heroTitle").innerText = data.title;
+            document.getElementById("heroDesc").innerText = data.desc;
+            document.getElementById("btnHomeText").innerText = data.btnHome;
+            document.getElementById("btnHome").href = data.btnHomeLink;
+            document.getElementById("btnArcadeText").innerText = data.btnArcade;
+            document.getElementById("btnArcade").href = data.btnArcadeLink;
+            document.getElementById("tipText").innerText = data.tip;
+
+            const btnEs = document.getElementById("btnEs");
+            const btnEn = document.getElementById("btnEn");
+            if (lang === 'en') {
+                btnEn.className = "transition px-1.5 py-0.5 rounded-full text-olivo font-bold bg-olivo/10";
+                btnEs.className = "transition px-1.5 py-0.5 rounded-full text-gray-500 hover:text-olivo";
+            } else {
+                btnEs.className = "transition px-1.5 py-0.5 rounded-full text-olivo font-bold bg-olivo/10";
+                btnEn.className = "transition px-1.5 py-0.5 rounded-full text-gray-500 hover:text-olivo";
+            }
+        }
+
+        // Detección automática por URL previa o idioma del navegador
+        try {
+            if (window.location.pathname.includes('/en') || (navigator.language && navigator.language.startsWith('en'))) {
+                setLang('en');
+            } else {
+                setLang('es');
+            }
+        } catch (e) {
+            setLang('es');
+        }
+    </script>
+</body>
+</html>
