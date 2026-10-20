@@ -48,20 +48,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // SPRITES E IMÁGENES DEL JUEGO DINO
         const sprite = new Image();
-        sprite.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Optimizadas/sprites.webp';
+        sprite.src = assetPrefix + 'SpritesNecesarios/Dino/Optimizadas/sprites.webp';
 
         // CARGA DE SPRITES PIXEL ART NATIVOS (32x32)
         const imgCalendar = new Image();
-        imgCalendar.src = assetPrefix + 'SpritesNecesarios/calendario.png?v=37.0';
+        imgCalendar.src = assetPrefix + 'SpritesNecesarios/calendario.png?v=38.0';
 
         const imgClock = new Image();
-        imgClock.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up_pixel.png';
+        imgClock.src = assetPrefix + 'SpritesNecesarios/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up_pixel.png';
 
         const imgEmail = new Image();
-        imgEmail.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Software_Email_Message_Unread_Closed_pixel.png';
+        imgEmail.src = assetPrefix + 'SpritesNecesarios/Dino/Software_Email_Message_Unread_Closed_pixel.png';
 
         const imgGamepad = new Image();
-        imgGamepad.src = assetPrefix + 'ImagenesWeb/Juegos/Dino/Controller_Gamepad_pixel.png';
+        imgGamepad.src = assetPrefix + 'SpritesNecesarios/Dino/Controller_Gamepad_pixel.png';
 
         // SPRITES PARA JUEGO 2: LA CHICA
         const imgChicaCrown = new Image();
@@ -121,22 +121,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // SPRITE EASTER EGG: MADDIE NAVE ESPACIAL
         const imgMaddieUfo = new Image();
-        imgMaddieUfo.src = assetPrefix + 'ImagenesWeb/maddie_nave_espacial.png?v=31';
+        imgMaddieUfo.src = assetPrefix + 'SpritesNecesarios/maddie_nave_espacial.png?v=38.0';
 
         // SPRITE EASTER EGG: MARCIANO INVASOR
         const imgMarciano = new Image();
-        imgMarciano.src = assetPrefix + 'ImagenesWeb/marciano.png?v=31';
+        imgMarciano.src = assetPrefix + 'SpritesNecesarios/marciano.png?v=38.0';
 
         // SPRITE DE MADDIE EN SU JUEGO (WHACK-A-MADDIE)
         const imgMaddieGame = new Image();
-        imgMaddieGame.src = assetPrefix + 'ImagenesWeb/maddie_juego.png?v=31';
+        imgMaddieGame.src = assetPrefix + 'SpritesNecesarios/maddie_juego.png?v=38.0';
 
         // SPRITES DE LA CHICA (MARIANA) EN SU JUEGO
         const imgChicaGame = new Image();
-        imgChicaGame.src = assetPrefix + 'ImagenesWeb/emoji_chica.png?v=31';
+        imgChicaGame.src = assetPrefix + 'SpritesNecesarios/emoji_chica.png?v=38.0';
 
         const imgChicaLentesGame = new Image();
-        imgChicaLentesGame.src = assetPrefix + 'ImagenesWeb/emoji_chica_lentes.png?v=31';
+        imgChicaLentesGame.src = assetPrefix + 'SpritesNecesarios/emoji_chica_lentes.png?v=38.0';
 
         // AUDIOS DEDICADOS PARA EASTER EGGS Y JUEGOS
         const sfxCarHonk = new window.Audio(assetPrefix + 'Music/sound_effects/car_honk.mp3');
@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const handleImageError = (name, src) => {
             console.error(`ERROR: No se pudo cargar el sprite '${name}' en: ${src}`);
         };
-        sprite.onerror = () => handleImageError('ImagenesWeb/Juegos/Dino/Optimizadas/sprites.webp', sprite.src);
+        sprite.onerror = () => handleImageError('SpritesNecesarios/Dino/Optimizadas/sprites.webp', sprite.src);
         imgCalendar.onerror = () => handleImageError('calendario.png', imgCalendar.src);
         imgClock.onerror = () => handleImageError('Clock.png', imgClock.src);
         imgEmail.onerror = () => handleImageError('Email.png', imgEmail.src);
@@ -1353,8 +1353,8 @@ document.addEventListener("DOMContentLoaded", () => {
             let inst = "";
             if (activeGame === 'chico') {
                 inst = isEnLang 
-                    ? `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-[11px] py-1 px-2.5 rounded-lg text-center font-bold tracking-wider mb-2 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONNECTING TO OUR LOVE...</div>Jump by tapping or SPACE to dodge meetings <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-4 h-4 mx-0.5 object-contain">, alarms <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-4 h-4 mx-0.5 object-contain"> and emails <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-4 h-4 mx-0.5 object-contain">. Catch gamepads <img src="${assetPrefix}ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-4 h-4 mx-0.5 object-contain"> (+15 pts).<br>Target: ${targetScore} pts.`
-                    : `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-[11px] py-1 px-2.5 rounded-lg text-center font-bold tracking-wider mb-2 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o con ESPACIO para esquivar juntas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Calendar_Dates_Organizer_Month_3.webp" class="inline w-4 h-4 mx-0.5 object-contain">, alarmas <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.webp" class="inline w-4 h-4 mx-0.5 object-contain"> y correos <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Software_Email_Message_Unread_Closed.webp" class="inline w-4 h-4 mx-0.5 object-contain">. Atrapa controles <img src="ImagenesWeb/Juegos/Dino/Optimizadas/Controller_Gamepad.webp" class="inline w-4 h-4 mx-0.5 object-contain"> (+15 pts).<br>Meta: ${targetScore} pts.`;
+                    ? `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-[11px] py-1 px-2.5 rounded-lg text-center font-bold tracking-wider mb-2 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONNECTING TO OUR LOVE...</div>Jump by tapping or SPACE to dodge meetings <img src="${assetPrefix}SpritesNecesarios/calendario.png" class="inline w-4 h-4 mx-0.5 object-contain">, alarms <img src="${assetPrefix}SpritesNecesarios/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up_pixel.png" class="inline w-4 h-4 mx-0.5 object-contain"> and emails <img src="${assetPrefix}SpritesNecesarios/Dino/Software_Email_Message_Unread_Closed_pixel.png" class="inline w-4 h-4 mx-0.5 object-contain">. Catch gamepads <img src="${assetPrefix}SpritesNecesarios/Dino/Controller_Gamepad_pixel.png" class="inline w-4 h-4 mx-0.5 object-contain"> (+15 pts).<br>Target: ${targetScore} pts.`
+                    : `<div class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-monogram text-[11px] py-1 px-2.5 rounded-lg text-center font-bold tracking-wider mb-2 shadow-inner border border-gray-200/60">🌐 NO INTERNET — CONECTANDO AL AMOR DE LOS CHICOS...</div>Salta tocando la pantalla o con ESPACIO para esquivar juntas <img src="${assetPrefix}SpritesNecesarios/calendario.png" class="inline w-4 h-4 mx-0.5 object-contain">, alarmas <img src="${assetPrefix}SpritesNecesarios/Dino/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up_pixel.png" class="inline w-4 h-4 mx-0.5 object-contain"> y correos <img src="${assetPrefix}SpritesNecesarios/Dino/Software_Email_Message_Unread_Closed_pixel.png" class="inline w-4 h-4 mx-0.5 object-contain">. Atrapa controles <img src="${assetPrefix}SpritesNecesarios/Dino/Controller_Gamepad_pixel.png" class="inline w-4 h-4 mx-0.5 object-contain"> (+15 pts).<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'chica') {
                 inst = isEnLang 
                     ? `Move Mariana (👰🏻) by tapping or dragging to catch falling hearts (💖) and rings (💍). Dodge storm clouds (🌩️)!<br>Target: ${targetScore} pts.`
@@ -2672,7 +2672,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     activeHole = nextHole;
                     const next = document.getElementById("hole-" + activeHole);
                     if (next) {
-                        next.innerHTML = `<img src="${assetPrefix}ImagenesWeb/maddie_juego.png" class="select-none pointer-events-none w-[88%] h-[88%] object-contain animate-pop-up inline-block drop-shadow-md" alt="Maddie">`;
+                        next.innerHTML = `<img src="${assetPrefix}SpritesNecesarios/maddie_juego.png" class="select-none pointer-events-none w-[88%] h-[88%] object-contain animate-pop-up inline-block drop-shadow-md" alt="Maddie">`;
                     }
                 }
 
