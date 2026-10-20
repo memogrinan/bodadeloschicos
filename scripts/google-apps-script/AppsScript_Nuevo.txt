@@ -53,7 +53,7 @@ function doGet(e) {
     var hasPerr = headerText.indexOf("perr") !== -1 || headerText.indexOf("mascot") !== -1 || headerText.indexOf("dog") !== -1;
     var hasFoto = headerText.indexOf("foto") !== -1 || headerText.indexOf("drive") !== -1 || headerText.indexOf("link") !== -1 || headerText.indexOf("url") !== -1 || headerText.indexOf("imagen") !== -1;
     
-    if (hasFoto && hasPerr) {
+    if (hasFoto) {
       colPerroFotos = h;
     } else if (hasPerr) {
       colPerroNombres = h;
@@ -190,10 +190,17 @@ function doPost(e) {
       sheet.getRange(matchingRowsInfo[0].rowIndex, 9).setValue(contents.celebracion || "");
     }
 
-    // 2. Procesar perrihijos (Club Secreto de Maddie: Fotos a Drive y Nombres al Sheet)
+    // 2. Procesar perrihijos (Club Secreto de Maddie: Nombres al Sheet y Fotos a Drive)
     var dogNamesList = [];
     var dogLinksList = [];
     if (contents.dogs && contents.dogs.length > 0) {
+      // 2a. Extraer nombres primero (garantizado que siempre se guarden)
+      contents.dogs.forEach(function(dog, idx) {
+        var dogName = (dog.name || "").toString().trim() || ("Perrito " + (idx + 1));
+        dogNamesList.push(dogName);
+      });
+
+      // 2b. Subir fotos a Google Drive (aislado en su propio bloque)
       try {
         var folderName = "🐾 Perrihijos Boda Chicos";
         var folders = DriveApp.getFoldersByName(folderName);
@@ -201,7 +208,6 @@ function doPost(e) {
 
         contents.dogs.forEach(function(dog, idx) {
           var dogName = (dog.name || "").toString().trim() || ("Perrito " + (idx + 1));
-          dogNamesList.push(dogName);
 
           if (dog.photoBase64) {
             try {
@@ -226,7 +232,7 @@ function doPost(e) {
           }
         });
       } catch (driveErr) {
-        Logger.log("Error al acceder a Google Drive: " + driveErr.toString());
+        Logger.log("Error de DriveApp (requiere autorizar permisos de Drive en Apps Script): " + driveErr.toString());
       }
     }
 
@@ -244,7 +250,7 @@ function doPost(e) {
         var hasPerr = headerText.indexOf("perr") !== -1 || headerText.indexOf("mascot") !== -1 || headerText.indexOf("dog") !== -1;
         var hasFoto = headerText.indexOf("foto") !== -1 || headerText.indexOf("drive") !== -1 || headerText.indexOf("link") !== -1 || headerText.indexOf("url") !== -1 || headerText.indexOf("imagen") !== -1;
         
-        if (hasFoto && hasPerr) {
+        if (hasFoto) {
           colPerroFotos = h + 1;
         } else if (hasPerr) {
           colPerroNombres = h + 1;
@@ -378,13 +384,26 @@ function restaurarYCorregirTablero() {
   }
 }
 
+function autorizarPermisosDrive() {
+  var folderName = "🐾 Perrihijos Boda Chicos";
+  var folders = DriveApp.getFoldersByName(folderName);
+  var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+  folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  Logger.log("✅ Permisos de Drive activos. Carpeta lista: " + folder.getUrl());
+  try {
+    SpreadsheetApp.getUi().alert("¡Permisos de Google Drive autorizados exitosamente! 🎉\nLa carpeta '🐾 Perrihijos Boda Chicos' está lista en tu Drive.");
+  } catch(e) {}
+}
+
 function onOpen() {
   try {
     var ui = SpreadsheetApp.getUi();
     ui.createMenu("💍 Boda Mariana & Memo")
+      .addItem("🐾 Autorizar Fotos de Perros en Drive", "autorizarPermisosDrive")
       .addItem("🍽️ Restaurar Gráfico y Corregir Tablero", "restaurarYCorregirTablero")
       .addToUi();
   } catch(e) {
     Logger.log("onOpen");
   }
 }
+
