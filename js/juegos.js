@@ -2238,10 +2238,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const cx = w / 2;
             const groundY = 445;
 
-            // Sombra suave y armónica proyectada por el templo (en tono rosa crema, sin manchas verdes)
-            ctx.fillStyle = "rgba(140, 70, 95, 0.06)";
-            ctx.fillRect(cx - 130, groundY - 225, 260, 225);
-
             ctx.strokeStyle = "rgba(160, 85, 110, 0.55)";
             ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
             ctx.lineWidth = 2.2;
