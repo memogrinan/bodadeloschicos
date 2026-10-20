@@ -229,6 +229,8 @@ function doPost(e) {
             } catch (fileErr) {
               Logger.log("Error al guardar archivo en Drive: " + fileErr.toString());
             }
+          } else if (dog.existingPhotoUrl) {
+            dogLinksList.push(dog.existingPhotoUrl);
           }
         });
       } catch (driveErr) {

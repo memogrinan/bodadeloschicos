@@ -825,10 +825,11 @@ if (!document.getElementById('cg-dynamic-styles')) {
             }
 
             if (data.perros && data.perros.trim() !== "") {
+                const hasPhotoBadge = Boolean(data.fotosPerros && data.fotosPerros.trim() !== "");
                 summaryHTML += `
                     <div>
                         <h4 style="color: var(--olivo-base); font-size: 0.95rem; margin: 0 0 4px 0; font-weight: 600;">🐾 ${isEn ? "Maddie's furry friends club:" : "Club de amigos peludos de Maddie:"}</h4>
-                        <p style="margin: 0; color: #555;">${data.perros}</p>
+                        <p style="margin: 0; color: #555;">${data.perros} ${hasPhotoBadge ? `<span style="font-size: 0.78rem; background: #eaf1e2; color: #3a471e; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-block; margin-top: 3px;">📷 ${isEn ? "Photo saved ✓" : "Foto guardada ✓"}</span>` : ""}</p>
                     </div>
                 `;
             }
@@ -996,7 +997,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
             }
 
             // Inicializar sección de perritos del Club de Maddie
-            initRSVPDogs(data.perros);
+            initRSVPDogs(data.perros, data.fotosPerros);
 
             updateRSVPSubmitButtonText();
         }
@@ -1041,13 +1042,25 @@ if (!document.getElementById('cg-dynamic-styles')) {
             });
         }
 
-        function createDogSlotHTML(index, defaultName = "") {
+        function createDogSlotHTML(index, defaultName = "", existingPhotoUrl = "") {
             const isEn = document.documentElement.lang === "en";
             const slotId = `rsvp_dog_${index}`;
             const div = document.createElement("div");
             div.id = slotId;
             div.className = "rsvp-dog-entry";
             div.style.cssText = "background: white; border: 1px solid #e2e8d8; border-radius: 14px; padding: 12px; position: relative;";
+            if (existingPhotoUrl && existingPhotoUrl.trim() !== "") {
+                div.dataset.existingPhotoUrl = existingPhotoUrl.trim();
+            }
+
+            const hasPhoto = Boolean(existingPhotoUrl && existingPhotoUrl.trim() !== "");
+            const labelText = hasPhoto
+                ? (isEn ? "Photo saved ✓ (Tap to replace)" : "Foto guardada ✓ (Toca para cambiarla)")
+                : (isEn ? "Upload clear face photo" : "Subir foto de su carita");
+            const labelBg = hasPhoto ? "#f2f7ec" : "#fdfaf6";
+            const labelBorder = hasPhoto ? "1.5px solid #829055" : "1.5px dashed #a3ad73";
+            const labelColor = hasPhoto ? "#34421e" : "var(--olivo-base)";
+            const icon = hasPhoto ? "✅" : "📷";
 
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -1057,8 +1070,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <input type="text" id="${slotId}_name" value="${defaultName}" placeholder="${isEn ? "Dog's Name (e.g. Baloo)" : "Nombre de tu perrito (ej. Baloo)"}" style="width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 15px; outline: none; box-sizing: border-box; font-family: inherit;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <label for="${slotId}_file" style="cursor: pointer; background: #fdfaf6; border: 1.5px dashed #a3ad73; color: var(--olivo-base); font-weight: 600; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; flex-grow: 1; justify-content: center; transition: all 0.2s;">
-                            <span>📷</span> <span id="${slotId}_label">${isEn ? "Upload clear face photo" : "Subir foto de su carita"}</span>
+                        <label id="${slotId}_label_box" for="${slotId}_file" style="cursor: pointer; background: ${labelBg}; border: ${labelBorder}; color: ${labelColor}; font-weight: 600; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; flex-grow: 1; justify-content: center; transition: all 0.2s;">
+                            <span id="${slotId}_icon">${icon}</span> <span id="${slotId}_label">${labelText}</span>
                         </label>
                         <input type="file" id="${slotId}_file" accept="image/*" style="display: none;" onchange="handleDogPhotoSelect('${slotId}', event)">
                         <div id="${slotId}_preview" style="display: none; width: 40px; height: 40px; border-radius: 8px; overflow: hidden; border: 1.5px solid var(--olivo-base); flex-shrink: 0;">
@@ -1070,7 +1083,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
             return div;
         }
 
-        function initRSVPDogs(savedDogsStr) {
+        function initRSVPDogs(savedDogsStr, savedFotosStr) {
             const list = document.getElementById("rsvpDogsList");
             const btn = document.getElementById("btnAddDog");
             if (!list) return;
@@ -1082,18 +1095,25 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 validDogsStr = "";
             }
 
+            const photoUrls = (savedFotosStr && typeof savedFotosStr === "string")
+                ? savedFotosStr.split(",").map(u => u.trim()).filter(Boolean)
+                : [];
+
             if (validDogsStr !== "") {
                 const names = validDogsStr.split(",").map(s => s.trim()).filter(Boolean);
                 const filteredNames = names.filter(n => !n.startsWith("http://") && !n.startsWith("https://") && n.indexOf("://") === -1);
                 if (filteredNames.length > 0) {
                     filteredNames.forEach((name, i) => {
-                        if (i < MAX_DOGS) list.appendChild(createDogSlotHTML(i, name));
+                        const existingUrl = photoUrls[i] || "";
+                        if (i < MAX_DOGS) list.appendChild(createDogSlotHTML(i, name, existingUrl));
                     });
                 } else {
-                    list.appendChild(createDogSlotHTML(0, ""));
+                    const existingUrl = photoUrls[0] || "";
+                    list.appendChild(createDogSlotHTML(0, "", existingUrl));
                 }
             } else {
-                list.appendChild(createDogSlotHTML(0, ""));
+                const existingUrl = photoUrls[0] || "";
+                list.appendChild(createDogSlotHTML(0, "", existingUrl));
             }
             if (btn) {
                 btn.style.display = (list.children.length >= MAX_DOGS) ? "none" : "inline-flex";
@@ -1107,7 +1127,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
             const currentCount = list.children.length;
             if (currentCount >= MAX_DOGS) return;
 
-            list.appendChild(createDogSlotHTML(currentCount, defaultName));
+            list.appendChild(createDogSlotHTML(currentCount, defaultName, ""));
             if (list.children.length >= MAX_DOGS && btn) {
                 btn.style.display = "none";
             }
@@ -1130,6 +1150,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
             if (!file) return;
             const isEn = document.documentElement.lang === "en";
             const labelEl = document.getElementById(`${slotId}_label`);
+            const labelBox = document.getElementById(`${slotId}_label_box`);
+            const iconEl = document.getElementById(`${slotId}_icon`);
             const previewEl = document.getElementById(`${slotId}_preview`);
             const submitBtn = document.getElementById("rsvpSubmitBtn");
             if (labelEl) labelEl.innerText = isEn ? "Optimizing photo... ⏳" : "Optimizando foto... ⏳";
@@ -1148,7 +1170,13 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     previewEl.querySelector("img").src = compressedBase64;
                     previewEl.style.display = "block";
                 }
-                if (labelEl) labelEl.innerText = isEn ? "Photo ready ✓" : "Foto lista ✓";
+                if (iconEl) iconEl.innerText = "📸";
+                if (labelEl) labelEl.innerText = isEn ? "New photo ready ✓" : "Nueva foto lista ✓";
+                if (labelBox) {
+                    labelBox.style.background = "#eef5e7";
+                    labelBox.style.borderColor = "#758348";
+                    labelBox.style.color = "#2a3610";
+                }
             } catch (e) {
                 console.error("Error al comprimir foto de perrito:", e);
                 if (labelEl) labelEl.innerText = isEn ? "Error. Try another" : "Error. Intenta otra";
@@ -1204,10 +1232,12 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     const nameInp = slot.querySelector("input[type='text']");
                     const name = (nameInp ? nameInp.value : "").trim();
                     const photoBase64 = slot.dataset.photoBase64 || "";
-                    if (name || photoBase64) {
+                    const existingPhotoUrl = slot.dataset.existingPhotoUrl || "";
+                    if (name || photoBase64 || existingPhotoUrl) {
                         dogsPayload.push({
                             name: name || `Perrito ${i + 1}`,
-                            photoBase64: photoBase64
+                            photoBase64: photoBase64,
+                            existingPhotoUrl: existingPhotoUrl
                         });
                     }
                 });
@@ -1236,6 +1266,10 @@ if (!document.getElementById('cg-dynamic-styles')) {
                 currentRSVPData.celebracion = payload.celebracion;
                 if (dogsPayload.length > 0) {
                     currentRSVPData.perros = dogsPayload.map(d => d.name).join(", ");
+                    const hasPhotos = dogsPayload.some(d => d.photoBase64 || d.existingPhotoUrl);
+                    if (hasPhotos) {
+                        currentRSVPData.fotosPerros = currentRSVPData.fotosPerros || "guardada";
+                    }
                 }
 
                 renderRSVPSummaryView(currentRSVPData);
