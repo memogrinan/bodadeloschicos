@@ -999,21 +999,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (errorMsg) errorMsg.classList.add("hidden");
 
-            // Resetear selección actual en el modal
-            selectedRealName = "";
-            selectedGuestId = "";
+            // Si ya hay un jugador activo, preseleccionar sus datos
+            selectedRealName = playerRealName || "";
+            selectedGuestId = playerGuestId || "";
 
-            // BLOQUEAR input y botón hasta que se seleccione quién es
             if (inputEl) {
-                inputEl.value = "";
-                inputEl.disabled = true;
-                inputEl.placeholder = isEnLang ? "👆 First select who you are above" : "👆 Primero selecciona quién eres arriba";
-                inputEl.className = "w-full mt-2 p-3 border-2 border-gray-200 rounded-xl text-center font-bold text-lg outline-none bg-gray-100 text-gray-400 cursor-not-allowed transition";
+                inputEl.disabled = false;
+                inputEl.value = playerGamertag || "";
+                inputEl.placeholder = isEnLang ? "Nickname / Name" : "Tu Apodo / Nombre";
+                inputEl.className = "w-full mt-2 p-3 border border-gray-200 rounded-xl text-center font-bold text-lg outline-none focus:border-olivo-base transition";
             }
             if (btn) {
-                btn.disabled = true;
-                btn.className = "w-full mt-3 bg-gray-300 text-gray-500 font-bold py-3 rounded-xl cursor-not-allowed transition shadow-none";
-                btn.innerText = isEnLang ? "Select a Guest 👆" : "Selecciona un Invitado 👆";
+                btn.disabled = false;
+                btn.className = "w-full mt-3 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md";
+                btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
             }
 
             if (modal) {
@@ -1024,13 +1023,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (currentPartyId && partyMembersData.length === 0) {
                 if (container) container.classList.remove("hidden");
                 if (buttonsList) {
-                    buttonsList.innerHTML = `
-                        <div class="p-3.5 bg-amber-50 border-2 border-amber-300/80 rounded-2xl text-center shadow-xs">
-                            <span class="inline-block text-2xl animate-spin mb-1">⏳</span>
-                            <p class="text-xs font-bold text-amber-900 tracking-wide">${isEnLang ? "Loading invitation members..." : "Cargando integrantes de la invitación..."}</p>
-                            <p class="text-[10px] text-amber-700 mt-0.5">${isEnLang ? "Please wait a moment to choose your name" : "Por favor espera un momento para elegir tu nombre"}</p>
-                        </div>
-                    `;
+                    buttonsList.innerHTML = `<p class="text-xs text-gray-400 italic py-2 text-center animate-pulse">⌛ ${isEnLang ? "Loading invitation members..." : "Cargando integrantes de la invitación..."}</p>`;
                 }
 
                 try {
@@ -1048,35 +1041,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         renderMemberButtons();
                     } else {
                         if (container) container.classList.add("hidden");
-                        unlockGamertagForSoloGuest();
                     }
                 } catch (e) {
                     console.warn("No se pudo cargar la lista de integrantes del RSVP:", e);
                     if (container) container.classList.add("hidden");
-                    unlockGamertagForSoloGuest();
                 }
             } else if (partyMembersData && partyMembersData.length > 0) {
                 if (container) container.classList.remove("hidden");
                 renderMemberButtons();
             } else {
                 if (container) container.classList.add("hidden");
-                unlockGamertagForSoloGuest();
-            }
-        }
-
-        function unlockGamertagForSoloGuest() {
-            const inputEl = document.getElementById("gamertagInput");
-            const btn = document.getElementById("saveGamerTagBtn");
-            if (inputEl) {
-                inputEl.disabled = false;
-                inputEl.value = playerGamertag || "";
-                inputEl.placeholder = isEnLang ? "Your GamerTag (Nickname)" : "Tu GamerTag (Apodo)";
-                inputEl.className = "w-full mt-2 p-3 border-2 border-olivo-base bg-white rounded-xl text-center font-bold text-lg outline-none focus:ring-2 focus:ring-olivo-base/30 text-gray-800 transition shadow-inner";
-            }
-            if (btn) {
-                btn.disabled = false;
-                btn.className = "w-full mt-3 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md cursor-pointer";
-                btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
             }
         }
 
@@ -1087,62 +1061,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!partyMembersData || partyMembersData.length === 0) {
                 if (container) container.classList.add("hidden");
-                unlockGamertagForSoloGuest();
                 return;
             }
 
             if (container) container.classList.remove("hidden");
             buttonsList.innerHTML = "";
 
+            let defaultIdx = -1;
+            if (selectedRealName || playerRealName) {
+                const target = (selectedRealName || playerRealName).toLowerCase();
+                const found = partyMembersData.findIndex(m => m.name.toLowerCase() === target);
+                if (found >= 0) defaultIdx = found;
+            }
+            if (defaultIdx === -1 && partyMembersData.length === 1) {
+                defaultIdx = 0;
+            }
+
+            if (defaultIdx >= 0) {
+                selectedRealName = partyMembersData[defaultIdx].name;
+                selectedGuestId = partyMembersData[defaultIdx].id;
+            }
+
             partyMembersData.forEach((memberObj, idx) => {
+                const isSel = (idx === defaultIdx);
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.onclick = () => selectMemberChoice(idx, memberObj.name, memberObj.id);
-                btn.className = "w-full text-left px-3.5 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-olivo-base/50 hover:bg-amber-50/50 text-xs font-bold transition flex items-center justify-between member-btn cursor-pointer";
-                btn.innerHTML = `<span>👤 ${memberObj.name}</span><span class="check-icon hidden text-olivo-base font-extrabold text-sm">✓</span>`;
+                btn.className = `w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between member-btn ${isSel ? 'border-olivo-base bg-amber-50 text-olivo-base shadow-xs' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`;
+                btn.innerHTML = `<span>👤 ${memberObj.name}</span><span class="check-icon ${isSel ? '' : 'hidden'} font-bold">✓</span>`;
                 buttonsList.appendChild(btn);
             });
-
-            // Si solo hay 1 integrante en la invitación, auto-seleccionarlo de inmediato
-            if (partyMembersData.length === 1) {
-                selectMemberChoice(0, partyMembersData[0].name, partyMembersData[0].id);
-            }
         }
 
         async function selectMemberChoice(idx, memberName, memberId) {
             selectedRealName = (memberName || "").trim();
             selectedGuestId = formatGuestId(memberId);
 
-            // Resaltar visualmente el botón seleccionado
+            // Resaltar visualmente el botón seleccionado al instante
             const buttons = document.querySelectorAll("#memberButtonsList .member-btn");
             const checks = document.querySelectorAll("#memberButtonsList .check-icon");
             buttons.forEach((btn, i) => {
                 if (i === idx) {
-                    btn.className = "w-full text-left px-3.5 py-3 rounded-xl border-2 border-olivo-base bg-amber-50 text-olivo-base font-bold shadow-xs transition flex items-center justify-between member-btn cursor-pointer";
+                    btn.className = "w-full text-left px-3 py-2.5 rounded-xl border border-olivo-base bg-amber-50 text-olivo-base font-bold shadow-xs transition flex items-center justify-between member-btn";
                     if (checks[i]) checks[i].classList.remove("hidden");
                 } else {
-                    btn.className = "w-full text-left px-3.5 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-olivo-base/50 text-xs font-bold transition flex items-center justify-between member-btn cursor-pointer";
+                    btn.className = "w-full text-left px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-bold transition flex items-center justify-between member-btn";
                     if (checks[i]) checks[i].classList.add("hidden");
                 }
             });
 
             const inputEl = document.getElementById("gamertagInput");
-            const btnEl = document.getElementById("saveGamerTagBtn");
             const errorMsg = document.getElementById("gamertagErrorMsg");
             if (errorMsg) errorMsg.classList.add("hidden");
-
-            // Estado de consulta para evitar escritura antes de tiempo
-            if (inputEl) {
-                inputEl.value = "";
-                inputEl.disabled = true;
-                inputEl.placeholder = isEnLang ? "⌛ Checking guest profile..." : "⌛ Consultando perfil en la base de datos...";
-                inputEl.className = "w-full mt-2 p-3 border-2 border-amber-300 rounded-xl text-center font-bold text-lg outline-none bg-amber-50 text-amber-800 animate-pulse transition";
-            }
-            if (btnEl) {
-                btnEl.disabled = true;
-                btnEl.className = "w-full mt-3 bg-gray-300 text-gray-500 font-bold py-3 rounded-xl cursor-not-allowed transition shadow-none";
-                btnEl.innerText = isEnLang ? "⌛ Checking..." : "⌛ Consultando...";
-            }
 
             // Consultar Firebase ÚNICAMENTE para este integrante específico (ignora lo que hay en el celular)
             try {
@@ -1152,14 +1122,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     applyPlayerScores(record.data, record.key);
                     if (inputEl) {
                         inputEl.value = record.data.gamerTag || "";
-                        inputEl.placeholder = isEnLang ? "Your GamerTag" : "Tu GamerTag";
                     }
                 } else {
-                    // El jugador no tiene perfil en Firebase aún: arrancar en ceros absolutos
+                    // El jugador no tiene perfil en Firebase aún: arrancar en ceros y limpiar gamertag para que elija uno
                     applyPlayerScores(null, selectedGuestId);
                     if (inputEl) {
                         inputEl.value = "";
-                        inputEl.placeholder = isEnLang ? "Choose your GamerTag" : "Elige tu GamerTag (Apodo)";
                     }
                 }
             } catch (e) {
@@ -1167,17 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 applyPlayerScores(null, selectedGuestId);
             }
 
-            // Habilitar la edición de Gamertag y el botón de inicio
-            if (inputEl) {
-                inputEl.disabled = false;
-                inputEl.className = "w-full mt-2 p-3 border-2 border-olivo-base bg-white rounded-xl text-center font-bold text-lg outline-none focus:ring-2 focus:ring-olivo-base/30 text-gray-800 transition shadow-inner";
-                inputEl.focus();
-            }
-            if (btnEl) {
-                btnEl.disabled = false;
-                btnEl.className = "w-full mt-3 bg-[#52582f] hover:bg-opacity-95 text-white font-bold py-3 rounded-xl transition shadow-md cursor-pointer";
-                btnEl.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
-            }
+            // NOTA: NO llamamos a inputEl.focus() para evitar abrir automáticamente el teclado del celular.
         }
 
         function showReservedTagEasterEgg(type, rawName) {
