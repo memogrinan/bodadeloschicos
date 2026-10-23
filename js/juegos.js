@@ -511,16 +511,219 @@ document.addEventListener("DOMContentLoaded", () => {
             return calculateGameChiCoins(gameKey, scoreVal);
         }
 
-        function getTotalChiCoins() {
+        let activePlayerRemoteData = null;
+        let activePlayerListenerKey = "";
+        let activePlayerListenerHandler = null;
+
+        function getArcadeChiCoinsTotal() {
             let sum = 0;
             Object.keys(METAS).forEach(g => {
                 sum += getChiCoins(g);
             });
-            // Bono fijo único de +500 si se superaron las 4 metas (no acumulativo)
             const allMetasBonus = areAllMetasPassed() ? 500 : 0;
-            let adminBonus = parseInt(localStorage.getItem("bodachicos_admin_bonus") || "0");
-            if (isNaN(adminBonus)) adminBonus = 0;
-            return sum + allMetasBonus + adminBonus;
+            return sum + allMetasBonus;
+        }
+
+        function getRemoteActivityCoins() {
+            if (!activePlayerRemoteData) return 0;
+            if (activePlayerRemoteData.activityLogs && typeof activePlayerRemoteData.activityLogs === "object") {
+                return Object.values(activePlayerRemoteData.activityLogs).reduce((acc, item) => {
+                    return acc + (item && typeof item.amount === "number" ? item.amount : (parseInt(item?.amount) || 0));
+                }, 0);
+            }
+            if (typeof activePlayerRemoteData.activityCoins === "number") {
+                return activePlayerRemoteData.activityCoins;
+            }
+            const legacyBonus = parseInt(activePlayerRemoteData.adminBonus ?? activePlayerRemoteData.bonusCoins ?? 0);
+            return isNaN(legacyBonus) ? 0 : legacyBonus;
+        }
+
+        function getRemoteSpentCoins() {
+            if (!activePlayerRemoteData) return 0;
+            if (activePlayerRemoteData.redemptionLogs && typeof activePlayerRemoteData.redemptionLogs === "object") {
+                return Object.values(activePlayerRemoteData.redemptionLogs).reduce((acc, item) => {
+                    return acc + (item && typeof item.cost === "number" ? item.cost : (parseInt(item?.cost) || 0));
+                }, 0);
+            }
+            if (typeof activePlayerRemoteData.spentCoins === "number") {
+                return activePlayerRemoteData.spentCoins;
+            }
+            return 0;
+        }
+
+        function getTotalChiCoins() {
+            const arcadeTotal = getArcadeChiCoinsTotal();
+            const activityTotal = getRemoteActivityCoins();
+            const spentTotal = getRemoteSpentCoins();
+            return Math.max(0, arcadeTotal + activityTotal - spentTotal);
+        }
+
+        function attachActivePlayerListener(keyTag) {
+            if (!db || !keyTag) return;
+            if (activePlayerListenerKey === keyTag && activePlayerListenerHandler) return;
+
+            if (activePlayerListenerKey && activePlayerListenerHandler) {
+                try {
+                    db.ref("players/" + activePlayerListenerKey).off("value", activePlayerListenerHandler);
+                } catch (e) {}
+            }
+
+            activePlayerListenerKey = keyTag;
+            activePlayerListenerHandler = (snapshot) => {
+                const val = snapshot.val();
+                if (val) {
+                    activePlayerRemoteData = val;
+                    const totalDisplay = document.getElementById("totalChiCoinsDisplay");
+                    if (totalDisplay) {
+                        totalDisplay.innerText = getTotalChiCoins().toLocaleString();
+                    }
+                    const detailModal = document.getElementById("chiCoinsDetailModal");
+                    if (detailModal && !detailModal.classList.contains("hidden")) {
+                        renderChiCoinsDetailModal();
+                    }
+                }
+            };
+            db.ref("players/" + keyTag).on("value", activePlayerListenerHandler);
+        }
+
+        function openChiCoinsDetailModal() {
+            const modal = document.getElementById("chiCoinsDetailModal");
+            if (!modal) return;
+            renderChiCoinsDetailModal();
+            modal.classList.remove("hidden");
+        }
+
+        function closeChiCoinsDetailModal() {
+            const modal = document.getElementById("chiCoinsDetailModal");
+            if (!modal) return;
+            modal.classList.add("hidden");
+        }
+
+        function renderChiCoinsDetailModal() {
+            const arcadeCoins = getArcadeChiCoinsTotal();
+            const activityCoins = getRemoteActivityCoins();
+            const spentCoins = getRemoteSpentCoins();
+            const netCoins = Math.max(0, arcadeCoins + activityCoins - spentCoins);
+
+            const elArcade = document.getElementById("detailRowArcadeCoins");
+            const elActivity = document.getElementById("detailRowActivityCoins");
+            const elSpent = document.getElementById("detailRowSpentCoins");
+            const elTotal = document.getElementById("detailRowTotalCoins");
+
+            if (elArcade) elArcade.innerText = `${arcadeCoins.toLocaleString()} 🪙`;
+            if (elActivity) elActivity.innerText = `+${activityCoins.toLocaleString()} 🪙`;
+            if (elSpent) elSpent.innerText = `-${spentCoins.toLocaleString()} 🪙`;
+            if (elTotal) elTotal.innerText = `${netCoins.toLocaleString()} 🪙`;
+
+            const logContainer = document.getElementById("guestChiCoinsLogList");
+            if (!logContainer) return;
+
+            const gameMetaInfo = [
+                { key: "chico", icon: "🦖", nameEs: "Chicosaurio", nameEn: "Chicosaurus", unit: "pts" },
+                { key: "chica", icon: "👰🏻‍♀️", nameEs: "Atrapa el Amor", nameEn: "Love in the Air", unit: "pts" },
+                { key: "maddie", icon: "🐶", nameEs: "Atrapa a Maddie", nameEn: "Whack-a-Maddie!", unit: "clics" },
+                { key: "puebla", icon: "🚗", nameEs: "Camino a Puebla", nameEn: "Road to Puebla", unit: "pts" }
+            ];
+
+            let html = `<div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mt-1 mb-1">🎮 ${isEnLang ? "Arcade (Personal Best per Game)" : "Arcade (Máximo por Juego)"}</div>`;
+
+            gameMetaInfo.forEach(g => {
+                const s = getScore(g.key);
+                const c = calculateGameChiCoins(g.key, s);
+                const label = isEnLang ? g.nameEn : g.nameEs;
+                html += `
+                    <div class="flex justify-between items-center bg-gray-50 border border-gray-100 px-3 py-2 rounded-xl">
+                        <div>
+                            <span class="font-bold text-gray-800">${g.icon} ${label}</span>
+                            <span class="text-[11px] text-gray-400 ml-1">(${isEnLang ? "Best" : "Récord"}: ${s} ${g.unit})</span>
+                        </div>
+                        <span class="font-monogram font-bold text-sm ${c > 0 ? 'text-amber-700' : 'text-gray-400'}">+${c.toLocaleString()} 🪙</span>
+                    </div>
+                `;
+            });
+
+            const allMetas = areAllMetasPassed();
+            html += `
+                <div class="flex justify-between items-center ${allMetas ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100 opacity-60'} border px-3 py-2 rounded-xl">
+                    <span class="font-bold ${allMetas ? 'text-emerald-900' : 'text-gray-500'}">🏆 ${isEnLang ? "All 4 Targets Bonus" : "Bono 4 Metas Superadas"}</span>
+                    <span class="font-monogram font-bold text-sm ${allMetas ? 'text-emerald-700' : 'text-gray-400'}">${allMetas ? '+500 🪙' : '0 🪙'}</span>
+                </div>
+            `;
+
+            // 2. Actividades Adicionales (Plinko, Yahtzee, Bonos)
+            html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mt-3 mb-1">🎯 ${isEnLang ? "Activities (Plinko, Yahtzee & Extras)" : "Actividades (Plinko, Yahtzee y Extras)"}</div>`;
+
+            const actLogsObj = (activePlayerRemoteData && activePlayerRemoteData.activityLogs && typeof activePlayerRemoteData.activityLogs === "object")
+                ? activePlayerRemoteData.activityLogs
+                : null;
+            const actList = actLogsObj
+                ? Object.values(actLogsObj).filter(x => x && typeof x === "object").sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+                : [];
+
+            if (actList.length > 0) {
+                actList.forEach(entry => {
+                    const icon = entry.type === "plinko" ? "🎯" : (entry.type === "yahtzee" ? "🎲" : "⭐");
+                    const amt = parseInt(entry.amount) || 0;
+                    const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    html += `
+                        <div class="flex justify-between items-center bg-purple-50/60 border border-purple-100 px-3 py-2 rounded-xl">
+                            <div>
+                                <span class="font-bold text-purple-950">${icon} ${entry.label || (isEnLang ? "Activity" : "Actividad")}</span>
+                                ${timeStr ? `<span class="text-[10px] text-purple-400 ml-1">${timeStr}</span>` : ""}
+                            </div>
+                            <span class="font-monogram font-bold text-sm text-purple-700">+${amt.toLocaleString()} 🪙</span>
+                        </div>
+                    `;
+                });
+            } else if (activityCoins > 0) {
+                html += `
+                    <div class="flex justify-between items-center bg-purple-50/60 border border-purple-100 px-3 py-2 rounded-xl">
+                        <span class="font-bold text-purple-950">⭐ ${isEnLang ? "Activity Bonus" : "Puntos de Actividades"}</span>
+                        <span class="font-monogram font-bold text-sm text-purple-700">+${activityCoins.toLocaleString()} 🪙</span>
+                    </div>
+                `;
+            } else {
+                html += `<p class="text-[11px] text-gray-400 italic py-1 px-2">${isEnLang ? "No activity points recorded yet." : "Aún sin registros en actividades."}</p>`;
+            }
+
+            // 3. Puntos Utilizados (Sin mencionar "Tienda" para cuidar la sorpresa)
+            html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mt-3 mb-1">✨ ${isEnLang ? "Points Used" : "Puntos Utilizados"}</div>`;
+
+            const redLogsObj = (activePlayerRemoteData && activePlayerRemoteData.redemptionLogs && typeof activePlayerRemoteData.redemptionLogs === "object")
+                ? activePlayerRemoteData.redemptionLogs
+                : null;
+            const redList = redLogsObj
+                ? Object.values(redLogsObj).filter(x => x && typeof x === "object").sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+                : [];
+
+            if (redList.length > 0) {
+                redList.forEach(entry => {
+                    const emoji = entry.emoji || "🎁";
+                    const name = entry.itemName || (isEnLang ? "Reward" : "Canje");
+                    const cost = parseInt(entry.cost) || 0;
+                    const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    html += `
+                        <div class="flex justify-between items-center bg-rose-50/60 border border-rose-100 px-3 py-2 rounded-xl">
+                            <div>
+                                <span class="font-bold text-rose-950">${emoji} ${name}</span>
+                                ${timeStr ? `<span class="text-[10px] text-rose-400 ml-1">${timeStr}</span>` : ""}
+                            </div>
+                            <span class="font-monogram font-bold text-sm text-rose-700">-${cost.toLocaleString()} 🪙</span>
+                        </div>
+                    `;
+                });
+            } else if (spentCoins > 0) {
+                html += `
+                    <div class="flex justify-between items-center bg-rose-50/60 border border-rose-100 px-3 py-2 rounded-xl">
+                        <span class="font-bold text-rose-950">✨ ${isEnLang ? "Redeemed Points" : "Puntos Canjeados"}</span>
+                        <span class="font-monogram font-bold text-sm text-rose-700">-${spentCoins.toLocaleString()} 🪙</span>
+                    </div>
+                `;
+            } else {
+                html += `<p class="text-[11px] text-gray-400 italic py-1 px-2">${isEnLang ? "No points used yet." : "Sin puntos utilizados aún."}</p>`;
+            }
+
+            logContainer.innerHTML = html;
         }
 
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzF6-fMJJeXgOj3djFSm_vo1ZEteYRIj0PFXXhq_4q7eLcoCVmuTNRcKto2GSR-G8XSQ/exec";
@@ -563,6 +766,7 @@ document.addEventListener("DOMContentLoaded", () => {
             playerGamertag = "";
             playerRealName = "";
             playerGuestId = "";
+            activePlayerRemoteData = null;
         } else if (pParam) {
             currentPartyId = pParam;
             localStorage.setItem("bodachicos_party_id", currentPartyId);
@@ -580,10 +784,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const cleanGamertag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
             const keyTag = cleanGuestId || cleanGamertag;
             if (!keyTag) return;
+
+            attachActivePlayerListener(keyTag);
             
             const scoresObj = {};
             const coinsObj = {};
-            let totalCoins = 0;
+            let arcadeCoinsSum = 0;
             let totalScoreSum = 0;
             
             Object.keys(METAS).forEach(g => {
@@ -591,17 +797,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 const c = calculateGameChiCoins(g, s);
                 scoresObj[g] = s;
                 coinsObj[g] = c;
-                totalCoins += c;
+                arcadeCoinsSum += c;
                 totalScoreSum += s;
             });
 
             // Bono fijo único de +500 si se superaron las 4 metas
             const allMetasBonus = areAllMetasPassed() ? 500 : 0;
-            totalCoins += allMetasBonus;
+            arcadeCoinsSum += allMetasBonus;
 
-            let adminBonus = parseInt(localStorage.getItem("bodachicos_admin_bonus") || "0");
-            if (isNaN(adminBonus)) adminBonus = 0;
-            totalCoins += adminBonus;
+            // Balance neto respetando estrictamente actividades y canjes del servidor (el cliente NUNCA escribe ni sobreescribe activityLogs ni redemptionLogs)
+            const netTotalCoins = Math.max(0, arcadeCoinsSum + getRemoteActivityCoins() - getRemoteSpentCoins());
 
             let timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
             if (isNaN(timePlayed)) timePlayed = 0;
@@ -616,12 +821,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 partyId: currentPartyId || "general",
                 scores: scoresObj,
                 chiCoins: coinsObj,
+                arcadeCoins: arcadeCoinsSum,
                 hasAllMetasBonus: (allMetasBonus > 0),
-                adminBonus: adminBonus,
-                bonusCoins: adminBonus,
                 maxDistPuebla: maxDistPuebla,
                 pueblaWon: pueblaWon,
-                totalChiCoins: totalCoins,
+                totalChiCoins: netTotalCoins,
                 totalScore: totalScoreSum,
                 timePlayedSeconds: timePlayed,
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
@@ -842,10 +1046,15 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.removeItem('bodachicos_maxdist_puebla');
             localStorage.removeItem('bodachicos_puebla_won');
             localStorage.removeItem('bodachicos_time_played');
+            activePlayerRemoteData = null;
         }
 
         function applyPlayerScores(remoteData, keyTag) {
             clearLocalPlayerScores();
+            activePlayerRemoteData = remoteData || null;
+            if (keyTag) {
+                attachActivePlayerListener(keyTag);
+            }
 
             if (remoteData) {
                 if (remoteData.scores) {
@@ -853,10 +1062,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         localStorage.setItem("bodachicos_score_" + g, parseInt(remoteData.scores[g]) || 0);
                     });
                 }
-                let adminBonus = 0;
-                if (remoteData.adminBonus !== undefined) adminBonus = parseInt(remoteData.adminBonus) || 0;
-                else if (remoteData.bonusCoins !== undefined) adminBonus = parseInt(remoteData.bonusCoins) || 0;
-                localStorage.setItem("bodachicos_admin_bonus", adminBonus);
 
                 if (remoteData.maxDistPuebla) {
                     localStorage.setItem("bodachicos_maxdist_puebla", parseFloat(remoteData.maxDistPuebla).toFixed(1));
@@ -877,7 +1082,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 localStorage.setItem("bodachicos_score_" + g, parseInt(scoped.scores[g]) || 0);
                             });
                         }
-                        if (scoped.adminBonus !== undefined) localStorage.setItem("bodachicos_admin_bonus", parseInt(scoped.adminBonus) || 0);
                         if (scoped.maxDistPuebla) localStorage.setItem("bodachicos_maxdist_puebla", scoped.maxDistPuebla);
                         if (scoped.pueblaWon) localStorage.setItem("bodachicos_puebla_won", "true");
                         if (scoped.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", parseInt(scoped.timePlayedSeconds) || 0);
