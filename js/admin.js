@@ -121,7 +121,7 @@ const DEFAULT_INVENTORY = {
     item_11_cosmetiquera_blanca: {
         id: "item_11_cosmetiquera_blanca",
         emoji: "🤍",
-        name: "Cosmetiquera Rectangular Chica Blanca",
+        name: "Cosmetiquera Rect. Blanca",
         cost: 3000,
         stock: 10,
         initialStock: 10,
@@ -193,20 +193,91 @@ const DEFAULT_INVENTORY = {
 };
 
 let allPlayers = {};
-let allInventory = {};
+let allInventory = JSON.parse(JSON.stringify(DEFAULT_INVENTORY));
 let selectedPlayerKey = null;
 let isRedeeming = false;
 let isSandboxMode = sessionStorage.getItem("bodachicos_admin_sandbox") === "true";
 let currentInventoryRef = null;
 let currentPlayersRef = null;
+let hasAttemptedInventoryInit = false;
+let lastPlayersSerialized = "";
 
-// Se almacenan dentro de /players/... para aprovechar los permisos de lectura/escritura existentes en Firebase Realtime Database
-function getPlayersPath() {
-    return isSandboxMode ? "players/__sandbox_players__" : "players";
+const LS_SANDBOX_PLAYERS = "bodachicos_sandbox_players_v1";
+const LS_SANDBOX_INVENTORY = "bodachicos_sandbox_inventory_v1";
+const LS_PROD_INVENTORY_CACHE = "bodachicos_prod_inventory_v1";
+
+function cloneDeep(obj) {
+    return JSON.parse(JSON.stringify(obj || {}));
 }
 
-function getInventoryPath() {
-    return isSandboxMode ? "players/__sandbox_inventory__" : "players/__inventory__";
+function getLocalSandboxPlayers() {
+    try {
+        const raw = localStorage.getItem(LS_SANDBOX_PLAYERS);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveLocalSandboxPlayers(map) {
+    try {
+        localStorage.setItem(LS_SANDBOX_PLAYERS, JSON.stringify(map || {}));
+    } catch (e) {}
+}
+
+function getLocalInventoryCache(forSandbox) {
+    try {
+        const key = forSandbox ? LS_SANDBOX_INVENTORY : LS_PROD_INVENTORY_CACHE;
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveLocalInventoryCache(forSandbox, invMap) {
+    try {
+        const key = forSandbox ? LS_SANDBOX_INVENTORY : LS_PROD_INVENTORY_CACHE;
+        localStorage.setItem(key, JSON.stringify(invMap || DEFAULT_INVENTORY));
+    } catch (e) {}
+}
+
+// Envuelve el inventario con propiedades válidas de jugador por si las reglas .validate de /players/$id las exigen
+function wrapInventoryNodeForFirebase(invItems) {
+    return {
+        gamerTag: "__inventory__",
+        guestId: "__inventory__",
+        realName: "__system__",
+        partyId: "system",
+        scores: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
+        chiCoins: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
+        bonusCoins: 0,
+        adminBonus: 0,
+        totalChiCoins: 0,
+        totalScore: 0,
+        timePlayedSeconds: 0,
+        lastUpdated: Date.now(),
+        items: invItems
+    };
+}
+
+function unwrapInventoryNode(rawVal) {
+    if (!rawVal || typeof rawVal !== "object") return null;
+    if (rawVal.items && typeof rawVal.items === "object") {
+        return rawVal.items;
+    }
+    // Si tiene llaves directas item_*
+    const hasDirectItems = Object.keys(rawVal).some(k => k.startsWith("item_"));
+    if (hasDirectItems) {
+        const extracted = {};
+        Object.keys(rawVal).forEach(k => {
+            if (k.startsWith("item_") && rawVal[k] && typeof rawVal[k] === "object") {
+                extracted[k] = rawVal[k];
+            }
+        });
+        return Object.keys(extracted).length > 0 ? extracted : null;
+    }
+    return null;
 }
 
 function extractCleanPlayers(rawMap) {
@@ -215,7 +286,9 @@ function extractCleanPlayers(rawMap) {
     Object.keys(rawMap).forEach(k => {
         if (k.startsWith("__") || k.startsWith("item_")) return;
         const node = rawMap[k];
-        if (node && typeof node === "object" && (node.gamerTag !== undefined || node.scores !== undefined || node.totalChiCoins !== undefined || node.realName !== undefined)) {
+        if (!node || typeof node !== "object") return;
+        if (node.gamerTag === "__inventory__" || node.realName === "__system__") return;
+        if (node.gamerTag !== undefined || node.scores !== undefined || node.totalChiCoins !== undefined || node.realName !== undefined) {
             clean[k] = node;
         }
     });
@@ -235,6 +308,29 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Sincronizar cambios entre pestañas cuando se usa el modo Sandbox en el mismo navegador
+    window.addEventListener("storage", (e) => {
+        if (!isSandboxMode) return;
+        if (e.key === LS_SANDBOX_PLAYERS) {
+            const localPlayers = getLocalSandboxPlayers();
+            if (localPlayers) {
+                allPlayers = extractCleanPlayers(localPlayers);
+                renderPlayersTable();
+                if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
+                    selectPlayer(selectedPlayerKey, true);
+                }
+            }
+        } else if (e.key === LS_SANDBOX_INVENTORY) {
+            const localInv = getLocalInventoryCache(true);
+            if (localInv) {
+                allInventory = localInv;
+                updateLiveInventoryBanner();
+                renderRedeemableItems();
+                renderInventoryManagerTable();
+            }
+        }
+    });
 
     listenToInventory();
     listenToPlayers();
@@ -261,26 +357,26 @@ function updateEnvironmentUI() {
     if (isSandboxMode) {
         if (banner) banner.classList.remove("hidden");
         if (btn) {
-            btn.className = "inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-extrabold bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border-2 border-purple-400/70 transition cursor-pointer shadow-md";
+            btn.className = "inline-flex items-center px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-purple-600 hover:bg-purple-500 text-white border border-purple-300 transition cursor-pointer shadow-xs";
         }
         if (label) {
-            label.innerText = "🧪 MODO PRUEBAS / SANDBOX (Volver a 🟢 Producción)";
+            label.innerText = "🧪 Pruebas (Volver a Prod)";
         }
         if (arcadeLink) {
             arcadeLink.href = "juegos.html?sandbox=1";
-            arcadeLink.innerText = "Ir al Arcade (Sandbox) 🧪";
+            arcadeLink.innerText = "🎮 Arcade Sandbox";
         }
     } else {
         if (banner) banner.classList.add("hidden");
         if (btn) {
-            btn.className = "inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-extrabold bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/40 transition cursor-pointer shadow-sm";
+            btn.className = "inline-flex items-center px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-white/15 hover:bg-white/25 text-white border border-white/25 transition cursor-pointer";
         }
         if (label) {
-            label.innerText = "🟢 PRODUCCIÓN (Ir a 🧪 Pruebas)";
+            label.innerText = "🟢 Producción (Ir a Pruebas)";
         }
         if (arcadeLink) {
             arcadeLink.href = "juegos.html";
-            arcadeLink.innerText = "Ir al Arcade 🎮";
+            arcadeLink.innerText = "🎮 Arcade";
         }
     }
 }
@@ -290,20 +386,22 @@ async function toggleSandboxMode() {
     sessionStorage.setItem("bodachicos_admin_sandbox", isSandboxMode ? "true" : "false");
 
     selectedPlayerKey = null;
-    document.getElementById("noSelectionState").classList.remove("hidden");
-    document.getElementById("selectionState").classList.add("hidden");
-    document.getElementById("selectionState").classList.remove("flex");
+    lastPlayersSerialized = "";
+    const noSelEl = document.getElementById("noSelectionState");
+    if (noSelEl) noSelEl.classList.remove("hidden");
+    const selState = document.getElementById("selectionState");
+    if (selState) {
+        selState.classList.add("hidden");
+        selState.classList.remove("flex");
+    }
 
     updateEnvironmentUI();
 
     if (isSandboxMode) {
-        // Si __sandbox_players__ está vacío la primera vez, clonar automáticamente los datos actuales de Producción
-        try {
-            const snap = await db.ref("players/__sandbox_players__").once("value");
-            if (!snap.exists() || !snap.val()) {
-                await cloneProdToSandbox(false);
-            }
-        } catch (e) {}
+        const existingSandbox = getLocalSandboxPlayers();
+        if (!existingSandbox || Object.keys(existingSandbox).length === 0) {
+            await cloneProdToSandbox(false);
+        }
     }
 
     listenToInventory();
@@ -317,23 +415,33 @@ async function cloneProdToSandbox(askConfirmation) {
         }
     }
     try {
-        const [prodPlayersSnap, prodInvSnap] = await Promise.all([
-            db.ref("players").once("value"),
-            db.ref("players/__inventory__").once("value")
-        ]);
-        const prodPlayers = extractCleanPlayers(prodPlayersSnap.val() || {});
-        const prodInv = prodInvSnap.val() || DEFAULT_INVENTORY;
+        let prodPlayers = {};
+        try {
+            const prodPlayersSnap = await db.ref("players").once("value");
+            prodPlayers = extractCleanPlayers(prodPlayersSnap.val() || {});
+        } catch (e) {
+            prodPlayers = cloneDeep(allPlayers);
+        }
 
-        await Promise.all([
-            db.ref("players/__sandbox_players__").set(prodPlayers),
-            db.ref("players/__sandbox_inventory__").set(prodInv)
-        ]);
+        const freshInv = cloneDeep(DEFAULT_INVENTORY);
+        saveLocalSandboxPlayers(prodPlayers);
+        saveLocalInventoryCache(true, freshInv);
+
+        if (isSandboxMode) {
+            allPlayers = prodPlayers;
+            allInventory = freshInv;
+            lastPlayersSerialized = "";
+            updateLiveInventoryBanner();
+            renderPlayersTable();
+            renderRedeemableItems();
+            renderInventoryManagerTable();
+        }
 
         if (askConfirmation) {
-            alert("✅ Copia de Pruebas (Sandbox) actualizada con los datos actuales de Producción.");
+            alert("✅ Copia de Pruebas (Sandbox) lista con los jugadores actuales de Producción y los 220 artículos.");
         }
     } catch (err) {
-        alert("Error al clonar Producción a Sandbox: " + err.message);
+        console.warn("Aviso en cloneProdToSandbox:", err);
     }
 }
 
@@ -398,7 +506,6 @@ function computePlayerLedger(p) {
 
     let spentCoins = redemptionLogsList.reduce((acc, item) => acc + (parseInt(item.cost) || 0), 0);
 
-    // Compatibilidad retroactiva si existía un adminBonus previo sin logs detallados
     if (activityLogsList.length === 0 && redemptionLogsList.length === 0) {
         const legacyBonus = parseInt(p.adminBonus !== undefined ? p.adminBonus : (p.bonusCoins || 0)) || 0;
         if (legacyBonus > 0) {
@@ -435,23 +542,53 @@ function formatTimeShort(ts) {
 // ==========================================
 // GESTIÓN DE INVENTARIO EN TIEMPO REAL
 // ==========================================
+function persistInventoryState() {
+    saveLocalInventoryCache(isSandboxMode, allInventory);
+    updateLiveInventoryBanner();
+    renderRedeemableItems();
+    renderInventoryManagerTable();
+
+    if (!isSandboxMode) {
+        db.ref("players/__inventory__").set(wrapInventoryNodeForFirebase(allInventory)).catch(() => {});
+    }
+}
+
 function listenToInventory() {
     if (currentInventoryRef) {
         currentInventoryRef.off("value");
+        currentInventoryRef = null;
     }
-    const invPath = getInventoryPath();
-    currentInventoryRef = db.ref(invPath);
-    currentInventoryRef.on("value", (snapshot) => {
-        const val = snapshot.val();
-        if (!val || Object.keys(val).length === 0) {
-            // Inicializar automáticamente con los 250 artículos por defecto si no existe
-            db.ref(invPath).set(DEFAULT_INVENTORY);
-            return;
-        }
-        allInventory = val;
+
+    if (isSandboxMode) {
+        const localInv = getLocalInventoryCache(true) || cloneDeep(DEFAULT_INVENTORY);
+        allInventory = localInv;
+        saveLocalInventoryCache(true, allInventory);
         updateLiveInventoryBanner();
         renderRedeemableItems();
         renderInventoryManagerTable();
+        return;
+    }
+
+    // En Producción: cargar primero caché local o DEFAULT_INVENTORY inmediatamente sin bloquear UI
+    const cachedProdInv = getLocalInventoryCache(false);
+    allInventory = cachedProdInv || cloneDeep(DEFAULT_INVENTORY);
+    updateLiveInventoryBanner();
+    renderRedeemableItems();
+    renderInventoryManagerTable();
+
+    currentInventoryRef = db.ref("players/__inventory__");
+    currentInventoryRef.on("value", (snapshot) => {
+        const unwrapped = unwrapInventoryNode(snapshot.val());
+        if (unwrapped && Object.keys(unwrapped).length > 0) {
+            allInventory = unwrapped;
+            saveLocalInventoryCache(false, allInventory);
+            updateLiveInventoryBanner();
+            renderRedeemableItems();
+            renderInventoryManagerTable();
+        } else if (!hasAttemptedInventoryInit) {
+            hasAttemptedInventoryInit = true;
+            db.ref("players/__inventory__").set(wrapInventoryNodeForFirebase(allInventory)).catch(() => {});
+        }
     });
 }
 
@@ -481,7 +618,7 @@ function updateLiveInventoryBanner() {
     const countEl = document.getElementById("lowStockCount");
 
     if (remEl) remEl.innerText = totalRemaining.toLocaleString();
-    if (initEl) initEl.innerText = `/ ${totalInitial.toLocaleString()} uds (${items.length} productos)`;
+    if (initEl) initEl.innerText = `/ ${totalInitial.toLocaleString()} uds`;
 
     if (badgeEl && countEl) {
         if (outOfStockCount > 0) {
@@ -528,7 +665,7 @@ function renderInventoryManagerTable() {
 
     const items = getSortedInventoryList();
     if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-500 italic">No hay artículos en el inventario.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-400 italic">No hay artículos en el inventario.</td></tr>`;
         return;
     }
 
@@ -540,37 +677,33 @@ function renderInventoryManagerTable() {
         const isOut = stock === 0;
         const isLow = stock > 0 && stock <= 3;
 
-        let stockBadgeClass = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
-        if (isOut) stockBadgeClass = "bg-red-500/20 text-red-400 border-red-500/40";
-        else if (isLow) stockBadgeClass = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+        let stockBadgeClass = "bg-[#52582f]/10 text-[#52582f]";
+        if (isOut) stockBadgeClass = "bg-red-50 text-red-600";
+        else if (isLow) stockBadgeClass = "bg-amber-50 text-amber-700";
 
         html += `
-            <tr class="hover:bg-slate-700/30 transition ${isOut ? 'opacity-60' : ''}">
-                <td class="py-2.5 px-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-lg">${item.emoji || '🎁'}</span>
-                        <div>
-                            <span class="font-bold text-slate-100">${item.name}</span>
-                            ${isOut ? `<span class="ml-2 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-extrabold uppercase">Agotado</span>` : ''}
-                        </div>
+            <tr class="hover:bg-gray-50 transition ${isOut ? 'opacity-50' : ''}">
+                <td class="py-2 px-2 max-w-[130px] sm:max-w-none">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-sm shrink-0">${item.emoji || '🎁'}</span>
+                        <span class="font-bold text-gray-800 text-[11px] sm:text-xs truncate">${item.name}</span>
                     </div>
                 </td>
-                <td class="py-2.5 px-2 text-center">
-                    <div class="inline-flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
-                        <input type="number" value="${cost}" onchange="updateInventoryItemCost('${item.id}', this.value)" class="w-20 bg-transparent text-amber-400 font-mono font-bold text-center outline-none text-xs">
-                        <span class="text-[11px]">🪙</span>
+                <td class="py-2 px-1 text-center shrink-0">
+                    <div class="inline-flex items-center bg-[#fcfaf7] border border-gray-200 rounded-lg px-1.5 py-0.5">
+                        <input type="number" value="${cost}" onchange="updateInventoryItemCost('${item.id}', this.value)" class="w-14 sm:w-16 bg-transparent text-[#52582f] font-monogram font-bold text-center outline-none text-sm">
                     </div>
                 </td>
-                <td class="py-2.5 px-2 text-center">
-                    <span class="inline-block px-2.5 py-1 rounded-lg border font-mono font-bold text-xs ${stockBadgeClass}">
-                        ${stock} / ${init}
+                <td class="py-2 px-1 text-center shrink-0">
+                    <span class="inline-block px-1.5 py-0.5 rounded-lg font-monogram font-bold text-xs ${stockBadgeClass}">
+                        ${stock}/${init}
                     </span>
                 </td>
-                <td class="py-2.5 px-2 text-right">
+                <td class="py-2 px-1.5 text-right shrink-0">
                     <div class="inline-flex items-center gap-1">
-                        <button onclick="adjustInventoryItemStock('${item.id}', -1)" class="bg-slate-700 hover:bg-slate-600 text-white font-bold w-7 h-7 rounded-lg text-xs transition" title="Restar 1">-1</button>
-                        <button onclick="adjustInventoryItemStock('${item.id}', 1)" class="bg-slate-700 hover:bg-slate-600 text-white font-bold w-7 h-7 rounded-lg text-xs transition" title="Sumar 1">+1</button>
-                        <button onclick="deleteInventoryItem('${item.id}')" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 font-bold w-7 h-7 rounded-lg text-xs transition ml-1" title="Eliminar artículo">🗑️</button>
+                        <button onclick="adjustInventoryItemStock('${item.id}', -1)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-6 h-6 rounded-lg text-[11px] transition" title="Restar 1">-</button>
+                        <button onclick="adjustInventoryItemStock('${item.id}', 1)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-6 h-6 rounded-lg text-[11px] transition" title="Sumar 1">+</button>
+                        <button onclick="deleteInventoryItem('${item.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold w-6 h-6 rounded-lg text-[10px] transition" title="Eliminar">✕</button>
                     </div>
                 </td>
             </tr>
@@ -581,8 +714,10 @@ function renderInventoryManagerTable() {
 }
 
 function updateInventoryItemCost(itemId, newCostVal) {
+    if (!allInventory[itemId]) return;
     const cost = Math.max(0, parseInt(newCostVal) || 0);
-    db.ref(`${getInventoryPath()}/${itemId}`).update({ cost });
+    allInventory[itemId].cost = cost;
+    persistInventoryState();
 }
 
 function adjustInventoryItemStock(itemId, delta) {
@@ -592,10 +727,9 @@ function adjustInventoryItemStock(itemId, delta) {
     const newStock = Math.max(0, currentStock + delta);
     const currentInit = parseInt(item.initialStock) || currentStock;
     const newInit = Math.max(currentInit, newStock);
-    db.ref(`${getInventoryPath()}/${itemId}`).update({
-        stock: newStock,
-        initialStock: newInit
-    });
+    item.stock = newStock;
+    item.initialStock = newInit;
+    persistInventoryState();
 }
 
 function createNewInventoryItem() {
@@ -625,7 +759,7 @@ function createNewInventoryItem() {
     const newId = "item_custom_" + Date.now();
     const order = Object.keys(allInventory).length + 1;
 
-    db.ref(`${getInventoryPath()}/${newId}`).set({
+    allInventory[newId] = {
         id: newId,
         emoji,
         name,
@@ -633,29 +767,31 @@ function createNewInventoryItem() {
         stock,
         initialStock: stock,
         order
-    }).then(() => {
-        emojiInput.value = "";
-        nameInput.value = "";
-        costInput.value = "";
-        stockInput.value = "";
-        toggleNewItemForm(false);
-    }).catch(err => alert("Error al guardar artículo: " + err.message));
+    };
+
+    emojiInput.value = "";
+    nameInput.value = "";
+    costInput.value = "";
+    stockInput.value = "";
+    toggleNewItemForm(false);
+    persistInventoryState();
 }
 
 function deleteInventoryItem(itemId) {
     const item = allInventory[itemId];
     if (!item) return;
     if (confirm(`¿Eliminar "${item.name}" del catálogo de inventario?`)) {
-        db.ref(`${getInventoryPath()}/${itemId}`).remove();
+        delete allInventory[itemId];
+        persistInventoryState();
     }
 }
 
 function resetInventoryToDefault() {
     const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
     if (confirm(`🔄 [${envName}] ¿Restaurar el inventario completo a las 220 unidades originales de los 18 artículos con los precios recomendados?`)) {
-        db.ref(getInventoryPath()).set(DEFAULT_INVENTORY).then(() => {
-            alert("✅ Inventario restaurado a 220 unidades exitosamente.");
-        }).catch(err => alert("Error al restaurar inventario: " + err.message));
+        allInventory = cloneDeep(DEFAULT_INVENTORY);
+        persistInventoryState();
+        alert("✅ Inventario restaurado a 220 unidades exitosamente.");
     }
 }
 
@@ -665,30 +801,59 @@ function resetInventoryToDefault() {
 function listenToPlayers() {
     if (currentPlayersRef) {
         currentPlayersRef.off("value");
+        currentPlayersRef = null;
     }
-    currentPlayersRef = db.ref(getPlayersPath());
-    currentPlayersRef.on("value", async (snapshot) => {
-        const rawVal = snapshot.val();
-        const cleaned = extractCleanPlayers(rawVal || {});
 
-        // Si estamos en Sandbox y aún no hay jugadores clonados, clonar automáticamente desde Producción
-        if (isSandboxMode && Object.keys(cleaned).length === 0) {
-            try {
-                const prodSnap = await db.ref("players").once("value");
-                const cleanProd = extractCleanPlayers(prodSnap.val() || {});
-                if (Object.keys(cleanProd).length > 0) {
-                    await db.ref("players/__sandbox_players__").set(cleanProd);
-                    return;
-                }
-            } catch (e) {
-                console.warn("No se pudo clonar automáticamente a Sandbox:", e);
+    if (isSandboxMode) {
+        const localPlayers = getLocalSandboxPlayers();
+        if (localPlayers && Object.keys(localPlayers).length > 0) {
+            allPlayers = extractCleanPlayers(localPlayers);
+            renderPlayersTable();
+            if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
+                selectPlayer(selectedPlayerKey, true);
+            }
+            return;
+        }
+        // Si estaba vacío, clonar de Producción
+        cloneProdToSandbox(false);
+        return;
+    }
+
+    currentPlayersRef = db.ref("players");
+    currentPlayersRef.on("value", (snapshot) => {
+        const warnEl = document.getElementById("firebasePermissionWarning");
+        if (warnEl) warnEl.classList.add("hidden");
+
+        const rawVal = snapshot.val() || {};
+        // Si existe __inventory__ en el snapshot de players, sincronizar también el inventario
+        if (rawVal.__inventory__) {
+            const unwrappedInv = unwrapInventoryNode(rawVal.__inventory__);
+            if (unwrappedInv && Object.keys(unwrappedInv).length > 0) {
+                allInventory = unwrappedInv;
+                saveLocalInventoryCache(false, allInventory);
+                updateLiveInventoryBanner();
+                renderRedeemableItems();
+                renderInventoryManagerTable();
             }
         }
 
-        allPlayers = cleaned;
-        renderPlayersTable();
-        if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
-            selectPlayer(selectedPlayerKey, true);
+        const cleaned = extractCleanPlayers(rawVal);
+        const serialized = JSON.stringify(cleaned);
+
+        // Evitar re-renderizados innecesarios que interrumpan los clics del usuario en la tabla
+        if (serialized !== lastPlayersSerialized) {
+            lastPlayersSerialized = serialized;
+            allPlayers = cleaned;
+            renderPlayersTable();
+            if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
+                selectPlayer(selectedPlayerKey, true);
+            }
+        }
+    }, (error) => {
+        console.error("Error leyendo jugadores en Firebase:", error);
+        if (error && String(error.code || error.message).includes("PERMISSION_DENIED")) {
+            const warnEl = document.getElementById("firebasePermissionWarning");
+            if (warnEl) warnEl.classList.remove("hidden");
         }
     });
 }
@@ -708,7 +873,7 @@ function renderPlayersTable() {
     if (countEl) countEl.innerText = keys.length;
 
     if (keys.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="3" class="py-8 text-center text-slate-500 italic">Aún no hay jugadores registrados en el Arcade.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Aún no hay invitados registrados.</td></tr>`;
         return;
     }
 
@@ -726,25 +891,24 @@ function renderPlayersTable() {
         const encodedKey = encodeURIComponent(key);
 
         html += `
-            <tr data-player-key="${encodedKey}" onclick="selectPlayer(decodeURIComponent('${encodedKey}'))" class="cursor-pointer hover:bg-slate-700/40 transition ${isSelected ? 'bg-amber-500/15 border-l-4 border-amber-400' : ''}">
-                <td class="py-2.5 px-2">
-                    <div class="font-bold text-slate-100 text-sm">${tag}</div>
-                    ${rName ? `<div class="text-[11px] text-slate-400">${rName}</div>` : ''}
+            <tr data-player-key="${encodedKey}" onclick="selectPlayer(decodeURIComponent('${encodedKey}'))" class="cursor-pointer hover:bg-[#fcfaf7] transition ${isSelected ? 'bg-[#52582f]/10' : ''}">
+                <td class="py-2 px-1.5 max-w-[140px] sm:max-w-[200px]">
+                    <div class="font-bold text-gray-800 text-xs truncate">${tag}</div>
+                    ${rName ? `<div class="text-[10px] text-gray-400 truncate">${rName}</div>` : ''}
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono font-bold text-amber-400 text-sm">
-                    ${ledger.netCoins.toLocaleString()} 🪙
-                    ${ledger.spentCoins > 0 ? `<div class="text-[10px] text-rose-400 font-normal">Canjeó: -${ledger.spentCoins.toLocaleString()}</div>` : ''}
+                <td class="py-2 px-1.5 text-right whitespace-nowrap">
+                    <span class="font-monogram font-extrabold text-[#52582f] text-base">${ledger.netCoins.toLocaleString()} 🪙</span>
                 </td>
-                <td class="py-2.5 px-2 text-right">
-                    <button type="button" onclick="event.stopPropagation(); selectPlayer(decodeURIComponent('${encodedKey}'))" class="${isSelected ? 'bg-amber-400 text-slate-950' : 'bg-slate-700 hover:bg-amber-500 hover:text-slate-950 text-slate-200'} font-bold px-3 py-1.5 rounded-xl text-xs transition shadow">
-                        ${isSelected ? 'Activo ✓' : 'Elegir'}
+                <td class="py-2 px-1.5 text-right whitespace-nowrap">
+                    <button type="button" onclick="event.stopPropagation(); selectPlayer(decodeURIComponent('${encodedKey}'))" class="${isSelected ? 'bg-[#52582f] text-white' : 'bg-gray-100 hover:bg-[#52582f] hover:text-white text-gray-700'} font-bold px-2.5 py-1 rounded-lg text-[11px] transition">
+                        ${isSelected ? '✓ Activo' : 'Elegir'}
                     </button>
                 </td>
             </tr>
         `;
     });
 
-    tableBody.innerHTML = html || `<tr><td colspan="3" class="py-8 text-center text-slate-500 italic">No se encontraron jugadores con '${filter}'.</td></tr>`;
+    tableBody.innerHTML = html || `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Sin resultados para '${filter}'.</td></tr>`;
 }
 
 function filterPlayers() {
@@ -770,41 +934,31 @@ function selectPlayer(key, skipTableReRender) {
     if (tagEl) tagEl.innerText = p.gamerTag || key;
 
     const rName = p.realName && p.realName !== "Invitado No Registrado"
-        ? `👤 ${p.realName} (Invitación: ${p.partyId || 'general'})`
-        : `Invitación: ${p.partyId || 'general'}`;
+        ? `${p.realName} • Pase: ${p.partyId || 'general'}`
+        : `Pase: ${p.partyId || 'general'}`;
     const realNameEl = document.getElementById("selectedRealName");
     if (realNameEl) realNameEl.innerText = rName;
 
     const coinsEl = document.getElementById("selectedCoins");
     if (coinsEl) coinsEl.innerText = ledger.netCoins.toLocaleString() + " 🪙";
 
-    // Actualizar las 4 tarjetas resumen
     const sumArcEl = document.getElementById("summaryArcadeCoins");
-    if (sumArcEl) sumArcEl.innerText = "+" + ledger.arcadeCoins.toLocaleString() + " 🪙";
+    if (sumArcEl) sumArcEl.innerText = "+" + ledger.arcadeCoins.toLocaleString();
     const sumActEl = document.getElementById("summaryActivityCoins");
-    if (sumActEl) sumActEl.innerText = "+" + ledger.activityCoins.toLocaleString() + " 🪙";
+    if (sumActEl) sumActEl.innerText = "+" + ledger.activityCoins.toLocaleString();
     const sumSpentEl = document.getElementById("summarySpentCoins");
-    if (sumSpentEl) sumSpentEl.innerText = "-" + ledger.spentCoins.toLocaleString() + " 🪙";
+    if (sumSpentEl) sumSpentEl.innerText = "-" + ledger.spentCoins.toLocaleString();
     const sumNetEl = document.getElementById("summaryNetCoins");
     if (sumNetEl) sumNetEl.innerText = ledger.netCoins.toLocaleString() + " 🪙";
-
-    // Compatibilidad retroactiva si el navegador tiene en caché elementos antiguos
-    const scores = p.scores || {};
-    const oldChico = document.getElementById("score-chico-val");
-    if (oldChico) oldChico.innerText = (scores.chico || 0) + " pts";
-    const oldChica = document.getElementById("score-chica-val");
-    if (oldChica) oldChica.innerText = (scores.chica || 0) + " pts";
-    const oldMaddie = document.getElementById("score-maddie-val");
-    if (oldMaddie) oldMaddie.innerText = (scores.maddie || 0) + " clics";
-    const oldPuebla = document.getElementById("score-puebla-val");
-    if (oldPuebla) oldPuebla.innerText = (scores.puebla || 0) + " pts";
-    const oldBonus = document.getElementById("bonus-val");
-    if (oldBonus) oldBonus.innerText = (ledger.activityCoins - ledger.spentCoins) + " 🪙";
 
     renderRedeemableItems();
     renderPlayerAuditLogs(p, ledger);
     if (!skipTableReRender) {
         renderPlayersTable();
+        if (window.innerWidth < 1024) {
+            const panel = document.getElementById("actionPanel");
+            if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     }
 }
 window.selectPlayer = selectPlayer;
@@ -821,7 +975,6 @@ function renderRedeemableItems() {
     const playerNetCoins = p ? computePlayerLedger(p).netCoins : 0;
     const searchVal = (document.getElementById("redeemSearchInput")?.value || "").toLowerCase().trim();
 
-    // Filtrar SOLO artículos con stock > 0 (los agotados desaparecen automáticamente para facilitar el trabajo del stand)
     const availableItems = getSortedInventoryList().filter(item => {
         const stock = parseInt(item.stock) || 0;
         if (stock <= 0) return false;
@@ -831,8 +984,8 @@ function renderRedeemableItems() {
 
     if (availableItems.length === 0) {
         container.innerHTML = `
-            <div class="col-span-2 py-6 text-center text-slate-400 italic text-xs">
-                No hay artículos disponibles con ese filtro o el inventario se ha agotado.
+            <div class="col-span-2 py-4 text-center text-gray-400 italic text-xs">
+                No hay artículos disponibles con ese filtro.
             </div>
         `;
         return;
@@ -844,36 +997,27 @@ function renderRedeemableItems() {
         const stock = parseInt(item.stock) || 0;
         const canAfford = playerNetCoins >= cost;
         const missing = cost - playerNetCoins;
-        const isLowStock = stock <= 3;
 
         const btnClass = canAfford
-            ? "bg-emerald-600/20 hover:bg-emerald-600/40 active:scale-[0.99] border-emerald-500/40 text-slate-100 cursor-pointer"
-            : "bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 cursor-not-allowed";
-
-        const stockClass = isLowStock
-            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-            : "bg-slate-800 text-slate-300 border border-slate-700";
+            ? "bg-white hover:bg-[#52582f]/5 active:scale-[0.99] border-gray-200 text-gray-800 cursor-pointer shadow-2xs"
+            : "bg-gray-50/70 border-gray-200/60 text-gray-400 opacity-65 cursor-not-allowed";
 
         html += `
-            <button type="button" ${canAfford ? `onclick="redeemInventoryItem('${item.id}')"` : "disabled"} class="w-full p-2.5 rounded-xl border text-left transition flex justify-between items-center gap-2 ${btnClass}">
+            <button type="button" ${canAfford ? `onclick="redeemInventoryItem('${item.id}')"` : "disabled"} class="w-full px-3 py-2 rounded-xl border text-left transition flex justify-between items-center gap-2 ${btnClass}">
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-1.5">
-                        <span class="text-base shrink-0">${item.emoji || '🎁'}</span>
+                        <span class="text-sm shrink-0">${item.emoji || '🎁'}</span>
                         <span class="font-bold text-xs truncate">${item.name}</span>
                     </div>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${stockClass}">
-                            Quedan: ${stock}
-                        </span>
-                        <span class="text-[11px] font-mono font-extrabold ${canAfford ? 'text-amber-400' : 'text-slate-500'}">
-                            -${cost.toLocaleString()} 🪙
-                        </span>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[10px] text-gray-400 font-semibold">Disp: ${stock}</span>
+                        <span class="font-monogram text-sm font-extrabold ${canAfford ? 'text-[#52582f]' : 'text-gray-400'}">-${cost.toLocaleString()} 🪙</span>
                     </div>
                 </div>
                 <div class="shrink-0 text-right">
                     ${canAfford
-                        ? `<span class="bg-emerald-500 text-slate-950 font-extrabold px-2.5 py-1 rounded-lg text-[11px] shadow">Canjear</span>`
-                        : `<span class="text-[10px] font-semibold text-rose-400/90 block">Faltan<br>${missing.toLocaleString()} 🪙</span>`
+                        ? `<span class="bg-[#52582f] text-white font-bold px-2.5 py-1 rounded-lg text-[11px]">Canjear</span>`
+                        : `<span class="text-[10px] font-semibold text-gray-400 block">Faltan ${missing.toLocaleString()}</span>`
                     }
                 </div>
             </button>
@@ -893,7 +1037,7 @@ function renderPlayerAuditLogs(p, ledger) {
 
     const scores = p.scores || {};
 
-    // 1. LOG DE ARCADE (Solo 1 registro máximo por juego + Bono 500 de 4 metas)
+    // 1. LOG DE ARCADE
     const arcadeGames = [
         { key: "chico", icon: "🦖", label: "Chicosaurio", score: scores.chico || 0, unit: "pts", coins: ledger.gameCoins.chico },
         { key: "chica", icon: "👰🏻‍♀️", label: "Atrapa el Amor", score: scores.chica || 0, unit: "pts", coins: ledger.gameCoins.chica },
@@ -904,40 +1048,38 @@ function renderPlayerAuditLogs(p, ledger) {
     let arcadeHtml = "";
     arcadeGames.forEach(g => {
         arcadeHtml += `
-            <div class="flex justify-between items-center py-1 border-b border-slate-700/40 last:border-none">
-                <span>${g.icon} <strong>${g.label}</strong> <span class="text-slate-400">(Récord máx: ${g.score} ${g.unit})</span></span>
-                <span class="font-mono font-bold ${g.coins > 0 ? 'text-emerald-400' : 'text-slate-500'}">+${g.coins.toLocaleString()} 🪙</span>
+            <div class="flex justify-between items-center py-1">
+                <span class="truncate pr-2">${g.icon} <span class="font-semibold">${g.label}</span> <span class="text-gray-400 text-[11px]">(${g.score} ${g.unit})</span></span>
+                <span class="font-monogram font-bold text-sm shrink-0 ${g.coins > 0 ? 'text-[#52582f]' : 'text-gray-400'}">+${g.coins.toLocaleString()}</span>
             </div>
         `;
     });
 
     arcadeHtml += `
-        <div class="flex justify-between items-center pt-1.5 border-t border-slate-700/70">
-            <span>🏆 <strong>Bono 4 Metas Superadas</strong></span>
-            <span class="font-mono font-bold ${ledger.hasAllMetasBonus ? 'text-amber-400' : 'text-slate-500'}">
-                ${ledger.hasAllMetasBonus ? '+500 🪙 (Desbloqueado ✓)' : '+0 🪙 (Pendiente)'}
-            </span>
+        <div class="flex justify-between items-center py-1 ${ledger.hasAllMetasBonus ? 'text-[#52582f]' : 'text-gray-400'}">
+            <span class="font-bold">🏆 Bono 4 Metas</span>
+            <span class="font-monogram font-bold text-sm shrink-0">${ledger.hasAllMetasBonus ? '+500' : '+0'}</span>
         </div>
     `;
     if (arcadeListEl) arcadeListEl.innerHTML = arcadeHtml;
 
-    // 2. LOG DE ACTIVIDADES FÍSICAS (Múltiples registros de Plinko, Yahtzee, Premios)
+    // 2. LOG DE ACTIVIDADES FÍSICAS
     if (activitiesListEl) {
         if (ledger.activityLogsList.length === 0) {
-            activitiesListEl.innerHTML = `<p class="text-slate-500 italic py-1">Sin puntos de actividades registrados aún.</p>`;
+            activitiesListEl.innerHTML = `<p class="text-gray-400 italic py-1 text-[11px]">Sin registros en actividades.</p>`;
         } else {
             activitiesListEl.innerHTML = ledger.activityLogsList.map(entry => {
                 const icon = entry.type === "plinko" ? "🎯" : (entry.type === "yahtzee" ? "🎲" : "✨");
                 const timeStr = formatTimeShort(entry.timestamp);
                 return `
-                    <div class="flex justify-between items-center bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-700/40">
-                        <div>
-                            <span class="font-semibold text-slate-200">${icon} ${entry.label || 'Actividad'}</span>
-                            ${timeStr ? `<span class="text-[10px] text-slate-500 ml-1.5">${timeStr}</span>` : ''}
+                    <div class="flex justify-between items-center py-1.5 gap-2">
+                        <div class="min-w-0 flex-1 truncate">
+                            <span class="font-semibold text-gray-800">${icon} ${entry.label || 'Actividad'}</span>
+                            ${timeStr ? `<span class="text-[10px] text-gray-400 ml-1">${timeStr}</span>` : ''}
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono font-bold text-indigo-300">+${(parseInt(entry.amount) || 0).toLocaleString()} 🪙</span>
-                            <button onclick="revertActivityLog('${entry.key}')" class="text-[10px] bg-slate-700 hover:bg-red-500/80 text-slate-300 hover:text-white px-2 py-0.5 rounded transition" title="Revertir este abono">
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="font-monogram font-bold text-sm text-[#52582f]">+${(parseInt(entry.amount) || 0).toLocaleString()}</span>
+                            <button onclick="revertActivityLog('${entry.key}')" class="text-[10px] bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200 px-2 py-0.5 rounded-lg transition font-semibold">
                                 ↩️ Revertir
                             </button>
                         </div>
@@ -947,22 +1089,22 @@ function renderPlayerAuditLogs(p, ledger) {
         }
     }
 
-    // 3. LOG DE CANJES EN TIENDA (Múltiples registros con reversión de stock)
+    // 3. LOG DE CANJES EN TIENDA
     if (redemptionsListEl) {
         if (ledger.redemptionLogsList.length === 0) {
-            redemptionsListEl.innerHTML = `<p class="text-slate-500 italic py-1">No ha canjeado artículos todavía.</p>`;
+            redemptionsListEl.innerHTML = `<p class="text-gray-400 italic py-1 text-[11px]">Sin artículos canjeados aún.</p>`;
         } else {
             redemptionsListEl.innerHTML = ledger.redemptionLogsList.map(entry => {
                 const timeStr = formatTimeShort(entry.timestamp);
                 return `
-                    <div class="flex justify-between items-center bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-700/40">
-                        <div>
-                            <span class="font-semibold text-slate-200">${entry.emoji || '🛍️'} ${entry.itemName}</span>
-                            ${timeStr ? `<span class="text-[10px] text-slate-500 ml-1.5">${timeStr}</span>` : ''}
+                    <div class="flex justify-between items-center py-1.5 gap-2">
+                        <div class="min-w-0 flex-1 truncate">
+                            <span class="font-semibold text-gray-800">${entry.emoji || '🛍️'} ${entry.itemName}</span>
+                            ${timeStr ? `<span class="text-[10px] text-gray-400 ml-1">${timeStr}</span>` : ''}
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono font-bold text-rose-400">-${(parseInt(entry.cost) || 0).toLocaleString()} 🪙</span>
-                            <button onclick="revertRedemptionLog('${entry.key}')" class="text-[10px] bg-slate-700 hover:bg-amber-500 hover:text-slate-950 text-slate-300 px-2 py-0.5 rounded transition font-semibold" title="Devolver artículo al inventario y reembolsar ChiCoins">
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="font-monogram font-bold text-sm text-rose-700">-${(parseInt(entry.cost) || 0).toLocaleString()}</span>
+                            <button onclick="revertRedemptionLog('${entry.key}')" class="text-[10px] bg-gray-100 hover:bg-amber-50 text-gray-600 hover:text-amber-800 border border-gray-200 px-2 py-0.5 rounded-lg transition font-semibold">
                                 ↩️ Devolver
                             </button>
                         </div>
@@ -976,27 +1118,44 @@ function renderPlayerAuditLogs(p, ledger) {
 // ==========================================
 // OPERACIONES TRANSACCIONALES (ACTIVIDADES Y CANJES)
 // ==========================================
-function syncPlayerLedgerTotals(playerKey) {
-    const playerRef = db.ref(`${getPlayersPath()}/${playerKey}`);
-    return playerRef.transaction((currentData) => {
-        if (!currentData) return currentData;
-        const ledger = computePlayerLedger(currentData);
-        currentData.arcadeCoins = ledger.arcadeCoins;
-        currentData.activityCoins = ledger.activityCoins;
-        currentData.spentCoins = ledger.spentCoins;
-        currentData.adminBonus = ledger.activityCoins - ledger.spentCoins;
-        currentData.bonusCoins = ledger.activityCoins - ledger.spentCoins;
-        currentData.totalChiCoins = ledger.netCoins;
-        currentData.lastUpdated = firebase.database.ServerValue.TIMESTAMP;
-        return currentData;
+function commitPlayerUpdate(playerKey, mutatorFn) {
+    const p = allPlayers[playerKey];
+    if (!p) return Promise.resolve();
+
+    mutatorFn(p);
+    const ledger = computePlayerLedger(p);
+    p.arcadeCoins = ledger.arcadeCoins;
+    p.activityCoins = ledger.activityCoins;
+    p.spentCoins = ledger.spentCoins;
+    p.adminBonus = ledger.activityCoins - ledger.spentCoins;
+    p.bonusCoins = ledger.activityCoins - ledger.spentCoins;
+    p.totalChiCoins = ledger.netCoins;
+    p.lastUpdated = Date.now();
+
+    if (isSandboxMode) {
+        saveLocalSandboxPlayers(allPlayers);
+        selectPlayer(playerKey, false);
+        return Promise.resolve();
+    }
+
+    selectPlayer(playerKey, false);
+    return db.ref(`players/${playerKey}`).update({
+        activityLogs: p.activityLogs || null,
+        redemptionLogs: p.redemptionLogs || null,
+        arcadeCoins: p.arcadeCoins,
+        activityCoins: p.activityCoins,
+        spentCoins: p.spentCoins,
+        adminBonus: p.adminBonus,
+        bonusCoins: p.bonusCoins,
+        totalChiCoins: p.totalChiCoins,
+        lastUpdated: firebase.database.ServerValue.TIMESTAMP
+    }).catch(err => {
+        alert("Error al sincronizar con Firebase: " + err.message);
     });
 }
 
 function addActivityPoints(type, defaultLabel, amount) {
     if (!selectedPlayerKey) return;
-    const p = allPlayers[selectedPlayerKey];
-    if (!p) return;
-
     const cleanAmount = parseInt(amount);
     if (isNaN(cleanAmount) || cleanAmount <= 0) return;
 
@@ -1009,9 +1168,10 @@ function addActivityPoints(type, defaultLabel, amount) {
         timestamp: Date.now()
     };
 
-    db.ref(`${getPlayersPath()}/${selectedPlayerKey}/activityLogs/${logId}`).set(entry)
-        .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
-        .catch(err => alert("Error al abonar puntos: " + err.message));
+    commitPlayerUpdate(selectedPlayerKey, (p) => {
+        if (!p.activityLogs || typeof p.activityLogs !== "object") p.activityLogs = {};
+        p.activityLogs[logId] = entry;
+    });
 }
 
 function applyCustomActivity() {
@@ -1025,11 +1185,11 @@ function applyCustomActivity() {
     const amount = parseInt(amountInput.value);
 
     if (isNaN(amount) || amount <= 0) {
-        alert("Ingresa una cantidad positiva válida de ChiCoins para abonar.");
+        alert("Ingresa una cantidad positiva de ChiCoins.");
         return;
     }
 
-    let baseLabel = "Premio Especial";
+    let baseLabel = "Premio";
     if (type === "plinko") baseLabel = "Plinko";
     else if (type === "yahtzee") baseLabel = "Yahtzee";
 
@@ -1047,8 +1207,13 @@ function redeemInventoryItem(itemId) {
     if (!p || !item) return;
 
     const cost = parseInt(item.cost) || 0;
+    const currentStock = parseInt(item.stock) || 0;
     const ledger = computePlayerLedger(p);
 
+    if (currentStock <= 0) {
+        alert(`⚠️ "${item.name}" ya se agotó.`);
+        return;
+    }
     if (ledger.netCoins < cost) {
         alert(`❌ Saldo insuficiente: ${p.gamerTag} tiene ${ledger.netCoins.toLocaleString()} 🪙 y "${item.name}" cuesta ${cost.toLocaleString()} 🪙.`);
         return;
@@ -1056,48 +1221,26 @@ function redeemInventoryItem(itemId) {
 
     isRedeeming = true;
 
-    // 1. Transacción atómica en el inventario para descontar 1 unidad de forma segura
-    const itemStockRef = db.ref(`${getInventoryPath()}/${itemId}/stock`);
-    itemStockRef.transaction((currentStock) => {
-        const s = parseInt(currentStock) || 0;
-        if (s <= 0) {
-            return; // Aborta la transacción si ya se agotó
-        }
-        return s - 1;
-    }, (error, committed) => {
-        if (error) {
-            isRedeeming = false;
-            alert("Error de conexión al verificar inventario: " + error.message);
-            return;
-        }
-        if (!committed) {
-            isRedeeming = false;
-            alert(`⚠️ Lo sentimos, "${item.name}" acaba de agotarse.`);
-            return;
-        }
+    // 1. Descontar 1 unidad del inventario
+    item.stock = Math.max(0, currentStock - 1);
+    persistInventoryState();
 
-        // 2. Registrar el canje en la bitácora del jugador y actualizar su balance neto
-        const logId = "red_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
-        const redemptionEntry = {
-            id: logId,
-            itemId: itemId,
-            itemName: item.name,
-            emoji: item.emoji || "🛍️",
-            cost: cost,
-            timestamp: Date.now()
-        };
+    // 2. Registrar el canje en la bitácora del invitado
+    const logId = "red_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
+    const redemptionEntry = {
+        id: logId,
+        itemId: itemId,
+        itemName: item.name,
+        emoji: item.emoji || "🛍️",
+        cost: cost,
+        timestamp: Date.now()
+    };
 
-        db.ref(`${getPlayersPath()}/${selectedPlayerKey}/redemptionLogs/${logId}`).set(redemptionEntry)
-            .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
-            .then(() => {
-                isRedeeming = false;
-            })
-            .catch(err => {
-                // Si falló la escritura en el jugador, devolver +1 al inventario
-                adjustInventoryItemStock(itemId, 1);
-                isRedeeming = false;
-                alert("Error al registrar el canje: " + err.message);
-            });
+    commitPlayerUpdate(selectedPlayerKey, (playerObj) => {
+        if (!playerObj.redemptionLogs || typeof playerObj.redemptionLogs !== "object") playerObj.redemptionLogs = {};
+        playerObj.redemptionLogs[logId] = redemptionEntry;
+    }).finally(() => {
+        isRedeeming = false;
     });
 }
 
@@ -1108,9 +1251,11 @@ function revertActivityLog(logKey) {
     if (!entry) return;
 
     if (confirm(`¿Revertir el abono de "${entry.label}" (+${entry.amount} 🪙)?`)) {
-        db.ref(`${getPlayersPath()}/${selectedPlayerKey}/activityLogs/${logKey}`).remove()
-            .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
-            .catch(err => alert("Error al revertir abono: " + err.message));
+        commitPlayerUpdate(selectedPlayerKey, (playerObj) => {
+            if (playerObj.activityLogs) {
+                delete playerObj.activityLogs[logKey];
+            }
+        });
     }
 }
 
@@ -1121,14 +1266,14 @@ function revertRedemptionLog(logKey) {
     if (!entry) return;
 
     if (confirm(`¿Devolver "${entry.itemName}" al inventario (+1 ud) y reembolsar +${entry.cost.toLocaleString()} 🪙 a ${p.gamerTag}?`)) {
-        // 1. Devolver +1 al stock del artículo en inventario (si existe en el catálogo)
         if (entry.itemId && allInventory[entry.itemId]) {
             adjustInventoryItemStock(entry.itemId, 1);
         }
-        // 2. Eliminar registro del log de canjes y recalcular saldo del jugador
-        db.ref(`${getPlayersPath()}/${selectedPlayerKey}/redemptionLogs/${logKey}`).remove()
-            .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
-            .catch(err => alert("Error al revertir canje: " + err.message));
+        commitPlayerUpdate(selectedPlayerKey, (playerObj) => {
+            if (playerObj.redemptionLogs) {
+                delete playerObj.redemptionLogs[logKey];
+            }
+        });
     }
 }
 
@@ -1142,35 +1287,46 @@ async function cleanOnlyActivitiesAndRedemptions() {
     }
 
     try {
-        const playersPath = getPlayersPath();
-        const invPath = getInventoryPath();
-        const updates = {};
+        allInventory = cloneDeep(DEFAULT_INVENTORY);
+        persistInventoryState();
 
-        Object.keys(allPlayers || {}).forEach(key => {
-            if (key.startsWith("__")) return;
+        const keys = Object.keys(allPlayers || {});
+        for (const key of keys) {
+            if (key.startsWith("__")) continue;
             const p = allPlayers[key];
-            if (!p) return;
-            const ledger = computePlayerLedger({
-                ...p,
-                activityLogs: null,
-                redemptionLogs: null,
-                adminBonus: 0,
-                bonusCoins: 0
-            });
-            updates[`${playersPath}/${key}/activityLogs`] = null;
-            updates[`${playersPath}/${key}/redemptionLogs`] = null;
-            updates[`${playersPath}/${key}/activityCoins`] = 0;
-            updates[`${playersPath}/${key}/spentCoins`] = 0;
-            updates[`${playersPath}/${key}/adminBonus`] = 0;
-            updates[`${playersPath}/${key}/bonusCoins`] = 0;
-            updates[`${playersPath}/${key}/arcadeCoins`] = ledger.arcadeCoins;
-            updates[`${playersPath}/${key}/totalChiCoins`] = ledger.arcadeCoins;
-        });
+            if (!p) continue;
+            p.activityLogs = null;
+            p.redemptionLogs = null;
+            p.activityCoins = 0;
+            p.spentCoins = 0;
+            p.adminBonus = 0;
+            p.bonusCoins = 0;
+            const ledger = computePlayerLedger(p);
+            p.arcadeCoins = ledger.arcadeCoins;
+            p.totalChiCoins = ledger.arcadeCoins;
 
-        await Promise.all([
-            Object.keys(updates).length > 0 ? db.ref().update(updates) : Promise.resolve(),
-            db.ref(invPath).set(DEFAULT_INVENTORY)
-        ]);
+            if (!isSandboxMode) {
+                await db.ref(`players/${key}`).update({
+                    activityLogs: null,
+                    redemptionLogs: null,
+                    activityCoins: 0,
+                    spentCoins: 0,
+                    adminBonus: 0,
+                    bonusCoins: 0,
+                    arcadeCoins: ledger.arcadeCoins,
+                    totalChiCoins: ledger.arcadeCoins
+                });
+            }
+        }
+
+        if (isSandboxMode) {
+            saveLocalSandboxPlayers(allPlayers);
+        }
+
+        renderPlayersTable();
+        if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
+            selectPlayer(selectedPlayerKey, true);
+        }
 
         alert(`✅ Listo (${envName}): Inventario restaurado a 220 unidades y pruebas de actividades/canjes limpiadas. Todos los récords de Arcade siguen intactos.`);
     } catch (err) {
@@ -1184,7 +1340,26 @@ function resetPlayerStats() {
     const tag = p.gamerTag || selectedPlayerKey;
 
     if (confirm(`⚠️ ¿Estás SEGURO de querer REINICIAR A CEROS todos los puntos, actividades y canjes de ${tag}?`)) {
-        db.ref(`${getPlayersPath()}/${selectedPlayerKey}`).update({
+        p.scores = { chico: 0, chica: 0, maddie: 0, puebla: 0 };
+        p.chiCoins = { chico: 0, chica: 0, maddie: 0, puebla: 0 };
+        p.arcadeCoins = 0;
+        p.activityCoins = 0;
+        p.spentCoins = 0;
+        p.activityLogs = null;
+        p.redemptionLogs = null;
+        p.bonusCoins = 0;
+        p.adminBonus = 0;
+        p.totalChiCoins = 0;
+        p.totalScore = 0;
+        p.timePlayedSeconds = 0;
+
+        if (isSandboxMode) {
+            saveLocalSandboxPlayers(allPlayers);
+            selectPlayer(selectedPlayerKey, false);
+            return;
+        }
+
+        db.ref(`players/${selectedPlayerKey}`).update({
             scores: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
             chiCoins: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
             arcadeCoins: 0,
@@ -1199,7 +1374,7 @@ function resetPlayerStats() {
             timePlayedSeconds: 0,
             lastUpdated: firebase.database.ServerValue.TIMESTAMP
         }).then(() => {
-            alert(`✅ Los datos de ${tag} han sido reiniciados a ceros.`);
+            selectPlayer(selectedPlayerKey, false);
         }).catch(err => alert("Error: " + err.message));
     }
 }
@@ -1209,40 +1384,60 @@ function deletePlayerRecord() {
     const p = allPlayers[selectedPlayerKey];
     const tag = p.gamerTag || selectedPlayerKey;
 
-    if (confirm(`🚨 PELIGRO: ¿Borrar por completo el registro de ${tag}?`)) {
-        db.ref(`${getPlayersPath()}/${selectedPlayerKey}`).remove().then(() => {
-            alert(`🗑️ El jugador ${tag} ha sido eliminado.`);
-            document.getElementById("noSelectionState").classList.remove("hidden");
-            document.getElementById("selectionState").classList.add("hidden");
-            document.getElementById("selectionState").classList.remove("flex");
-            selectedPlayerKey = null;
-        }).catch(err => alert("Error al borrar: " + err.message));
+    if (confirm(`🚨 ¿Borrar por completo el registro de ${tag}?`)) {
+        const keyToDelete = selectedPlayerKey;
+        delete allPlayers[keyToDelete];
+        selectedPlayerKey = null;
+
+        document.getElementById("noSelectionState").classList.remove("hidden");
+        document.getElementById("selectionState").classList.add("hidden");
+        document.getElementById("selectionState").classList.remove("flex");
+        renderPlayersTable();
+
+        if (isSandboxMode) {
+            saveLocalSandboxPlayers(allPlayers);
+            return;
+        }
+
+        db.ref(`players/${keyToDelete}`).remove().catch(err => alert("Error al borrar: " + err.message));
     }
 }
 
-function wipeEntireDatabase() {
+async function wipeEntireDatabase() {
     const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
     const pass = prompt(`🚨 ATENCIÓN [${envName}] 🚨\n\nEstás a punto de BORRAR TODOS LOS JUGADORES de ${envName}.\nEscribe 'Chicos0212' para confirmar:`);
     if (pass === "Chicos0212") {
-        if (confirm(`¿Estás absolutamente seguro de borrar todos los jugadores de ${envName}? ESTO NO SE PUEDE DESHACER.`)) {
-            const playersPath = getPlayersPath();
-            const updates = {};
-            Object.keys(allPlayers || {}).forEach(k => {
-                if (!k.startsWith("__")) {
-                    updates[`${playersPath}/${k}`] = null;
+        if (confirm(`¿Estás absolutamente seguro de borrar todos los jugadores de ${envName}?`)) {
+            if (isSandboxMode) {
+                allPlayers = {};
+                saveLocalSandboxPlayers({});
+                selectedPlayerKey = null;
+                document.getElementById("noSelectionState").classList.remove("hidden");
+                document.getElementById("selectionState").classList.add("hidden");
+                document.getElementById("selectionState").classList.remove("flex");
+                renderPlayersTable();
+                alert("✅ Jugadores de Pruebas (Sandbox) eliminados.");
+                return;
+            }
+
+            try {
+                const keys = Object.keys(allPlayers || {});
+                for (const k of keys) {
+                    if (!k.startsWith("__")) {
+                        await db.ref(`players/${k}`).remove();
+                    }
                 }
-            });
-            const op = Object.keys(updates).length > 0 ? db.ref().update(updates) : Promise.resolve();
-            op.then(() => {
-                alert(`✅ Todos los jugadores de ${envName} fueron eliminados exitosamente.`);
+                alert(`✅ Todos los jugadores de ${envName} fueron eliminados.`);
                 document.getElementById("noSelectionState").classList.remove("hidden");
                 document.getElementById("selectionState").classList.add("hidden");
                 document.getElementById("selectionState").classList.remove("flex");
                 selectedPlayerKey = null;
-            }).catch(err => alert("❌ Error al borrar: " + err.message));
+            } catch (err) {
+                alert("❌ Error al borrar: " + err.message);
+            }
         }
     } else if (pass !== null) {
-        alert("❌ Contraseña incorrecta. Abortando.");
+        alert("❌ Contraseña incorrecta.");
     }
 }
 
@@ -1269,7 +1464,7 @@ function restoreBackupJSON(event) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         try {
             const parsed = JSON.parse(e.target.result);
             if (!parsed || typeof parsed !== "object") {
@@ -1279,39 +1474,34 @@ function restoreBackupJSON(event) {
             const hasStructuredBackup = parsed.players || parsed.inventory;
             const rawPlayersToRestore = hasStructuredBackup ? (parsed.players || {}) : parsed;
             const playersToRestore = extractCleanPlayers(rawPlayersToRestore);
-            const inventoryToRestore = hasStructuredBackup ? (parsed.inventory || null) : (rawPlayersToRestore.__inventory__ || null);
+            const inventoryToRestore = hasStructuredBackup ? (parsed.inventory || null) : unwrapInventoryNode(rawPlayersToRestore.__inventory__);
 
             const count = Object.keys(playersToRestore).length;
             const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
-            if (!confirm(`⚠️ [${envName}] ¿Deseas RESTAURAR la base de datos de ${envName} con ${count} jugadores${inventoryToRestore ? ' y el inventario incluido' : ''}?`)) {
+            if (!confirm(`⚠️ [${envName}] ¿Deseas RESTAURAR ${count} jugadores${inventoryToRestore ? ' y el inventario' : ''} en ${envName}?`)) {
                 event.target.value = "";
                 return;
             }
 
-            const playersPath = getPlayersPath();
-            const updates = {};
-            // Limpiar jugadores actuales de ese entorno sin borrar las llaves reservadas __inventory__ / __sandbox_*
-            Object.keys(allPlayers || {}).forEach(k => {
-                if (!k.startsWith("__")) {
-                    updates[`${playersPath}/${k}`] = null;
-                }
-            });
-            Object.keys(playersToRestore).forEach(k => {
-                updates[`${playersPath}/${k}`] = playersToRestore[k];
-            });
-
-            const promises = [db.ref().update(updates)];
             if (inventoryToRestore) {
-                promises.push(db.ref(getInventoryPath()).set(inventoryToRestore));
+                allInventory = inventoryToRestore;
+                persistInventoryState();
             }
 
-            Promise.all(promises).then(() => {
+            if (isSandboxMode) {
+                allPlayers = playersToRestore;
+                saveLocalSandboxPlayers(allPlayers);
+                renderPlayersTable();
                 alert(`✅ ¡Respaldo restaurado exitosamente en ${envName}!`);
-            }).catch(err => {
-                alert("❌ Error al restaurar en Firebase: " + err.message);
-            });
+                return;
+            }
+
+            for (const k of Object.keys(playersToRestore)) {
+                await db.ref(`players/${k}`).set(playersToRestore[k]);
+            }
+            alert(`✅ ¡Respaldo restaurado exitosamente en ${envName}!`);
         } catch (err) {
-            alert("❌ Error al procesar el archivo JSON: " + err.message);
+            alert("❌ Error al restaurar el archivo JSON: " + err.message);
         } finally {
             event.target.value = "";
         }

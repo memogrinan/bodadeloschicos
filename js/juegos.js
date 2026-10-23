@@ -515,7 +515,27 @@ document.addEventListener("DOMContentLoaded", () => {
         let activePlayerListenerKey = "";
         let activePlayerListenerHandler = null;
         const isSandboxGuestMode = (new URLSearchParams(window.location.search).get("sandbox") === "1");
-        const PLAYERS_DB_PATH = isSandboxGuestMode ? "players/__sandbox_players__" : "players";
+        const PLAYERS_DB_PATH = "players";
+        const SANDBOX_PLAYERS_STORAGE_KEY = "bodachicos_sandbox_players_v1";
+
+        function getSandboxLocalPlayers() {
+            try {
+                const raw = localStorage.getItem(SANDBOX_PLAYERS_STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === "object") return parsed;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function updateSandboxLocalPlayer(keyTag, payload) {
+            try {
+                const current = getSandboxLocalPlayers() || {};
+                current[keyTag] = Object.assign({}, current[keyTag] || {}, payload);
+                localStorage.setItem(SANDBOX_PLAYERS_STORAGE_KEY, JSON.stringify(current));
+            } catch (e) {}
+        }
 
         function getArcadeChiCoinsTotal() {
             let sum = 0;
@@ -560,29 +580,52 @@ document.addEventListener("DOMContentLoaded", () => {
             return Math.max(0, arcadeTotal + activityTotal - spentTotal);
         }
 
+        function refreshActivePlayerUI(val) {
+            if (!val) return;
+            activePlayerRemoteData = val;
+            const totalDisplay = document.getElementById("totalChiCoinsDisplay");
+            if (totalDisplay) {
+                totalDisplay.innerText = getTotalChiCoins().toLocaleString();
+            }
+            const detailModal = document.getElementById("chiCoinsDetailModal");
+            if (detailModal && !detailModal.classList.contains("hidden")) {
+                renderChiCoinsDetailModal();
+            }
+        }
+
         function attachActivePlayerListener(keyTag) {
             if (!db || !keyTag) return;
             if (activePlayerListenerKey === keyTag && activePlayerListenerHandler) return;
 
-            if (activePlayerListenerKey && activePlayerListenerHandler) {
+            if (activePlayerListenerKey && activePlayerListenerHandler && !isSandboxGuestMode) {
                 try {
                     db.ref(PLAYERS_DB_PATH + "/" + activePlayerListenerKey).off("value", activePlayerListenerHandler);
                 } catch (e) {}
             }
 
             activePlayerListenerKey = keyTag;
+
+            if (isSandboxGuestMode) {
+                const applySandboxPlayer = () => {
+                    const sbMap = getSandboxLocalPlayers();
+                    if (sbMap && sbMap[keyTag]) {
+                        refreshActivePlayerUI(sbMap[keyTag]);
+                    }
+                };
+                applySandboxPlayer();
+                activePlayerListenerHandler = (e) => {
+                    if (!e || e.key === SANDBOX_PLAYERS_STORAGE_KEY) {
+                        applySandboxPlayer();
+                    }
+                };
+                window.addEventListener("storage", activePlayerListenerHandler);
+                return;
+            }
+
             activePlayerListenerHandler = (snapshot) => {
                 const val = snapshot.val();
                 if (val) {
-                    activePlayerRemoteData = val;
-                    const totalDisplay = document.getElementById("totalChiCoinsDisplay");
-                    if (totalDisplay) {
-                        totalDisplay.innerText = getTotalChiCoins().toLocaleString();
-                    }
-                    const detailModal = document.getElementById("chiCoinsDetailModal");
-                    if (detailModal && !detailModal.classList.contains("hidden")) {
-                        renderChiCoinsDetailModal();
-                    }
+                    refreshActivePlayerUI(val);
                 }
             };
             db.ref(PLAYERS_DB_PATH + "/" + keyTag).on("value", activePlayerListenerHandler);
@@ -858,7 +901,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem("bodachicos_scoped_" + keyTag, JSON.stringify(payload));
             } catch (e) {}
 
-            db.ref(PLAYERS_DB_PATH + "/" + keyTag).update(payload).catch(err => console.error("Error al sincronizar con Firebase:", err));
+            if (isSandboxGuestMode) {
+                updateSandboxLocalPlayer(keyTag, payload);
+            } else {
+                db.ref(PLAYERS_DB_PATH + "/" + keyTag).update(payload).catch(err => console.error("Error al sincronizar con Firebase:", err));
+            }
 
             // Enviar analíticos a Google Sheets (Trix) silenciosamente (SOLO EN PRODUCCIÓN, no en modo Sandbox)
             if (!isSandboxGuestMode) {
@@ -918,6 +965,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function listenToLeaderboard() {
             const tbody = document.getElementById("leaderboardTableBody");
+            if (isSandboxGuestMode) {
+                const sbMap = getSandboxLocalPlayers();
+                if (sbMap) {
+                    rawPlayersData = sbMap;
+                    renderLeaderboardTable();
+                    return;
+                }
+            }
             if (!db) {
                 tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Conectando a Firebase...</td></tr>`;
                 return;
@@ -925,7 +980,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!isLeaderboardListening) {
                 isLeaderboardListening = true;
                 db.ref(PLAYERS_DB_PATH).on("value", (snapshot) => {
-                    rawPlayersData = snapshot.val() || {};
+                    rawPlayersData = (isSandboxGuestMode && getSandboxLocalPlayers()) ? getSandboxLocalPlayers() : (snapshot.val() || {});
                     renderLeaderboardTable();
                 });
             } else {
@@ -1123,9 +1178,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         async function fetchPlayerRecordByGuest(guestId, realName) {
-            if (!db) return null;
             const cleanGId = guestId ? formatGuestId(guestId) : "";
             const cleanName = realName ? realName.trim() : "";
+
+            if (isSandboxGuestMode) {
+                const sbMap = getSandboxLocalPlayers();
+                if (sbMap) {
+                    if (cleanGId && sbMap[cleanGId]) return { key: cleanGId, data: sbMap[cleanGId] };
+                    const entries = Object.entries(sbMap);
+                    if (cleanGId) {
+                        const byGid = entries.find(([k, v]) => v && v.guestId === cleanGId);
+                        if (byGid) return { key: byGid[0], data: byGid[1] };
+                    }
+                    if (cleanName) {
+                        const byName = entries.find(([k, v]) => v && v.realName === cleanName);
+                        if (byName) return { key: byName[0], data: byName[1] };
+                    }
+                }
+            }
+
+            if (!db) return null;
 
             // 1. Probar por Guest ID directo como llave en /players/<id>
             if (cleanGId) {
@@ -1161,8 +1233,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         async function fetchPlayerRecordByGamertag(gamertag) {
-            if (!db || !gamertag || !gamertag.trim()) return null;
+            if (!gamertag || !gamertag.trim()) return null;
             const cleanTag = gamertag.trim().replace(/[.#$/[\]]/g, "_");
+
+            if (isSandboxGuestMode) {
+                const sbMap = getSandboxLocalPlayers();
+                if (sbMap) {
+                    if (sbMap[cleanTag]) return { key: cleanTag, data: sbMap[cleanTag] };
+                    const byTag = Object.entries(sbMap).find(([k, v]) => v && v.gamerTag === gamertag.trim());
+                    if (byTag) return { key: byTag[0], data: byTag[1] };
+                }
+            }
+
+            if (!db) return null;
 
             // 1. Probar por Gamertag directo como llave en /players/<tag>
             try {

@@ -6,346 +6,385 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Stand Boda - ChiCoins & Inventario 🪙</title>
+    <title>Stand de los Chicos • Control de ChiCoins</title>
     <link class="favicon" rel="icon" href="ImagenesWeb/Optimizadas/favicon.webp?v=29.0" type="image/webp">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Montserrat', 'sans-serif'] },
+                    colors: {
+                        'olivo-base': '#52582f',
+                        'olivo-claro': '#a3ad73'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Montserrat', sans-serif; background-color: #0f172a; color: #e2e8f0; }
-        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); border-radius: 8px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 8px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(251, 191, 36, 0.5); }
+        @font-face {
+            font-family: 'Monogram';
+            src: url('Fonts/monogram-extended.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        .font-monogram {
+            font-family: 'Monogram', monospace;
+            image-rendering: pixelated;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #fcfaf7;
+            color: #1f2937;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(82, 88, 47, 0.25); border-radius: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(82, 88, 47, 0.45); }
     </style>
 </head>
-<body class="min-h-screen p-3 sm:p-6 md:p-8">
+<body class="min-h-screen pb-10">
 
-    <!-- BANNER SUPERIOR VIVO DE ARTÍCULOS RESTANTES -->
-    <div class="max-w-7xl mx-auto mb-4 bg-gradient-to-r from-amber-500/20 via-emerald-500/15 to-amber-500/20 border border-amber-400/40 rounded-2xl px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-lg backdrop-blur-md">
-        <div class="flex items-center gap-3">
-            <span class="text-2xl sm:text-3xl animate-bounce">📦</span>
-            <div>
-                <p class="text-[11px] uppercase tracking-widest text-amber-300 font-bold">Inventario en Vivo • Stand de Canje</p>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-sm sm:text-base text-slate-200 font-semibold">Total de artículos restantes:</span>
-                    <span id="liveTotalItemsRemaining" class="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono">--</span>
-                    <span id="liveTotalItemsInitial" class="text-xs text-slate-400 font-mono">/ -- uds</span>
+    <!-- CABECERA COMPACTA ESTILO BODA -->
+    <header class="bg-[#52582f] text-white py-3 px-3 sm:px-6 shadow-sm sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-xl sm:text-2xl shrink-0">🪙</span>
+                <div class="truncate">
+                    <h1 class="text-sm sm:text-lg font-extrabold tracking-tight leading-tight truncate">Stand de los Chicos</h1>
+                    <p class="text-[10px] text-white/75 font-medium hidden sm:block">Control de Actividades, Canjes e Inventario</p>
                 </div>
             </div>
-        </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <span id="lowStockAlertBadge" class="hidden text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/40 px-3 py-1.5 rounded-xl">
-                ⚠️ <span id="lowStockCount">0</span> agotados
-            </span>
-            <button onclick="toggleInventoryModal()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">
-                <span>📋</span> Administrar Inventario y Precios
-            </button>
-        </div>
-    </div>
 
-    <!-- BANNER DE MODO SANDBOX (OCULTO EN PRODUCCIÓN) -->
-    <div id="sandboxActiveBanner" class="hidden max-w-7xl mx-auto mb-4 bg-purple-900/40 border-2 border-purple-400/70 rounded-2xl px-4 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg backdrop-blur-md">
-        <div class="flex items-center gap-3">
-            <span class="text-2xl sm:text-3xl">🧪</span>
-            <div>
-                <p class="text-xs uppercase tracking-widest text-purple-300 font-extrabold">MODO PRUEBAS (SANDBOX) ACTIVO • DATOS REALES PROTEGIDOS</p>
-                <p class="text-xs text-slate-200 mt-0.5">Todo lo que hagas aquí afecta únicamente a la copia de prueba (<code class="text-purple-300 font-mono">sandbox_players</code> y <code class="text-purple-300 font-mono">sandbox_inventory</code>). Los invitados reales siguen jugando en Producción sin afectarse.</p>
+            <!-- CONTROLES HORIZONTALES EN UNA SOLA LÍNEA -->
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <button id="envModeToggleBtn" onclick="toggleSandboxMode()" class="inline-flex items-center px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-white/15 hover:bg-white/25 text-white border border-white/25 transition cursor-pointer">
+                    <span id="envModeToggleLabel">🟢 Producción</span>
+                </button>
+                <a id="goToArcadeLink" href="juegos.html" class="bg-white/15 hover:bg-white/25 text-white px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition">
+                    🎮 Arcade
+                </a>
             </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 shrink-0 w-full md:w-auto justify-end">
-            <button onclick="cloneProdToSandbox(true)" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-3 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5">
-                <span>🔄</span> Recargar Copia desde Producción
-            </button>
-            <a href="juegos.html?sandbox=1" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-purple-200 border border-purple-400/40 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
-                <span>📱</span> Ver Arcade en Sandbox ↗
-            </a>
-        </div>
-    </div>
-
-    <!-- CABECERA PRINCIPAL -->
-    <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-800/80 p-5 rounded-3xl border border-slate-700 shadow-xl backdrop-blur-md">
-        <div class="flex items-center gap-4">
-            <span class="text-4xl">🪙</span>
-            <div>
-                <h1 class="text-xl md:text-2xl font-extrabold text-amber-400">BOUTIQUE & STAND DE LOS CHICOS</h1>
-                <p class="text-xs text-slate-400 font-semibold">Panel Transaccional • Actividades, Canjes e Inventario en Tiempo Real</p>
-            </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2.5">
-            <button id="envModeToggleBtn" onclick="toggleSandboxMode()" class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-extrabold bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/40 transition cursor-pointer shadow-sm" title="Cambiar entre Producción en vivo y Copia de Pruebas (Sandbox)">
-                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                <span id="envModeToggleLabel">🟢 PRODUCCIÓN (Ir a 🧪 Pruebas)</span>
-            </button>
-            <button onclick="downloadBackupJSON()" class="text-xs bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-xl transition text-white font-semibold flex items-center gap-1.5 shadow">
-                <span>📥</span> Backup Todo
-            </button>
-            <label class="text-xs bg-sky-600 hover:bg-sky-500 px-3 py-2 rounded-xl transition text-white font-semibold flex items-center gap-1.5 cursor-pointer shadow">
-                <span>📤</span> Restaurar
-                <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="restoreBackupJSON(event)">
-            </label>
-            <a id="goToArcadeLink" href="juegos.html" class="text-xs bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl transition text-slate-200 font-semibold">Ir al Arcade 🎮</a>
         </div>
     </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="max-w-7xl mx-auto mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- COLUMNA IZQUIERDA (5 cols): LISTA Y BÚSQUEDA DE JUGADORES -->
-        <section class="lg:col-span-5 bg-slate-800/60 p-5 rounded-3xl border border-slate-700/80 shadow-lg flex flex-col max-h-[85vh]">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                        <span>👥</span> Invitados / Jugadores (<span id="totalPlayersCount">0</span>)
-                    </h2>
-                    <p class="text-xs text-slate-400">Selecciona a un invitado para sumar puntos o canjear</p>
+    <div class="max-w-6xl mx-auto px-3 sm:px-6 mt-3 space-y-3">
+
+        <!-- ALERTA AUTOMÁTICA SI LAS REGLAS DE FIREBASE EXPIRARON (PERMISSION_DENIED) -->
+        <div id="firebasePermissionWarning" class="hidden bg-red-50 border-2 border-red-300 rounded-2xl p-3.5 text-xs text-red-900 shadow-xs">
+            <div class="flex items-start gap-2.5">
+                <span class="text-lg shrink-0">🔒</span>
+                <div class="flex-1 min-w-0">
+                    <p class="font-extrabold text-red-800 text-xs sm:text-sm">Las reglas temporales de Firebase Realtime Database expiraron (PERMISSION_DENIED)</p>
+                    <p class="mt-1 text-red-700 leading-relaxed">
+                        Firebase bloquea lecturas y escrituras después de 30 días en "Modo de prueba". Para reactivarlo permanentemente: entra a <strong>Firebase Console → Realtime Database → Reglas</strong>, pega esto y dale a <strong>Publicar</strong>:
+                    </p>
+                    <pre class="mt-2 bg-white border border-red-200 rounded-xl p-2 font-mono text-[11px] text-gray-800 overflow-x-auto">{"rules": {".read": true, ".write": true}}</pre>
                 </div>
-            </div>
-
-            <div class="mb-4">
-                <input type="text" id="searchInput" oninput="filterPlayers()" placeholder="🔍 Buscar por GamerTag o Nombre real..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-amber-400 transition">
-            </div>
-
-            <div class="overflow-y-auto custom-scroll flex-1 pr-1">
-                <table class="w-full text-left text-sm">
-                    <thead class="sticky top-0 bg-slate-800 z-10">
-                        <tr class="border-b border-slate-700 text-[11px] uppercase text-slate-400 tracking-wider">
-                            <th class="pb-2.5 px-2">Jugador</th>
-                            <th class="pb-2.5 px-2 text-right">Disponible 🪙</th>
-                            <th class="pb-2.5 px-2 text-right">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="playersTableBody" class="divide-y divide-slate-700/50">
-                        <tr>
-                            <td colspan="3" class="py-8 text-center text-slate-500 italic">Cargando jugadores en tiempo real...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- COLUMNA DERECHA (7 cols): CONSOLA DE OPERACIÓN Y LOG DEL JUGADOR -->
-        <section class="lg:col-span-7 bg-slate-800/80 p-5 sm:p-6 rounded-3xl border border-slate-700 shadow-xl flex flex-col" id="actionPanel">
-            <div id="noSelectionState" class="my-auto text-center py-16">
-                <span class="text-5xl opacity-40">👈</span>
-                <p class="text-slate-300 font-bold text-base mt-4">Selecciona a un jugador de la lista</p>
-                <p class="text-slate-500 text-xs mt-1 max-w-sm mx-auto">Podrás abonarle ChiCoins de Plinko o Yahtzee, canjearle artículos de la tienda en vivo y consultar su bitácora completa de puntos.</p>
-            </div>
-
-            <div id="selectionState" class="hidden flex-col gap-5">
-                <!-- ENCABEZADO DEL JUGADOR SELECCIONADO -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700 pb-4">
-                    <div>
-                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-widest">Jugador Activo</span>
-                        <h3 id="selectedTag" class="text-2xl font-extrabold text-white mt-0.5">--</h3>
-                        <p id="selectedRealName" class="text-xs text-slate-400 font-medium"></p>
-                    </div>
-                    <div class="bg-slate-900/90 border border-amber-500/40 px-5 py-2.5 rounded-2xl text-right w-full sm:w-auto">
-                        <span class="text-[10px] text-amber-300 font-bold uppercase tracking-wider block">Balance Disponible</span>
-                        <p id="selectedCoins" class="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono">0 🪙</p>
-                    </div>
-                </div>
-
-                <!-- TARJETAS DE LAS 4 FILAS DE BALANCE -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-                    <div class="bg-slate-900/70 border border-slate-700/70 p-2.5 rounded-2xl">
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">🎮 Ganado Arcade</span>
-                        <span id="summaryArcadeCoins" class="text-base font-extrabold text-emerald-400 font-mono">+0 🪙</span>
-                    </div>
-                    <div class="bg-slate-900/70 border border-slate-700/70 p-2.5 rounded-2xl">
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">🎲 Actividades</span>
-                        <span id="summaryActivityCoins" class="text-base font-extrabold text-indigo-400 font-mono">+0 🪙</span>
-                    </div>
-                    <div class="bg-slate-900/70 border border-slate-700/70 p-2.5 rounded-2xl">
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">🛍️ Gastado Tienda</span>
-                        <span id="summarySpentCoins" class="text-base font-extrabold text-rose-400 font-mono">-0 🪙</span>
-                    </div>
-                    <div class="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-2xl">
-                        <span class="text-[10px] text-amber-300 uppercase font-bold block">🪙 Neto Actual</span>
-                        <span id="summaryNetCoins" class="text-base font-extrabold text-amber-400 font-mono">0 🪙</span>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN 1: SUMAR CHICOINS POR ACTIVIDADES FÍSICAS (PLINKO / YAHTZEE / DISCRECIONAL) -->
-                <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/60">
-                    <label class="text-xs font-extrabold text-indigo-300 uppercase tracking-wider block mb-2.5">
-                        🎲 1. Sumar ChiCoins por Actividades (Plinko, Yahtzee o Premio)
-                    </label>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-                        <button onclick="addActivityPoints('plinko', 'Plinko', 300)" class="bg-indigo-600/30 hover:bg-indigo-600/50 active:scale-95 text-indigo-200 border border-indigo-500/40 font-bold py-2 px-2 rounded-xl text-xs transition">
-                            🎯 Plinko +300
-                        </button>
-                        <button onclick="addActivityPoints('plinko', 'Plinko', 500)" class="bg-indigo-600/30 hover:bg-indigo-600/50 active:scale-95 text-indigo-200 border border-indigo-500/40 font-bold py-2 px-2 rounded-xl text-xs transition">
-                            🎯 Plinko +500
-                        </button>
-                        <button onclick="addActivityPoints('yahtzee', 'Yahtzee', 800)" class="bg-purple-600/30 hover:bg-purple-600/50 active:scale-95 text-purple-200 border border-purple-500/40 font-bold py-2 px-2 rounded-xl text-xs transition">
-                            🎲 Yahtzee +800
-                        </button>
-                        <button onclick="addActivityPoints('yahtzee', 'Yahtzee', 1000)" class="bg-purple-600/30 hover:bg-purple-600/50 active:scale-95 text-purple-200 border border-purple-500/40 font-bold py-2 px-2 rounded-xl text-xs transition">
-                            🎲 Yahtzee +1,000
-                        </button>
-                    </div>
-
-                    <!-- ABONO PERSONALIZADO / A DISCRECIÓN -->
-                    <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-800">
-                        <select id="customActivityType" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-400">
-                            <option value="plinko">🎯 Plinko (Otro monto)</option>
-                            <option value="yahtzee">🎲 Yahtzee (Otro monto)</option>
-                            <option value="bonus">✨ Premio a Discreción</option>
-                        </select>
-                        <input type="text" id="customActivityNote" placeholder="Nota opcional (ej. Reto baile)" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-400">
-                        <input type="number" id="customAmountInput" placeholder="Cantidad (+)" class="w-full sm:w-28 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none font-mono focus:border-indigo-400">
-                        <button onclick="applyCustomActivity()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition shrink-0 shadow">
-                            + Abonar
-                        </button>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN 2: CANJEAR ARTÍCULOS DEL INVENTARIO EN VIVO -->
-                <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/60">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
-                        <label class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider">
-                            🛍️ 2. Canjear Artículo (Se ocultan automáticamente los agotados)
-                        </label>
-                        <input type="text" id="redeemSearchInput" oninput="renderRedeemableItems()" placeholder="🔍 Filtrar artículo..." class="w-full sm:w-48 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 outline-none focus:border-emerald-400">
-                    </div>
-
-                    <div id="redeemableItemsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto custom-scroll pr-1">
-                        <!-- Botones dinámicos del inventario con stock > 0 -->
-                    </div>
-                </div>
-
-                <!-- SECCIÓN 3: BITÁCORA / LOG COMPLETO DE TRANSACCIONES DEL JUGADOR -->
-                <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-700/70">
-                    <div class="flex justify-between items-center mb-3">
-                        <h4 class="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <span>📜</span> 3. Bitácora Completa de Puntos (Log de Auditoría)
-                        </h4>
-                        <span class="text-[11px] text-slate-400">Puedes revertir cualquier abono o canje</span>
-                    </div>
-
-                    <div class="space-y-3 max-h-80 overflow-y-auto custom-scroll pr-1 text-xs">
-                        <!-- 3A. LOG DE ARCADE (MÁXIMO POR JUEGO + BONO 500) -->
-                        <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/50">
-                            <p class="font-bold text-emerald-300 mb-2 uppercase text-[11px]">🎮 Puntos Ganados en Arcade (Máximo por juego + Bono 4 Metas):</p>
-                            <div id="logArcadeList" class="space-y-1.5 text-slate-300"></div>
-                        </div>
-
-                        <!-- 3B. LOG DE ACTIVIDADES (PLINKO, YAHTZEE, BONOS) -->
-                        <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/50">
-                            <p class="font-bold text-indigo-300 mb-2 uppercase text-[11px]">🎲 Historial de Actividades Físicas (Plinko / Yahtzee / Premios):</p>
-                            <div id="logActivitiesList" class="space-y-1.5 text-slate-300"></div>
-                        </div>
-
-                        <!-- 3C. LOG DE CANJES EN TIENDA -->
-                        <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/50">
-                            <p class="font-bold text-rose-300 mb-2 uppercase text-[11px]">🛍️ Historial de Artículos Canjeados en Tienda:</p>
-                            <div id="logRedemptionsList" class="space-y-1.5 text-slate-300"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ACCIONES PELIGROSAS (RESETEO / ELIMINACIÓN DEL JUGADOR) -->
-                <div class="pt-3 border-t border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-2">
-                    <span class="text-[11px] font-bold text-red-400 uppercase">⚠️ Zona de Peligro (Jugador actual)</span>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="resetPlayerStats()" class="flex-1 sm:flex-initial bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold px-3 py-1.5 rounded-xl text-xs transition">Reiniciar a Ceros</button>
-                        <button onclick="deletePlayerRecord()" class="flex-1 sm:flex-initial bg-red-600/80 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm">Borrar Jugador</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- ZONA DE PELIGRO GLOBAL -->
-    <section class="max-w-4xl mx-auto mt-10 bg-red-900/15 border border-red-500/40 rounded-2xl overflow-hidden shadow-lg">
-        <div class="p-5 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h3 class="text-sm font-bold text-red-400">🚨 ZONA DE RESETEO Y LIMPIEZA SEGURA DE PRUEBAS</h3>
-                <p class="text-xs text-red-300/80 mt-0.5">El botón verde/esmeralda limpia únicamente pruebas de Tienda y Actividades (Plinko/Yahtzee) y regresa el inventario a 220 uds, <strong>dejando 100% intactos los récords de Arcade de los invitados</strong>.</p>
-            </div>
-            <div class="flex flex-wrap gap-2 shrink-0 justify-end">
-                <button onclick="cleanOnlyActivitiesAndRedemptions()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs transition shadow-md">
-                    🧼 Limpiar Canjes/Actividades (Intacto Arcade)
-                </button>
-                <button onclick="resetInventoryToDefault()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3.5 py-2.5 rounded-xl text-xs transition shadow-sm">
-                    🔄 Resetear Inventario (220 uds)
-                </button>
-                <button onclick="wipeEntireDatabase()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs transition shadow-sm">
-                    🗑️ Borrar Jugadores
-                </button>
             </div>
         </div>
-    </section>
+
+        <!-- BARRA HORIZONTAL DE INVENTARIO EN VIVO (CABE EN 1 FILA EN CELULAR) -->
+        <div class="bg-white border border-gray-200/90 rounded-2xl px-3.5 py-2.5 flex justify-between items-center gap-2 shadow-2xs">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-lg shrink-0">📦</span>
+                <div class="flex items-baseline gap-1.5 flex-wrap">
+                    <span class="text-xs font-bold text-gray-600">Disponibles:</span>
+                    <span id="liveTotalItemsRemaining" class="font-monogram text-xl sm:text-2xl font-extrabold text-olivo-base leading-none">220</span>
+                    <span id="liveTotalItemsInitial" class="text-[11px] text-gray-400 font-medium">/ 220 uds</span>
+                    <span id="lowStockAlertBadge" class="hidden text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full">
+                        ⚠️ <span id="lowStockCount">0</span> agotados
+                    </span>
+                </div>
+            </div>
+            <button onclick="toggleInventoryModal()" class="shrink-0 bg-[#52582f] hover:bg-opacity-90 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-2xs flex items-center gap-1">
+                <span>📋</span> <span>Inventario</span>
+            </button>
+        </div>
+
+        <!-- BANNER COMPACTO DE MODO SANDBOX (OCULTO EN PRODUCCIÓN) -->
+        <div id="sandboxActiveBanner" class="hidden bg-purple-50 border border-purple-200 rounded-2xl px-3.5 py-2.5 flex flex-wrap justify-between items-center gap-2 text-xs">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-base shrink-0">🧪</span>
+                <span class="font-bold text-purple-900 truncate">Modo Pruebas (Datos reales intactos)</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="cloneProdToSandbox(true)" class="bg-purple-700 hover:bg-purple-600 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] transition">
+                    🔄 Copiar de Prod
+                </button>
+                <a href="juegos.html?sandbox=1" target="_blank" class="bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 font-bold px-2.5 py-1 rounded-lg text-[11px] transition">
+                    📱 Arcade Sandbox ↗
+                </a>
+            </div>
+        </div>
+
+        <!-- LAYOUT PRINCIPAL: 2 COLUMNAS EN ESCRITORIO, FLUJO ÁGIL EN MÓVIL -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            
+            <!-- COLUMNA IZQUIERDA (5 cols): BUSCADOR Y LISTA DE JUGADORES -->
+            <section class="lg:col-span-5 bg-white p-4 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col max-h-[65vh] lg:max-h-[80vh]">
+                <div class="flex justify-between items-center mb-2.5">
+                    <h2 class="text-sm font-extrabold text-olivo-base flex items-center gap-1.5">
+                        <span>👥</span> Invitados (<span id="totalPlayersCount">0</span>)
+                    </h2>
+                    <span class="text-[11px] text-gray-400 font-medium">Toca uno para gestionar</span>
+                </div>
+
+                <div class="mb-2.5">
+                    <input type="text" id="searchInput" oninput="filterPlayers()" placeholder="🔍 Buscar GamerTag o nombre..." class="w-full bg-[#fcfaf7] border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder-gray-400 outline-none focus:border-[#52582f] transition">
+                </div>
+
+                <div class="overflow-y-auto custom-scroll flex-1 pr-0.5">
+                    <table class="w-full text-left text-xs">
+                        <thead class="sticky top-0 bg-white z-10 border-b border-gray-100 text-[10px] uppercase text-gray-400">
+                            <tr>
+                                <th class="py-1.5 px-1.5">Invitado</th>
+                                <th class="py-1.5 px-1.5 text-right">Saldo</th>
+                                <th class="py-1.5 px-1.5 text-right w-16"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody" class="divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="3" class="py-6 text-center text-gray-400 italic">Cargando invitados...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- COLUMNA DERECHA (7 cols): PANEL DEL INVITADO SELECCIONADO -->
+            <section class="lg:col-span-7 bg-white p-4 sm:p-5 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col" id="actionPanel">
+                
+                <!-- ESTADO SIN SELECCIÓN -->
+                <div id="noSelectionState" class="my-auto text-center py-12">
+                    <span class="text-4xl opacity-40">👆</span>
+                    <p class="text-gray-700 font-bold text-sm mt-3">Selecciona a un invitado de la lista</p>
+                    <p class="text-gray-400 text-xs mt-1 max-w-xs mx-auto">Aquí podrás sumar puntos de actividades (Plinko / Yahtzee) o canjear artículos de la tienda.</p>
+                </div>
+
+                <!-- ESTADO CON JUGADOR ACTIVO -->
+                <div id="selectionState" class="hidden flex-col gap-3.5">
+                    
+                    <!-- CABECERA DEL JUGADOR + BALANCE TOTAL HORIZONTAL -->
+                    <div class="bg-[#52582f]/10 border border-[#52582f]/25 px-3.5 py-2.5 rounded-2xl flex justify-between items-center gap-2">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-olivo-base">Invitado Activo</span>
+                            </div>
+                            <h3 id="selectedTag" class="text-base sm:text-lg font-extrabold text-gray-900 truncate leading-tight">--</h3>
+                            <p id="selectedRealName" class="text-[11px] text-gray-500 font-medium truncate"></p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-olivo-base block">Balance Total</span>
+                            <p id="selectedCoins" class="font-monogram text-2xl sm:text-3xl font-extrabold text-olivo-base leading-none">0 🪙</p>
+                        </div>
+                    </div>
+
+                    <!-- BARRA HORIZONTAL DE 3 SUBTOTALES (SIEMPRE EN 1 FILA EN CELULAR) -->
+                    <div class="grid grid-cols-3 gap-1.5 text-center">
+                        <div class="bg-[#fcfaf7] border border-gray-200/80 px-2 py-1.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 font-bold block truncate">🎮 Arcade</span>
+                            <span id="summaryArcadeCoins" class="font-monogram text-sm sm:text-base font-extrabold text-olivo-base">+0</span>
+                        </div>
+                        <div class="bg-[#fcfaf7] border border-gray-200/80 px-2 py-1.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 font-bold block truncate">🎯 Actividades</span>
+                            <span id="summaryActivityCoins" class="font-monogram text-sm sm:text-base font-extrabold text-olivo-base">+0</span>
+                        </div>
+                        <div class="bg-[#fcfaf7] border border-gray-200/80 px-2 py-1.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 font-bold block truncate">✨ Utilizados</span>
+                            <span id="summarySpentCoins" class="font-monogram text-sm sm:text-base font-extrabold text-rose-700">-0</span>
+                        </div>
+                        <span id="summaryNetCoins" class="hidden">0</span>
+                    </div>
+
+                    <!-- 1. SUMAR ACTIVIDADES (BOTONES HORIZONTALES EN CELULAR) -->
+                    <div class="bg-[#fcfaf7] p-3 rounded-2xl border border-gray-200/80">
+                        <label class="text-[11px] font-extrabold text-olivo-base uppercase tracking-wider block mb-2">
+                            🎯 1. Sumar Puntos de Actividades
+                        </label>
+                        <!-- 4 botones en una sola fila horizontal en celular -->
+                        <div class="grid grid-cols-4 gap-1.5 mb-2">
+                            <button onclick="addActivityPoints('plinko', 'Plinko', 300)" class="bg-white hover:bg-[#52582f] hover:text-white active:scale-95 text-gray-800 border border-gray-200 font-bold py-2 px-1 rounded-xl text-[11px] transition shadow-2xs text-center leading-tight">
+                                🎯 Plinko<br><span class="font-monogram text-sm text-olivo-base group-hover:text-white">+300</span>
+                            </button>
+                            <button onclick="addActivityPoints('plinko', 'Plinko', 500)" class="bg-white hover:bg-[#52582f] hover:text-white active:scale-95 text-gray-800 border border-gray-200 font-bold py-2 px-1 rounded-xl text-[11px] transition shadow-2xs text-center leading-tight">
+                                🎯 Plinko<br><span class="font-monogram text-sm text-olivo-base">+500</span>
+                            </button>
+                            <button onclick="addActivityPoints('yahtzee', 'Yahtzee', 800)" class="bg-white hover:bg-[#52582f] hover:text-white active:scale-95 text-gray-800 border border-gray-200 font-bold py-2 px-1 rounded-xl text-[11px] transition shadow-2xs text-center leading-tight">
+                                🎲 Yahtzee<br><span class="font-monogram text-sm text-olivo-base">+800</span>
+                            </button>
+                            <button onclick="addActivityPoints('yahtzee', 'Yahtzee', 1000)" class="bg-white hover:bg-[#52582f] hover:text-white active:scale-95 text-gray-800 border border-gray-200 font-bold py-2 px-1 rounded-xl text-[11px] transition shadow-2xs text-center leading-tight">
+                                🎲 Yahtzee<br><span class="font-monogram text-sm text-olivo-base">+1000</span>
+                            </button>
+                        </div>
+
+                        <!-- Abono libre en 1 sola línea horizontal en celular -->
+                        <div class="flex items-center gap-1.5 pt-2 border-t border-gray-200/60">
+                            <select id="customActivityType" class="bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-[11px] font-semibold text-gray-700 outline-none focus:border-[#52582f] shrink-0">
+                                <option value="plinko">🎯 Plinko</option>
+                                <option value="yahtzee">🎲 Yahtzee</option>
+                                <option value="bonus">✨ Premio</option>
+                            </select>
+                            <input type="text" id="customActivityNote" placeholder="Nota (opcional)" class="min-w-0 flex-1 bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-[11px] text-gray-800 outline-none focus:border-[#52582f]">
+                            <input type="number" id="customAmountInput" placeholder="+Pts" class="w-16 sm:w-20 bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-800 outline-none font-mono text-center focus:border-[#52582f] shrink-0">
+                            <button onclick="applyCustomActivity()" class="bg-[#52582f] hover:bg-opacity-90 text-white font-bold px-3 py-1.5 rounded-xl text-[11px] transition shrink-0 shadow-2xs">
+                                + Sumar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. CANJEAR ARTÍCULO EN TIENDA -->
+                    <div class="bg-[#fcfaf7] p-3 rounded-2xl border border-gray-200/80">
+                        <div class="flex justify-between items-center gap-2 mb-2">
+                            <label class="text-[11px] font-extrabold text-olivo-base uppercase tracking-wider shrink-0">
+                                🛍️ 2. Canjear Artículo
+                            </label>
+                            <input type="text" id="redeemSearchInput" oninput="renderRedeemableItems()" placeholder="🔍 Filtrar premio..." class="w-36 sm:w-48 bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-[11px] text-gray-800 outline-none focus:border-[#52582f]">
+                        </div>
+
+                        <div id="redeemableItemsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-60 overflow-y-auto custom-scroll pr-0.5">
+                            <!-- Artículos dinámicos con stock > 0 -->
+                        </div>
+                    </div>
+
+                    <!-- 3. DESGLOSE Y MOVIMIENTOS DEL INVITADO (MISMO ESTILO MINIMALISTA QUE MIS CHICOINS) -->
+                    <div class="bg-[#fcfaf7] p-3 rounded-2xl border border-gray-200/80 space-y-2 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-extrabold text-olivo-base uppercase tracking-wider">📜 3. Movimientos del Invitado</span>
+                            <span class="text-[10px] text-gray-400">Puedes revertir movimientos</span>
+                        </div>
+
+                        <!-- 3A. ACTIVIDADES -->
+                        <div class="bg-white p-2.5 rounded-xl border border-gray-200/70">
+                            <p class="font-bold text-gray-700 mb-1 text-[11px]">🎯 Actividades (Plinko / Yahtzee / Extras)</p>
+                            <div id="logActivitiesList" class="divide-y divide-gray-100 text-gray-700"></div>
+                        </div>
+
+                        <!-- 3B. CANJES -->
+                        <div class="bg-white p-2.5 rounded-xl border border-gray-200/70">
+                            <p class="font-bold text-gray-700 mb-1 text-[11px]">✨ Artículos Canjeados</p>
+                            <div id="logRedemptionsList" class="divide-y divide-gray-100 text-gray-700"></div>
+                        </div>
+
+                        <!-- 3C. ARCADE -->
+                        <div class="bg-white p-2.5 rounded-xl border border-gray-200/70">
+                            <p class="font-bold text-gray-700 mb-1 text-[11px]">🎮 Récords en Arcade</p>
+                            <div id="logArcadeList" class="divide-y divide-gray-100 text-gray-700"></div>
+                        </div>
+                    </div>
+
+                    <!-- ACCIONES DEL JUGADOR ACTUAL -->
+                    <div class="pt-2 border-t border-gray-100 flex justify-between items-center gap-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Ajuste de invitado</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="resetPlayerStats()" class="bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200 font-bold px-2.5 py-1 rounded-lg text-[10px] transition">Reiniciar a Ceros</button>
+                            <button onclick="deletePlayerRecord()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold px-2.5 py-1 rounded-lg text-[10px] transition">Borrar Invitado</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- BARRA INFERIOR DE RESPALDO Y LIMPIEZA DE PRUEBAS (DESPLEGABLE PARA NO ESTORBAR AL STAFF) -->
+        <details class="bg-white border border-gray-200/80 rounded-2xl px-4 py-3 shadow-2xs text-xs">
+            <summary class="font-bold text-gray-600 cursor-pointer select-none flex justify-between items-center">
+                <span>⚙️ Herramientas de Administrador (Backups y Limpieza de Pruebas)</span>
+                <span class="text-[10px] text-gray-400">Mostrar ▼</span>
+            </summary>
+            <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap justify-between items-center gap-2">
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="downloadBackupJSON()" class="bg-[#52582f] hover:bg-opacity-90 text-white font-bold px-3 py-2 rounded-xl text-[11px] transition">
+                        📥 Descargar Backup
+                    </button>
+                    <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 font-bold px-3 py-2 rounded-xl text-[11px] transition cursor-pointer">
+                        📤 Restaurar Backup
+                        <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="restoreBackupJSON(event)">
+                    </label>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="cleanOnlyActivitiesAndRedemptions()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-xl text-[11px] transition">
+                        🧼 Limpiar Canjes/Actividades (Intacto Arcade)
+                    </button>
+                    <button onclick="resetInventoryToDefault()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2 rounded-xl text-[11px] transition">
+                        🔄 Resetear Inventario (220 uds)
+                    </button>
+                    <button onclick="wipeEntireDatabase()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 rounded-xl text-[11px] transition">
+                        🗑️ Borrar Todo
+                    </button>
+                </div>
+            </div>
+        </details>
+    </div>
 
     <!-- ========================================== -->
     <!-- MODAL ADMINISTRADOR DE INVENTARIO Y PRECIOS -->
     <!-- ========================================== -->
-    <div id="inventoryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden justify-center items-center p-2.5 sm:p-6">
-        <div class="bg-slate-800 border border-slate-700 rounded-3xl p-4 sm:p-6 max-w-4xl w-full shadow-2xl flex flex-col max-h-[92vh]">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-700">
-                <div class="flex items-center gap-2.5">
-                    <span class="text-2xl sm:text-3xl">📦</span>
-                    <div>
-                        <h2 class="text-base sm:text-xl font-extrabold text-amber-400">Gestor de Inventario y Precios</h2>
-                        <p class="text-[11px] sm:text-xs text-slate-400">Modifica precios en ChiCoins o ajusta existencias en vivo</p>
-                    </div>
+    <div id="inventoryModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden justify-center items-center p-2.5 sm:p-6" onclick="if(event.target===this) toggleInventoryModal()">
+        <div class="bg-[#fcfaf7] border border-gray-200 rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center pb-2.5 border-b border-gray-200">
+                <div>
+                    <h2 class="text-base sm:text-lg font-extrabold text-olivo-base">📦 Inventario y Precios</h2>
+                    <p class="text-[11px] text-gray-400">Ajusta precios o existencias en vivo</p>
                 </div>
-                <button onclick="toggleInventoryModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">✕</button>
+                <button onclick="toggleInventoryModal()" class="text-gray-400 hover:text-gray-700 text-xl font-bold px-2">✕</button>
             </div>
 
-            <!-- BOTÓN Y FORMULARIO DESPLEGABLE PARA AGREGAR NUEVO ARTÍCULO -->
-            <div class="mt-3 bg-slate-900/80 rounded-2xl border border-slate-700 overflow-hidden shrink-0">
-                <button type="button" onclick="toggleNewItemForm()" class="w-full px-3.5 py-2.5 flex justify-between items-center text-left hover:bg-slate-800/60 transition">
-                    <span class="text-xs font-bold text-emerald-400 uppercase flex items-center gap-1.5">
-                        <span>➕</span> Agregar Nuevo Artículo a la Tienda
+            <!-- BOTÓN Y FORMULARIO DESPLEGABLE PARA AGREGAR NUEVO ARTÍCULO (CERRADO POR DEFECTO) -->
+            <div class="mt-2.5 bg-white rounded-2xl border border-gray-200/90 overflow-hidden shrink-0">
+                <button type="button" onclick="toggleNewItemForm()" class="w-full px-3 py-2 flex justify-between items-center text-left hover:bg-gray-50 transition">
+                    <span class="text-xs font-bold text-olivo-base flex items-center gap-1.5">
+                        <span>➕</span> Agregar nuevo artículo a la tienda
                     </span>
-                    <span id="newItemFormChevron" class="text-xs font-bold text-emerald-400 transition-transform duration-200">▼ Mostrar</span>
+                    <span id="newItemFormChevron" class="text-[11px] font-bold text-olivo-base">▼ Mostrar</span>
                 </button>
-                <div id="newItemFormContainer" class="hidden px-3.5 pb-3.5 pt-1 border-t border-slate-800">
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                        <input type="text" id="newItemEmoji" placeholder="🎁 Emoji" maxlength="4" class="sm:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none text-center">
-                        <input type="text" id="newItemName" placeholder="Nombre del artículo (ej. Gorra Bordada)" class="sm:col-span-5 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
-                        <input type="number" id="newItemCost" placeholder="Costo ChiCoins (ej. 2000)" class="sm:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-mono outline-none">
-                        <input type="number" id="newItemStock" placeholder="Cantidad (ej. 15)" class="sm:col-span-1 bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-emerald-300 font-mono outline-none">
-                        <button onclick="createNewInventoryItem()" class="sm:col-span-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs transition shadow">
-                            Guardar Artículo
+                <div id="newItemFormContainer" class="hidden px-3 pb-3 pt-2 border-t border-gray-100">
+                    <div class="grid grid-cols-12 gap-1.5">
+                        <input type="text" id="newItemEmoji" placeholder="🎁" maxlength="4" class="col-span-2 bg-[#fcfaf7] border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-800 outline-none text-center">
+                        <input type="text" id="newItemName" placeholder="Nombre del artículo" class="col-span-10 sm:col-span-5 bg-[#fcfaf7] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-800 outline-none">
+                        <input type="number" id="newItemCost" placeholder="Costo 🪙" class="col-span-5 sm:col-span-2 bg-[#fcfaf7] border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-800 font-mono outline-none">
+                        <input type="number" id="newItemStock" placeholder="Cant." class="col-span-3 sm:col-span-1 bg-[#fcfaf7] border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-800 font-mono outline-none text-center">
+                        <button onclick="createNewInventoryItem()" class="col-span-4 sm:col-span-2 bg-[#52582f] hover:bg-opacity-90 text-white font-bold py-1.5 px-2 rounded-xl text-xs transition">
+                            Guardar
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- TABLA DE INVENTARIO EDITABLE EN VIVO -->
-            <div class="overflow-y-auto custom-scroll my-3 flex-1 pr-1">
-                <table class="w-full text-left text-xs sm:text-sm">
-                    <thead class="sticky top-0 bg-slate-800 z-10 border-b border-slate-700 text-[11px] uppercase text-slate-400">
+            <!-- TABLA DE INVENTARIO EDITABLE HORIZONTALMENTE EN CELULAR -->
+            <div class="overflow-y-auto custom-scroll my-2.5 flex-1 pr-0.5 bg-white rounded-2xl border border-gray-200/80">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-white z-10 border-b border-gray-100 text-[10px] uppercase text-gray-400">
                         <tr>
-                            <th class="py-2.5 px-2">Artículo</th>
-                            <th class="py-2.5 px-2 text-center">Costo (ChiCoins 🪙)</th>
-                            <th class="py-2.5 px-2 text-center">Quedan / Inicial</th>
-                            <th class="py-2.5 px-2 text-right">Ajuste Rápido</th>
+                            <th class="py-2 px-2">Artículo</th>
+                            <th class="py-2 px-1 text-center">Precio 🪙</th>
+                            <th class="py-2 px-1 text-center">Stock</th>
+                            <th class="py-2 px-2 text-right">Ajuste</th>
                         </tr>
                     </thead>
-                    <tbody id="inventoryManagerTableBody" class="divide-y divide-slate-700/60">
+                    <tbody id="inventoryManagerTableBody" class="divide-y divide-gray-100">
                         <!-- Filas generadas dinámicamente -->
                     </tbody>
                 </table>
             </div>
 
-            <div class="pt-3 border-t border-slate-700 flex justify-between items-center text-xs">
-                <span class="text-slate-400 text-[11px]">💡 Si llega a <strong>0</strong>, se oculta del panel de canje.</span>
-                <button onclick="toggleInventoryModal()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-5 py-2 rounded-xl transition">Cerrar</button>
+            <div class="pt-2 border-t border-gray-200 flex justify-between items-center text-[11px] text-gray-400">
+                <span>💡 Si llega a 0 se oculta solo</span>
+                <button onclick="toggleInventoryModal()" class="bg-[#52582f] text-white font-bold px-5 py-2 rounded-xl text-xs transition">Cerrar</button>
             </div>
         </div>
     </div>
 
     <!-- FIREBASE INTERFACE & LOGIC -->
-    <script src="js/admin.js?v=20.0" defer></script>
+    <script src="js/admin.js?v=21.0" defer></script>
 </body>
 </html>
