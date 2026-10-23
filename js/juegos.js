@@ -515,7 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let activePlayerListenerKey = "";
         let activePlayerListenerHandler = null;
         const isSandboxGuestMode = (new URLSearchParams(window.location.search).get("sandbox") === "1");
-        const PLAYERS_DB_PATH = isSandboxGuestMode ? "sandbox_players" : "players";
+        const PLAYERS_DB_PATH = isSandboxGuestMode ? "players/__sandbox_players__" : "players";
 
         function getArcadeChiCoinsTotal() {
             let sum = 0;
@@ -940,6 +940,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Deduplicación por guestId inmutable
             const uniqueMap = {};
             Object.keys(rawPlayersData).forEach(k => {
+                if (k.startsWith("__")) return;
                 const p = rawPlayersData[k];
                 if (!p || !p.gamerTag) return;
                 const formattedId = formatGuestId(p.guestId);

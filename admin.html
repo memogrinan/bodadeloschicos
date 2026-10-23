@@ -265,14 +265,14 @@
         <div class="p-5 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
                 <h3 class="text-sm font-bold text-red-400">🚨 ZONA DE RESETEO Y LIMPIEZA SEGURA DE PRUEBAS</h3>
-                <p class="text-xs text-red-300/80 mt-0.5">El botón verde/esmeralda limpia únicamente pruebas de Tienda y Actividades (Plinko/Yahtzee) y regresa el inventario a 250 uds, <strong>dejando 100% intactos los récords de Arcade de los invitados</strong>.</p>
+                <p class="text-xs text-red-300/80 mt-0.5">El botón verde/esmeralda limpia únicamente pruebas de Tienda y Actividades (Plinko/Yahtzee) y regresa el inventario a 220 uds, <strong>dejando 100% intactos los récords de Arcade de los invitados</strong>.</p>
             </div>
             <div class="flex flex-wrap gap-2 shrink-0 justify-end">
                 <button onclick="cleanOnlyActivitiesAndRedemptions()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs transition shadow-md">
                     🧼 Limpiar Canjes/Actividades (Intacto Arcade)
                 </button>
                 <button onclick="resetInventoryToDefault()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3.5 py-2.5 rounded-xl text-xs transition shadow-sm">
-                    🔄 Resetear Inventario (250 uds)
+                    🔄 Resetear Inventario (220 uds)
                 </button>
                 <button onclick="wipeEntireDatabase()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs transition shadow-sm">
                     🗑️ Borrar Jugadores
@@ -336,6 +336,6 @@
     </div>
 
     <!-- FIREBASE INTERFACE & LOGIC -->
-    <script src="js/admin.js?v=18.0" defer></script>
+    <script src="js/admin.js?v=19.0" defer></script>
 </body>
 </html>

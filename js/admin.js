@@ -21,187 +21,174 @@ const METAS = {
     puebla: 200
 };
 
-// CATÁLOGO INICIAL OFICIAL DE LA TIENDA (20 VARIANTES = 250 ARTÍCULOS TOTALES)
+// CATÁLOGO OFICIAL DE LA TIENDA (18 VARIANTES = 220 ARTÍCULOS TOTALES, SIN PANTUFLAS)
+// Economía diseñada para 200 invitados (Valor Total Tienda: 735,000 ChiCoins):
+// - Nivel 1 (Exclusivo: 5,200 - 5,500 🪙): Sudadera y Set de Vino
+// - Nivel 2 (Premium: 3,800 - 4,200 🪙): Barber Neceser, Cosmetiquera Grande, Taza Matte, Chalina
+// - Nivel 3 (Intermedio: 2,800 - 3,200 🪙): Bolsa de Yute, Vaso Cervecero, Cosmetiquera Blanca, Juego Flop
+// - Nivel 4 (Entrada Anti-Acaparamiento: 1,800 - 2,400 🪙): Tote Bag, Porta Vasos, Libreta, Destapadores, Auch
 const DEFAULT_INVENTORY = {
-    item_01_pantunflas_t5: {
-        id: "item_01_pantunflas_t5",
-        emoji: "🥿",
-        name: "Pantunflas Moño Verde Esmeralda (Talla 5)",
-        cost: 2000,
-        stock: 15,
-        initialStock: 15,
-        order: 1
-    },
-    item_02_pantunflas_t7: {
-        id: "item_02_pantunflas_t7",
-        emoji: "🥿",
-        name: "Pantunflas Moño Verde Esmeralda (Talla 7)",
-        cost: 2000,
-        stock: 15,
-        initialStock: 15,
-        order: 2
-    },
-    item_03_sudadera_m: {
-        id: "item_03_sudadera_m",
+    item_01_sudadera_m: {
+        id: "item_01_sudadera_m",
         emoji: "🧥",
         name: "Sudadera (Talla M)",
-        cost: 4500,
+        cost: 5500,
+        stock: 10,
+        initialStock: 10,
+        order: 1
+    },
+    item_02_sudadera_l: {
+        id: "item_02_sudadera_l",
+        emoji: "🧥",
+        name: "Sudadera (Talla L)",
+        cost: 5500,
+        stock: 10,
+        initialStock: 10,
+        order: 2
+    },
+    item_03_sudadera_xl: {
+        id: "item_03_sudadera_xl",
+        emoji: "🧥",
+        name: "Sudadera (Talla XL)",
+        cost: 5500,
         stock: 10,
         initialStock: 10,
         order: 3
     },
-    item_04_sudadera_l: {
-        id: "item_04_sudadera_l",
-        emoji: "🧥",
-        name: "Sudadera (Talla L)",
-        cost: 4500,
+    item_04_set_vino: {
+        id: "item_04_set_vino",
+        emoji: "🍷",
+        name: "Set de Vino Caja de Madera",
+        cost: 5200,
         stock: 10,
         initialStock: 10,
         order: 4
     },
-    item_05_sudadera_xl: {
-        id: "item_05_sudadera_xl",
-        emoji: "🧥",
-        name: "Sudadera (Talla XL)",
-        cost: 4500,
-        stock: 10,
-        initialStock: 10,
+    item_05_barber_neceser: {
+        id: "item_05_barber_neceser",
+        emoji: "💈",
+        name: "Barber Neceser",
+        cost: 4200,
+        stock: 15,
+        initialStock: 15,
         order: 5
     },
-    item_06_set_vino: {
-        id: "item_06_set_vino",
-        emoji: "🍷",
-        name: "Set de Vino Caja de Madera",
-        cost: 3500,
+    item_06_cosmetiquera_negra: {
+        id: "item_06_cosmetiquera_negra",
+        emoji: "🖤",
+        name: "Cosmetiquera Grande Negra",
+        cost: 4000,
         stock: 10,
         initialStock: 10,
         order: 6
     },
-    item_07_destapador_snap: {
-        id: "item_07_destapador_snap",
-        emoji: "🍾",
-        name: "Destapador Snap",
-        cost: 1200,
-        stock: 10,
-        initialStock: 10,
+    item_07_taza_negro_matte: {
+        id: "item_07_taza_negro_matte",
+        emoji: "☕",
+        name: "Taza Negro Matte Grabada",
+        cost: 3800,
+        stock: 15,
+        initialStock: 15,
         order: 7
     },
-    item_08_cosmetiquera_negra: {
-        id: "item_08_cosmetiquera_negra",
-        emoji: "🖤",
-        name: "Cosmetiquera Grande Negra",
-        cost: 2500,
+    item_08_chalina: {
+        id: "item_08_chalina",
+        emoji: "🧣",
+        name: "Chalina",
+        cost: 3800,
         stock: 10,
         initialStock: 10,
         order: 8
     },
-    item_09_cosmetiquera_blanca: {
-        id: "item_09_cosmetiquera_blanca",
-        emoji: "🤍",
-        name: "Cosmetiquera Rectangular Chica Blanca",
-        cost: 2000,
+    item_09_bolsa_yute: {
+        id: "item_09_bolsa_yute",
+        emoji: "👜",
+        name: "Bolsa de Yute Mayan",
+        cost: 3200,
         stock: 10,
         initialStock: 10,
         order: 9
     },
-    item_10_bolsa_yute: {
-        id: "item_10_bolsa_yute",
-        emoji: "👜",
-        name: "Bolsa de Yute Mayan",
-        cost: 2200,
-        stock: 10,
-        initialStock: 10,
-        order: 10
-    },
-    item_11_taza_negro_matte: {
-        id: "item_11_taza_negro_matte",
-        emoji: "☕",
-        name: "Taza Negro Matte Grabada",
-        cost: 2500,
+    item_10_vaso_cervecero: {
+        id: "item_10_vaso_cervecero",
+        emoji: "🍺",
+        name: "Vaso Cervecero",
+        cost: 3000,
         stock: 15,
         initialStock: 15,
+        order: 10
+    },
+    item_11_cosmetiquera_blanca: {
+        id: "item_11_cosmetiquera_blanca",
+        emoji: "🤍",
+        name: "Cosmetiquera Rectangular Chica Blanca",
+        cost: 3000,
+        stock: 10,
+        initialStock: 10,
         order: 11
     },
-    item_12_chalina: {
-        id: "item_12_chalina",
-        emoji: "🧣",
-        name: "Chalina",
-        cost: 2200,
+    item_12_juego_flop: {
+        id: "item_12_juego_flop",
+        emoji: "🎯",
+        name: "Juego Flop",
+        cost: 2800,
         stock: 10,
         initialStock: 10,
         order: 12
     },
-    item_13_vaso_cervecero: {
-        id: "item_13_vaso_cervecero",
-        emoji: "🍺",
-        name: "Vaso Cervecero",
-        cost: 2000,
-        stock: 15,
-        initialStock: 15,
+    item_13_tote_bag: {
+        id: "item_13_tote_bag",
+        emoji: "🛍️",
+        name: "Tote Bag",
+        cost: 2400,
+        stock: 30,
+        initialStock: 30,
         order: 13
     },
     item_14_porta_vasos: {
         id: "item_14_porta_vasos",
         emoji: "🥃",
         name: "Porta Vasos Porso",
-        cost: 1500,
+        cost: 2400,
         stock: 10,
         initialStock: 10,
         order: 14
     },
-    item_15_destapador_opener: {
-        id: "item_15_destapador_opener",
-        emoji: "🍺",
-        name: "Destapador Opener",
-        cost: 1000,
-        stock: 15,
-        initialStock: 15,
+    item_15_libreta_lamba: {
+        id: "item_15_libreta_lamba",
+        emoji: "📓",
+        name: "Libreta Lamba",
+        cost: 2200,
+        stock: 10,
+        initialStock: 10,
         order: 15
     },
-    item_16_juego_flop: {
-        id: "item_16_juego_flop",
-        emoji: "🎯",
-        name: "Juego Flop",
-        cost: 1800,
+    item_16_destapador_snap: {
+        id: "item_16_destapador_snap",
+        emoji: "🍾",
+        name: "Destapador Snap",
+        cost: 2200,
         stock: 10,
         initialStock: 10,
         order: 16
     },
-    item_17_tote_bag: {
-        id: "item_17_tote_bag",
-        emoji: "🛍️",
-        name: "Tote Bag",
-        cost: 1500,
-        stock: 30,
-        initialStock: 30,
+    item_17_destapador_opener: {
+        id: "item_17_destapador_opener",
+        emoji: "🍺",
+        name: "Destapador Opener",
+        cost: 1800,
+        stock: 15,
+        initialStock: 15,
         order: 17
     },
-    item_18_libreta_lamba: {
-        id: "item_18_libreta_lamba",
-        emoji: "📓",
-        name: "Libreta Lamba",
-        cost: 1500,
+    item_18_auch: {
+        id: "item_18_auch",
+        emoji: "🩹",
+        name: "Auch",
+        cost: 1800,
         stock: 10,
         initialStock: 10,
         order: 18
-    },
-    item_19_barber_neceser: {
-        id: "item_19_barber_neceser",
-        emoji: "💈",
-        name: "Barber Neceser",
-        cost: 2500,
-        stock: 15,
-        initialStock: 15,
-        order: 19
-    },
-    item_20_auch: {
-        id: "item_20_auch",
-        emoji: "🩹",
-        name: "Auch",
-        cost: 1000,
-        stock: 10,
-        initialStock: 10,
-        order: 20
     }
 };
 
@@ -213,12 +200,26 @@ let isSandboxMode = sessionStorage.getItem("bodachicos_admin_sandbox") === "true
 let currentInventoryRef = null;
 let currentPlayersRef = null;
 
+// Se almacenan dentro de /players/... para aprovechar los permisos de lectura/escritura existentes en Firebase Realtime Database
 function getPlayersPath() {
-    return isSandboxMode ? "sandbox_players" : "players";
+    return isSandboxMode ? "players/__sandbox_players__" : "players";
 }
 
 function getInventoryPath() {
-    return isSandboxMode ? "sandbox_inventory" : "inventory";
+    return isSandboxMode ? "players/__sandbox_inventory__" : "players/__inventory__";
+}
+
+function extractCleanPlayers(rawMap) {
+    const clean = {};
+    if (!rawMap || typeof rawMap !== "object") return clean;
+    Object.keys(rawMap).forEach(k => {
+        if (k.startsWith("__")) return;
+        const node = rawMap[k];
+        if (node && typeof node === "object") {
+            clean[k] = node;
+        }
+    });
+    return clean;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -285,9 +286,9 @@ async function toggleSandboxMode() {
     updateEnvironmentUI();
 
     if (isSandboxMode) {
-        // Si sandbox_players está vacío la primera vez, clonar automáticamente los datos actuales de Producción
+        // Si __sandbox_players__ está vacío la primera vez, clonar automáticamente los datos actuales de Producción
         try {
-            const snap = await db.ref("sandbox_players").once("value");
+            const snap = await db.ref("players/__sandbox_players__").once("value");
             if (!snap.exists() || !snap.val()) {
                 await cloneProdToSandbox(false);
             }
@@ -300,21 +301,21 @@ async function toggleSandboxMode() {
 
 async function cloneProdToSandbox(askConfirmation) {
     if (askConfirmation) {
-        if (!confirm("🔄 ¿Copiar los jugadores actuales de Producción y restablecer los 250 artículos del inventario en tu copia de Pruebas (Sandbox)?\n\n(Los datos reales de Producción NO se tocarán).")) {
+        if (!confirm("🔄 ¿Copiar los jugadores actuales de Producción y restablecer los 220 artículos del inventario en tu copia de Pruebas (Sandbox)?\n\n(Los datos reales de Producción NO se tocarán).")) {
             return;
         }
     }
     try {
         const [prodPlayersSnap, prodInvSnap] = await Promise.all([
             db.ref("players").once("value"),
-            db.ref("inventory").once("value")
+            db.ref("players/__inventory__").once("value")
         ]);
-        const prodPlayers = prodPlayersSnap.val() || {};
+        const prodPlayers = extractCleanPlayers(prodPlayersSnap.val() || {});
         const prodInv = prodInvSnap.val() || DEFAULT_INVENTORY;
 
         await Promise.all([
-            db.ref("sandbox_players").set(prodPlayers),
-            db.ref("sandbox_inventory").set(prodInv)
+            db.ref("players/__sandbox_players__").set(prodPlayers),
+            db.ref("players/__sandbox_inventory__").set(prodInv)
         ]);
 
         if (askConfirmation) {
@@ -623,10 +624,10 @@ function deleteInventoryItem(itemId) {
 
 function resetInventoryToDefault() {
     const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
-    if (confirm(`🔄 [${envName}] ¿Restaurar el inventario completo a las 250 unidades originales de los 20 artículos?`)) {
+    if (confirm(`🔄 [${envName}] ¿Restaurar el inventario completo a las 220 unidades originales de los 18 artículos con los precios recomendados?`)) {
         db.ref(getInventoryPath()).set(DEFAULT_INVENTORY).then(() => {
-            alert("✅ Inventario restaurado a 250 unidades exitosamente.");
-        });
+            alert("✅ Inventario restaurado a 220 unidades exitosamente.");
+        }).catch(err => alert("Error al restaurar inventario: " + err.message));
     }
 }
 
@@ -639,7 +640,7 @@ function listenToPlayers() {
     }
     currentPlayersRef = db.ref(getPlayersPath());
     currentPlayersRef.on("value", (snapshot) => {
-        allPlayers = snapshot.val() || {};
+        allPlayers = extractCleanPlayers(snapshot.val() || {});
         renderPlayersTable();
         if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
             selectPlayer(selectedPlayerKey);
@@ -1057,7 +1058,7 @@ function revertRedemptionLog(logKey) {
 // ==========================================
 async function cleanOnlyActivitiesAndRedemptions() {
     const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
-    if (!confirm(`🧼 [${envName}] ¿Deseas limpiar ÚNICAMENTE las pruebas de Canjes y Actividades (Plinko/Yahtzee) y regresar el inventario a 250 unidades?\n\n✅ Todos los récords y ChiCoins de Arcade ganados por los invitados se mantendrán 100% intactos.`)) {
+    if (!confirm(`🧼 [${envName}] ¿Deseas limpiar ÚNICAMENTE las pruebas de Canjes y Actividades (Plinko/Yahtzee) y regresar el inventario a 220 unidades?\n\n✅ Todos los récords y ChiCoins de Arcade ganados por los invitados se mantendrán 100% intactos.`)) {
         return;
     }
 
@@ -1067,6 +1068,7 @@ async function cleanOnlyActivitiesAndRedemptions() {
         const updates = {};
 
         Object.keys(allPlayers || {}).forEach(key => {
+            if (key.startsWith("__")) return;
             const p = allPlayers[key];
             if (!p) return;
             const ledger = computePlayerLedger({
@@ -1091,7 +1093,7 @@ async function cleanOnlyActivitiesAndRedemptions() {
             db.ref(invPath).set(DEFAULT_INVENTORY)
         ]);
 
-        alert(`✅ Listo (${envName}): Inventario restaurado a 250 unidades y pruebas de actividades/canjes limpiadas. Todos los récords de Arcade siguen intactos.`);
+        alert(`✅ Listo (${envName}): Inventario restaurado a 220 unidades y pruebas de actividades/canjes limpiadas. Todos los récords de Arcade siguen intactos.`);
     } catch (err) {
         alert("Error al limpiar actividades y canjes: " + err.message);
     }
@@ -1144,7 +1146,15 @@ function wipeEntireDatabase() {
     const pass = prompt(`🚨 ATENCIÓN [${envName}] 🚨\n\nEstás a punto de BORRAR TODOS LOS JUGADORES de ${envName}.\nEscribe 'Chicos0212' para confirmar:`);
     if (pass === "Chicos0212") {
         if (confirm(`¿Estás absolutamente seguro de borrar todos los jugadores de ${envName}? ESTO NO SE PUEDE DESHACER.`)) {
-            db.ref(getPlayersPath()).remove().then(() => {
+            const playersPath = getPlayersPath();
+            const updates = {};
+            Object.keys(allPlayers || {}).forEach(k => {
+                if (!k.startsWith("__")) {
+                    updates[`${playersPath}/${k}`] = null;
+                }
+            });
+            const op = Object.keys(updates).length > 0 ? db.ref().update(updates) : Promise.resolve();
+            op.then(() => {
                 alert(`✅ Todos los jugadores de ${envName} fueron eliminados exitosamente.`);
                 document.getElementById("noSelectionState").classList.remove("hidden");
                 document.getElementById("selectionState").classList.add("hidden");
@@ -1188,8 +1198,9 @@ function restoreBackupJSON(event) {
                 return;
             }
             const hasStructuredBackup = parsed.players || parsed.inventory;
-            const playersToRestore = hasStructuredBackup ? (parsed.players || {}) : parsed;
-            const inventoryToRestore = hasStructuredBackup ? (parsed.inventory || null) : null;
+            const rawPlayersToRestore = hasStructuredBackup ? (parsed.players || {}) : parsed;
+            const playersToRestore = extractCleanPlayers(rawPlayersToRestore);
+            const inventoryToRestore = hasStructuredBackup ? (parsed.inventory || null) : (rawPlayersToRestore.__inventory__ || null);
 
             const count = Object.keys(playersToRestore).length;
             const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
@@ -1198,7 +1209,19 @@ function restoreBackupJSON(event) {
                 return;
             }
 
-            const promises = [db.ref(getPlayersPath()).set(playersToRestore)];
+            const playersPath = getPlayersPath();
+            const updates = {};
+            // Limpiar jugadores actuales de ese entorno sin borrar las llaves reservadas __inventory__ / __sandbox_*
+            Object.keys(allPlayers || {}).forEach(k => {
+                if (!k.startsWith("__")) {
+                    updates[`${playersPath}/${k}`] = null;
+                }
+            });
+            Object.keys(playersToRestore).forEach(k => {
+                updates[`${playersPath}/${k}`] = playersToRestore[k];
+            });
+
+            const promises = [db.ref().update(updates)];
             if (inventoryToRestore) {
                 promises.push(db.ref(getInventoryPath()).set(inventoryToRestore));
             }
