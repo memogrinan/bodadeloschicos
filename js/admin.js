@@ -213,9 +213,9 @@ function extractCleanPlayers(rawMap) {
     const clean = {};
     if (!rawMap || typeof rawMap !== "object") return clean;
     Object.keys(rawMap).forEach(k => {
-        if (k.startsWith("__")) return;
+        if (k.startsWith("__") || k.startsWith("item_")) return;
         const node = rawMap[k];
-        if (node && typeof node === "object") {
+        if (node && typeof node === "object" && (node.gamerTag !== undefined || node.scores !== undefined || node.totalChiCoins !== undefined || node.realName !== undefined)) {
             clean[k] = node;
         }
     });
@@ -225,6 +225,17 @@ function extractCleanPlayers(rawMap) {
 document.addEventListener("DOMContentLoaded", () => {
     checkAdminAuth();
     updateEnvironmentUI();
+
+    const tableBody = document.getElementById("playersTableBody");
+    if (tableBody) {
+        tableBody.addEventListener("click", (e) => {
+            const row = e.target.closest("tr[data-player-key]");
+            if (row && row.dataset.playerKey) {
+                selectPlayer(decodeURIComponent(row.dataset.playerKey));
+            }
+        });
+    }
+
     listenToInventory();
     listenToPlayers();
 });
@@ -482,12 +493,28 @@ function updateLiveInventoryBanner() {
     }
 }
 
+function toggleNewItemForm(forceOpen) {
+    const formContainer = document.getElementById("newItemFormContainer");
+    const chevron = document.getElementById("newItemFormChevron");
+    if (!formContainer) return;
+
+    const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : formContainer.classList.contains("hidden");
+    if (shouldOpen) {
+        formContainer.classList.remove("hidden");
+        if (chevron) chevron.innerText = "▲ Ocultar";
+    } else {
+        formContainer.classList.add("hidden");
+        if (chevron) chevron.innerText = "▼ Mostrar";
+    }
+}
+
 function toggleInventoryModal() {
     const modal = document.getElementById("inventoryModal");
     if (!modal) return;
     if (modal.classList.contains("hidden")) {
         modal.classList.remove("hidden");
         modal.classList.add("flex");
+        toggleNewItemForm(false);
         renderInventoryManagerTable();
     } else {
         modal.classList.add("hidden");
@@ -611,6 +638,7 @@ function createNewInventoryItem() {
         nameInput.value = "";
         costInput.value = "";
         stockInput.value = "";
+        toggleNewItemForm(false);
     }).catch(err => alert("Error al guardar artículo: " + err.message));
 }
 
@@ -639,17 +667,35 @@ function listenToPlayers() {
         currentPlayersRef.off("value");
     }
     currentPlayersRef = db.ref(getPlayersPath());
-    currentPlayersRef.on("value", (snapshot) => {
-        allPlayers = extractCleanPlayers(snapshot.val() || {});
+    currentPlayersRef.on("value", async (snapshot) => {
+        const rawVal = snapshot.val();
+        const cleaned = extractCleanPlayers(rawVal || {});
+
+        // Si estamos en Sandbox y aún no hay jugadores clonados, clonar automáticamente desde Producción
+        if (isSandboxMode && Object.keys(cleaned).length === 0) {
+            try {
+                const prodSnap = await db.ref("players").once("value");
+                const cleanProd = extractCleanPlayers(prodSnap.val() || {});
+                if (Object.keys(cleanProd).length > 0) {
+                    await db.ref("players/__sandbox_players__").set(cleanProd);
+                    return;
+                }
+            } catch (e) {
+                console.warn("No se pudo clonar automáticamente a Sandbox:", e);
+            }
+        }
+
+        allPlayers = cleaned;
         renderPlayersTable();
         if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
-            selectPlayer(selectedPlayerKey);
+            selectPlayer(selectedPlayerKey, true);
         }
     });
 }
 
 function renderPlayersTable() {
     const tableBody = document.getElementById("playersTableBody");
+    if (!tableBody) return;
     const countEl = document.getElementById("totalPlayersCount");
     const filter = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
 
@@ -669,16 +715,18 @@ function renderPlayersTable() {
     let html = "";
     keys.forEach((key) => {
         const p = allPlayers[key];
-        const tag = p.gamerTag || key;
-        const rName = p.realName && p.realName !== "Invitado No Registrado" ? p.realName : "";
+        if (!p) return;
+        const tag = String(p.gamerTag || key);
+        const rName = p.realName && p.realName !== "Invitado No Registrado" ? String(p.realName) : "";
 
         if (filter && !tag.toLowerCase().includes(filter) && !(rName && rName.toLowerCase().includes(filter))) return;
 
         const ledger = computePlayerLedger(p);
         const isSelected = key === selectedPlayerKey;
+        const encodedKey = encodeURIComponent(key);
 
         html += `
-            <tr onclick="selectPlayer('${key}')" class="cursor-pointer hover:bg-slate-700/40 transition ${isSelected ? 'bg-amber-500/15 border-l-4 border-amber-400' : ''}">
+            <tr data-player-key="${encodedKey}" onclick="selectPlayer(decodeURIComponent('${encodedKey}'))" class="cursor-pointer hover:bg-slate-700/40 transition ${isSelected ? 'bg-amber-500/15 border-l-4 border-amber-400' : ''}">
                 <td class="py-2.5 px-2">
                     <div class="font-bold text-slate-100 text-sm">${tag}</div>
                     ${rName ? `<div class="text-[11px] text-slate-400">${rName}</div>` : ''}
@@ -688,7 +736,7 @@ function renderPlayersTable() {
                     ${ledger.spentCoins > 0 ? `<div class="text-[10px] text-rose-400 font-normal">Canjeó: -${ledger.spentCoins.toLocaleString()}</div>` : ''}
                 </td>
                 <td class="py-2.5 px-2 text-right">
-                    <button type="button" class="${isSelected ? 'bg-amber-400 text-slate-950' : 'bg-slate-700 hover:bg-amber-500 hover:text-slate-950 text-slate-200'} font-bold px-3 py-1.5 rounded-xl text-xs transition shadow">
+                    <button type="button" onclick="event.stopPropagation(); selectPlayer(decodeURIComponent('${encodedKey}'))" class="${isSelected ? 'bg-amber-400 text-slate-950' : 'bg-slate-700 hover:bg-amber-500 hover:text-slate-950 text-slate-200'} font-bold px-3 py-1.5 rounded-xl text-xs transition shadow">
                         ${isSelected ? 'Activo ✓' : 'Elegir'}
                     </button>
                 </td>
@@ -703,33 +751,64 @@ function filterPlayers() {
     renderPlayersTable();
 }
 
-function selectPlayer(key) {
+function selectPlayer(key, skipTableReRender) {
     selectedPlayerKey = key;
     const p = allPlayers[key];
     if (!p) return;
 
-    document.getElementById("noSelectionState").classList.add("hidden");
+    const noSelEl = document.getElementById("noSelectionState");
+    if (noSelEl) noSelEl.classList.add("hidden");
     const selState = document.getElementById("selectionState");
-    selState.classList.remove("hidden");
-    selState.classList.add("flex");
+    if (selState) {
+        selState.classList.remove("hidden");
+        selState.classList.add("flex");
+    }
 
     const ledger = computePlayerLedger(p);
 
-    document.getElementById("selectedTag").innerText = p.gamerTag || key;
-    const rName = p.realName && p.realName !== "Invitado No Registrado" ? `👤 ${p.realName} (Invitación: ${p.partyId || 'general'})` : `Invitación: ${p.partyId || 'general'}`;
-    document.getElementById("selectedRealName").innerText = rName;
-    document.getElementById("selectedCoins").innerText = ledger.netCoins.toLocaleString() + " 🪙";
+    const tagEl = document.getElementById("selectedTag");
+    if (tagEl) tagEl.innerText = p.gamerTag || key;
+
+    const rName = p.realName && p.realName !== "Invitado No Registrado"
+        ? `👤 ${p.realName} (Invitación: ${p.partyId || 'general'})`
+        : `Invitación: ${p.partyId || 'general'}`;
+    const realNameEl = document.getElementById("selectedRealName");
+    if (realNameEl) realNameEl.innerText = rName;
+
+    const coinsEl = document.getElementById("selectedCoins");
+    if (coinsEl) coinsEl.innerText = ledger.netCoins.toLocaleString() + " 🪙";
 
     // Actualizar las 4 tarjetas resumen
-    document.getElementById("summaryArcadeCoins").innerText = "+" + ledger.arcadeCoins.toLocaleString() + " 🪙";
-    document.getElementById("summaryActivityCoins").innerText = "+" + ledger.activityCoins.toLocaleString() + " 🪙";
-    document.getElementById("summarySpentCoins").innerText = "-" + ledger.spentCoins.toLocaleString() + " 🪙";
-    document.getElementById("summaryNetCoins").innerText = ledger.netCoins.toLocaleString() + " 🪙";
+    const sumArcEl = document.getElementById("summaryArcadeCoins");
+    if (sumArcEl) sumArcEl.innerText = "+" + ledger.arcadeCoins.toLocaleString() + " 🪙";
+    const sumActEl = document.getElementById("summaryActivityCoins");
+    if (sumActEl) sumActEl.innerText = "+" + ledger.activityCoins.toLocaleString() + " 🪙";
+    const sumSpentEl = document.getElementById("summarySpentCoins");
+    if (sumSpentEl) sumSpentEl.innerText = "-" + ledger.spentCoins.toLocaleString() + " 🪙";
+    const sumNetEl = document.getElementById("summaryNetCoins");
+    if (sumNetEl) sumNetEl.innerText = ledger.netCoins.toLocaleString() + " 🪙";
+
+    // Compatibilidad retroactiva si el navegador tiene en caché elementos antiguos
+    const scores = p.scores || {};
+    const oldChico = document.getElementById("score-chico-val");
+    if (oldChico) oldChico.innerText = (scores.chico || 0) + " pts";
+    const oldChica = document.getElementById("score-chica-val");
+    if (oldChica) oldChica.innerText = (scores.chica || 0) + " pts";
+    const oldMaddie = document.getElementById("score-maddie-val");
+    if (oldMaddie) oldMaddie.innerText = (scores.maddie || 0) + " clics";
+    const oldPuebla = document.getElementById("score-puebla-val");
+    if (oldPuebla) oldPuebla.innerText = (scores.puebla || 0) + " pts";
+    const oldBonus = document.getElementById("bonus-val");
+    if (oldBonus) oldBonus.innerText = (ledger.activityCoins - ledger.spentCoins) + " 🪙";
 
     renderRedeemableItems();
     renderPlayerAuditLogs(p, ledger);
-    renderPlayersTable();
+    if (!skipTableReRender) {
+        renderPlayersTable();
+    }
 }
+window.selectPlayer = selectPlayer;
+window.toggleNewItemForm = toggleNewItemForm;
 
 // ==========================================
 // RENDERIZADO DE OPCIONES DE CANJE EN VIVO

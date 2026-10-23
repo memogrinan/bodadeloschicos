@@ -612,9 +612,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const elSpent = document.getElementById("detailRowSpentCoins");
             const elTotal = document.getElementById("detailRowTotalCoins");
 
-            if (elArcade) elArcade.innerText = `${arcadeCoins.toLocaleString()} 🪙`;
-            if (elActivity) elActivity.innerText = `+${activityCoins.toLocaleString()} 🪙`;
-            if (elSpent) elSpent.innerText = `-${spentCoins.toLocaleString()} 🪙`;
+            if (elArcade) elArcade.innerText = `+${arcadeCoins.toLocaleString()}`;
+            if (elActivity) elActivity.innerText = `+${activityCoins.toLocaleString()}`;
+            if (elSpent) elSpent.innerText = `-${spentCoins.toLocaleString()}`;
             if (elTotal) elTotal.innerText = `${netCoins.toLocaleString()} 🪙`;
 
             const logContainer = document.getElementById("guestChiCoinsLogList");
@@ -627,34 +627,44 @@ document.addEventListener("DOMContentLoaded", () => {
                 { key: "puebla", icon: "🚗", nameEs: "Camino a Puebla", nameEn: "Road to Puebla", unit: "pts" }
             ];
 
-            let html = `<div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mt-1 mb-1">🎮 ${isEnLang ? "Arcade (Personal Best per Game)" : "Arcade (Máximo por Juego)"}</div>`;
-
+            // 1. SECCIÓN ARCADE (UNIFICADA Y LIMPIA)
+            let arcadeRowsHtml = "";
             gameMetaInfo.forEach(g => {
                 const s = getScore(g.key);
                 const c = calculateGameChiCoins(g.key, s);
                 const label = isEnLang ? g.nameEn : g.nameEs;
-                html += `
-                    <div class="flex justify-between items-center bg-gray-50 border border-gray-100 px-3 py-2 rounded-xl">
-                        <div>
-                            <span class="font-bold text-gray-800">${g.icon} ${label}</span>
-                            <span class="text-[11px] text-gray-400 ml-1">(${isEnLang ? "Best" : "Récord"}: ${s} ${g.unit})</span>
+                arcadeRowsHtml += `
+                    <div class="flex justify-between items-center py-1.5">
+                        <div class="truncate pr-2">
+                            <span class="font-semibold text-gray-700">${g.icon} ${label}</span>
+                            <span class="text-[11px] text-gray-400 ml-1">(${s} ${g.unit})</span>
                         </div>
-                        <span class="font-monogram font-bold text-sm ${c > 0 ? 'text-amber-700' : 'text-gray-400'}">+${c.toLocaleString()} 🪙</span>
+                        <span class="font-monogram font-bold text-sm shrink-0 ${c > 0 ? 'text-gray-800' : 'text-gray-400'}">+${c.toLocaleString()}</span>
                     </div>
                 `;
             });
 
             const allMetas = areAllMetasPassed();
-            html += `
-                <div class="flex justify-between items-center ${allMetas ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100 opacity-60'} border px-3 py-2 rounded-xl">
-                    <span class="font-bold ${allMetas ? 'text-emerald-900' : 'text-gray-500'}">🏆 ${isEnLang ? "All 4 Targets Bonus" : "Bono 4 Metas Superadas"}</span>
-                    <span class="font-monogram font-bold text-sm ${allMetas ? 'text-emerald-700' : 'text-gray-400'}">${allMetas ? '+500 🪙' : '0 🪙'}</span>
+            arcadeRowsHtml += `
+                <div class="flex justify-between items-center py-1.5 ${allMetas ? 'text-[#52582f]' : 'text-gray-400'}">
+                    <span class="font-bold">🏆 ${isEnLang ? "4 Targets Bonus" : "Bono 4 Metas"}</span>
+                    <span class="font-monogram font-bold text-sm shrink-0">${allMetas ? '+500' : '+0'}</span>
                 </div>
             `;
 
-            // 2. Actividades Adicionales (Plinko, Yahtzee, Bonos)
-            html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mt-3 mb-1">🎯 ${isEnLang ? "Activities (Plinko, Yahtzee & Extras)" : "Actividades (Plinko, Yahtzee y Extras)"}</div>`;
+            let html = `
+                <div class="bg-white border border-gray-200/80 rounded-2xl px-4 py-3 shadow-2xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-extrabold text-gray-800 flex items-center gap-1.5"><span>🎮</span> ${isEnLang ? "Arcade" : "Arcade"}</span>
+                        <span class="font-monogram text-base font-extrabold text-[#52582f]">+${arcadeCoins.toLocaleString()}</span>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-gray-100 divide-y divide-gray-100">
+                        ${arcadeRowsHtml}
+                    </div>
+                </div>
+            `;
 
+            // 2. SECCIÓN ACTIVIDADES (PLINKO, YAHTZEE Y EXTRAS)
             const actLogsObj = (activePlayerRemoteData && activePlayerRemoteData.activityLogs && typeof activePlayerRemoteData.activityLogs === "object")
                 ? activePlayerRemoteData.activityLogs
                 : null;
@@ -662,35 +672,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? Object.values(actLogsObj).filter(x => x && typeof x === "object").sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
                 : [];
 
+            let actRowsHtml = "";
             if (actList.length > 0) {
                 actList.forEach(entry => {
                     const icon = entry.type === "plinko" ? "🎯" : (entry.type === "yahtzee" ? "🎲" : "⭐");
                     const amt = parseInt(entry.amount) || 0;
-                    const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
-                    html += `
-                        <div class="flex justify-between items-center bg-purple-50/60 border border-purple-100 px-3 py-2 rounded-xl">
-                            <div>
-                                <span class="font-bold text-purple-950">${icon} ${entry.label || (isEnLang ? "Activity" : "Actividad")}</span>
-                                ${timeStr ? `<span class="text-[10px] text-purple-400 ml-1">${timeStr}</span>` : ""}
-                            </div>
-                            <span class="font-monogram font-bold text-sm text-purple-700">+${amt.toLocaleString()} 🪙</span>
+                    actRowsHtml += `
+                        <div class="flex justify-between items-center py-1.5">
+                            <span class="font-semibold text-gray-700 truncate pr-2">${icon} ${entry.label || (isEnLang ? "Activity" : "Actividad")}</span>
+                            <span class="font-monogram font-bold text-sm text-[#52582f] shrink-0">+${amt.toLocaleString()}</span>
                         </div>
                     `;
                 });
             } else if (activityCoins > 0) {
-                html += `
-                    <div class="flex justify-between items-center bg-purple-50/60 border border-purple-100 px-3 py-2 rounded-xl">
-                        <span class="font-bold text-purple-950">⭐ ${isEnLang ? "Activity Bonus" : "Puntos de Actividades"}</span>
-                        <span class="font-monogram font-bold text-sm text-purple-700">+${activityCoins.toLocaleString()} 🪙</span>
+                actRowsHtml += `
+                    <div class="flex justify-between items-center py-1.5">
+                        <span class="font-semibold text-gray-700">⭐ ${isEnLang ? "Activity Bonus" : "Puntos de Actividades"}</span>
+                        <span class="font-monogram font-bold text-sm text-[#52582f] shrink-0">+${activityCoins.toLocaleString()}</span>
                     </div>
                 `;
-            } else {
-                html += `<p class="text-[11px] text-gray-400 italic py-1 px-2">${isEnLang ? "No activity points recorded yet." : "Aún sin registros en actividades."}</p>`;
             }
 
-            // 3. Puntos Utilizados (Sin mencionar "Tienda" para cuidar la sorpresa)
-            html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mt-3 mb-1">✨ ${isEnLang ? "Points Used" : "Puntos Utilizados"}</div>`;
+            html += `
+                <div class="bg-white border border-gray-200/80 rounded-2xl px-4 py-3 shadow-2xs">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-extrabold text-gray-800 flex items-center gap-1.5"><span>🎯</span> ${isEnLang ? "Activities" : "Actividades"}</span>
+                        </div>
+                        <span class="font-monogram text-base font-extrabold ${activityCoins > 0 ? 'text-[#52582f]' : 'text-gray-400'}">+${activityCoins.toLocaleString()}</span>
+                    </div>
+                    ${actRowsHtml ? `<div class="mt-2 pt-2 border-t border-gray-100 divide-y divide-gray-100">${actRowsHtml}</div>` : ""}
+                </div>
+            `;
 
+            // 3. SECCIÓN PUNTOS UTILIZADOS
             const redLogsObj = (activePlayerRemoteData && activePlayerRemoteData.redemptionLogs && typeof activePlayerRemoteData.redemptionLogs === "object")
                 ? activePlayerRemoteData.redemptionLogs
                 : null;
@@ -698,32 +713,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? Object.values(redLogsObj).filter(x => x && typeof x === "object").sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
                 : [];
 
+            let redRowsHtml = "";
             if (redList.length > 0) {
                 redList.forEach(entry => {
                     const emoji = entry.emoji || "🎁";
                     const name = entry.itemName || (isEnLang ? "Reward" : "Canje");
                     const cost = parseInt(entry.cost) || 0;
-                    const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
-                    html += `
-                        <div class="flex justify-between items-center bg-rose-50/60 border border-rose-100 px-3 py-2 rounded-xl">
-                            <div>
-                                <span class="font-bold text-rose-950">${emoji} ${name}</span>
-                                ${timeStr ? `<span class="text-[10px] text-rose-400 ml-1">${timeStr}</span>` : ""}
-                            </div>
-                            <span class="font-monogram font-bold text-sm text-rose-700">-${cost.toLocaleString()} 🪙</span>
+                    redRowsHtml += `
+                        <div class="flex justify-between items-center py-1.5">
+                            <span class="font-semibold text-gray-700 truncate pr-2">${emoji} ${name}</span>
+                            <span class="font-monogram font-bold text-sm text-rose-700 shrink-0">-${cost.toLocaleString()}</span>
                         </div>
                     `;
                 });
             } else if (spentCoins > 0) {
-                html += `
-                    <div class="flex justify-between items-center bg-rose-50/60 border border-rose-100 px-3 py-2 rounded-xl">
-                        <span class="font-bold text-rose-950">✨ ${isEnLang ? "Redeemed Points" : "Puntos Canjeados"}</span>
-                        <span class="font-monogram font-bold text-sm text-rose-700">-${spentCoins.toLocaleString()} 🪙</span>
+                redRowsHtml += `
+                    <div class="flex justify-between items-center py-1.5">
+                        <span class="font-semibold text-gray-700">✨ ${isEnLang ? "Points Used" : "Puntos Utilizados"}</span>
+                        <span class="font-monogram font-bold text-sm text-rose-700 shrink-0">-${spentCoins.toLocaleString()}</span>
                     </div>
                 `;
-            } else {
-                html += `<p class="text-[11px] text-gray-400 italic py-1 px-2">${isEnLang ? "No points used yet." : "Sin puntos utilizados aún."}</p>`;
             }
+
+            html += `
+                <div class="bg-white border border-gray-200/80 rounded-2xl px-4 py-3 shadow-2xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-extrabold text-gray-800 flex items-center gap-1.5"><span>✨</span> ${isEnLang ? "Points Used" : "Puntos Utilizados"}</span>
+                        <span class="font-monogram text-base font-extrabold ${spentCoins > 0 ? 'text-rose-700' : 'text-gray-400'}">-${spentCoins.toLocaleString()}</span>
+                    </div>
+                    ${redRowsHtml ? `<div class="mt-2 pt-2 border-t border-gray-100 divide-y divide-gray-100">${redRowsHtml}</div>` : ""}
+                </div>
+            `;
 
             logContainer.innerHTML = html;
         }
