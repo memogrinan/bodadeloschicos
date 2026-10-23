@@ -209,9 +209,21 @@ let allPlayers = {};
 let allInventory = {};
 let selectedPlayerKey = null;
 let isRedeeming = false;
+let isSandboxMode = sessionStorage.getItem("bodachicos_admin_sandbox") === "true";
+let currentInventoryRef = null;
+let currentPlayersRef = null;
+
+function getPlayersPath() {
+    return isSandboxMode ? "sandbox_players" : "players";
+}
+
+function getInventoryPath() {
+    return isSandboxMode ? "sandbox_inventory" : "inventory";
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     checkAdminAuth();
+    updateEnvironmentUI();
     listenToInventory();
     listenToPlayers();
 });
@@ -225,6 +237,91 @@ function checkAdminAuth() {
             alert("Acceso denegado: Contraseña incorrecta.");
             window.location.href = "juegos.html";
         }
+    }
+}
+
+function updateEnvironmentUI() {
+    const banner = document.getElementById("sandboxActiveBanner");
+    const btn = document.getElementById("envModeToggleBtn");
+    const label = document.getElementById("envModeToggleLabel");
+    const arcadeLink = document.getElementById("goToArcadeLink");
+
+    if (isSandboxMode) {
+        if (banner) banner.classList.remove("hidden");
+        if (btn) {
+            btn.className = "inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-extrabold bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border-2 border-purple-400/70 transition cursor-pointer shadow-md";
+        }
+        if (label) {
+            label.innerText = "🧪 MODO PRUEBAS / SANDBOX (Volver a 🟢 Producción)";
+        }
+        if (arcadeLink) {
+            arcadeLink.href = "juegos.html?sandbox=1";
+            arcadeLink.innerText = "Ir al Arcade (Sandbox) 🧪";
+        }
+    } else {
+        if (banner) banner.classList.add("hidden");
+        if (btn) {
+            btn.className = "inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-extrabold bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/40 transition cursor-pointer shadow-sm";
+        }
+        if (label) {
+            label.innerText = "🟢 PRODUCCIÓN (Ir a 🧪 Pruebas)";
+        }
+        if (arcadeLink) {
+            arcadeLink.href = "juegos.html";
+            arcadeLink.innerText = "Ir al Arcade 🎮";
+        }
+    }
+}
+
+async function toggleSandboxMode() {
+    isSandboxMode = !isSandboxMode;
+    sessionStorage.setItem("bodachicos_admin_sandbox", isSandboxMode ? "true" : "false");
+
+    selectedPlayerKey = null;
+    document.getElementById("noSelectionState").classList.remove("hidden");
+    document.getElementById("selectionState").classList.add("hidden");
+    document.getElementById("selectionState").classList.remove("flex");
+
+    updateEnvironmentUI();
+
+    if (isSandboxMode) {
+        // Si sandbox_players está vacío la primera vez, clonar automáticamente los datos actuales de Producción
+        try {
+            const snap = await db.ref("sandbox_players").once("value");
+            if (!snap.exists() || !snap.val()) {
+                await cloneProdToSandbox(false);
+            }
+        } catch (e) {}
+    }
+
+    listenToInventory();
+    listenToPlayers();
+}
+
+async function cloneProdToSandbox(askConfirmation) {
+    if (askConfirmation) {
+        if (!confirm("🔄 ¿Copiar los jugadores actuales de Producción y restablecer los 250 artículos del inventario en tu copia de Pruebas (Sandbox)?\n\n(Los datos reales de Producción NO se tocarán).")) {
+            return;
+        }
+    }
+    try {
+        const [prodPlayersSnap, prodInvSnap] = await Promise.all([
+            db.ref("players").once("value"),
+            db.ref("inventory").once("value")
+        ]);
+        const prodPlayers = prodPlayersSnap.val() || {};
+        const prodInv = prodInvSnap.val() || DEFAULT_INVENTORY;
+
+        await Promise.all([
+            db.ref("sandbox_players").set(prodPlayers),
+            db.ref("sandbox_inventory").set(prodInv)
+        ]);
+
+        if (askConfirmation) {
+            alert("✅ Copia de Pruebas (Sandbox) actualizada con los datos actuales de Producción.");
+        }
+    } catch (err) {
+        alert("Error al clonar Producción a Sandbox: " + err.message);
     }
 }
 
@@ -327,11 +424,16 @@ function formatTimeShort(ts) {
 // GESTIÓN DE INVENTARIO EN TIEMPO REAL
 // ==========================================
 function listenToInventory() {
-    db.ref("inventory").on("value", (snapshot) => {
+    if (currentInventoryRef) {
+        currentInventoryRef.off("value");
+    }
+    const invPath = getInventoryPath();
+    currentInventoryRef = db.ref(invPath);
+    currentInventoryRef.on("value", (snapshot) => {
         const val = snapshot.val();
         if (!val || Object.keys(val).length === 0) {
             // Inicializar automáticamente con los 250 artículos por defecto si no existe
-            db.ref("inventory").set(DEFAULT_INVENTORY);
+            db.ref(invPath).set(DEFAULT_INVENTORY);
             return;
         }
         allInventory = val;
@@ -452,7 +554,7 @@ function renderInventoryManagerTable() {
 
 function updateInventoryItemCost(itemId, newCostVal) {
     const cost = Math.max(0, parseInt(newCostVal) || 0);
-    db.ref(`inventory/${itemId}`).update({ cost });
+    db.ref(`${getInventoryPath()}/${itemId}`).update({ cost });
 }
 
 function adjustInventoryItemStock(itemId, delta) {
@@ -462,7 +564,7 @@ function adjustInventoryItemStock(itemId, delta) {
     const newStock = Math.max(0, currentStock + delta);
     const currentInit = parseInt(item.initialStock) || currentStock;
     const newInit = Math.max(currentInit, newStock);
-    db.ref(`inventory/${itemId}`).update({
+    db.ref(`${getInventoryPath()}/${itemId}`).update({
         stock: newStock,
         initialStock: newInit
     });
@@ -495,7 +597,7 @@ function createNewInventoryItem() {
     const newId = "item_custom_" + Date.now();
     const order = Object.keys(allInventory).length + 1;
 
-    db.ref("inventory/" + newId).set({
+    db.ref(`${getInventoryPath()}/${newId}`).set({
         id: newId,
         emoji,
         name,
@@ -515,13 +617,14 @@ function deleteInventoryItem(itemId) {
     const item = allInventory[itemId];
     if (!item) return;
     if (confirm(`¿Eliminar "${item.name}" del catálogo de inventario?`)) {
-        db.ref(`inventory/${itemId}`).remove();
+        db.ref(`${getInventoryPath()}/${itemId}`).remove();
     }
 }
 
 function resetInventoryToDefault() {
-    if (confirm("🔄 ¿Restaurar el inventario completo a las 250 unidades originales de los 20 artículos?")) {
-        db.ref("inventory").set(DEFAULT_INVENTORY).then(() => {
+    const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
+    if (confirm(`🔄 [${envName}] ¿Restaurar el inventario completo a las 250 unidades originales de los 20 artículos?`)) {
+        db.ref(getInventoryPath()).set(DEFAULT_INVENTORY).then(() => {
             alert("✅ Inventario restaurado a 250 unidades exitosamente.");
         });
     }
@@ -531,7 +634,11 @@ function resetInventoryToDefault() {
 // GESTIÓN DE JUGADORES EN TIEMPO REAL
 // ==========================================
 function listenToPlayers() {
-    db.ref("players").on("value", (snapshot) => {
+    if (currentPlayersRef) {
+        currentPlayersRef.off("value");
+    }
+    currentPlayersRef = db.ref(getPlayersPath());
+    currentPlayersRef.on("value", (snapshot) => {
         allPlayers = snapshot.val() || {};
         renderPlayersTable();
         if (selectedPlayerKey && allPlayers[selectedPlayerKey]) {
@@ -790,7 +897,7 @@ function renderPlayerAuditLogs(p, ledger) {
 // OPERACIONES TRANSACCIONALES (ACTIVIDADES Y CANJES)
 // ==========================================
 function syncPlayerLedgerTotals(playerKey) {
-    const playerRef = db.ref("players/" + playerKey);
+    const playerRef = db.ref(`${getPlayersPath()}/${playerKey}`);
     return playerRef.transaction((currentData) => {
         if (!currentData) return currentData;
         const ledger = computePlayerLedger(currentData);
@@ -822,7 +929,7 @@ function addActivityPoints(type, defaultLabel, amount) {
         timestamp: Date.now()
     };
 
-    db.ref(`players/${selectedPlayerKey}/activityLogs/${logId}`).set(entry)
+    db.ref(`${getPlayersPath()}/${selectedPlayerKey}/activityLogs/${logId}`).set(entry)
         .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
         .catch(err => alert("Error al abonar puntos: " + err.message));
 }
@@ -870,14 +977,14 @@ function redeemInventoryItem(itemId) {
     isRedeeming = true;
 
     // 1. Transacción atómica en el inventario para descontar 1 unidad de forma segura
-    const itemStockRef = db.ref(`inventory/${itemId}/stock`);
+    const itemStockRef = db.ref(`${getInventoryPath()}/${itemId}/stock`);
     itemStockRef.transaction((currentStock) => {
         const s = parseInt(currentStock) || 0;
         if (s <= 0) {
             return; // Aborta la transacción si ya se agotó
         }
         return s - 1;
-    }, (error, committed, snapshot) => {
+    }, (error, committed) => {
         if (error) {
             isRedeeming = false;
             alert("Error de conexión al verificar inventario: " + error.message);
@@ -900,7 +1007,7 @@ function redeemInventoryItem(itemId) {
             timestamp: Date.now()
         };
 
-        db.ref(`players/${selectedPlayerKey}/redemptionLogs/${logId}`).set(redemptionEntry)
+        db.ref(`${getPlayersPath()}/${selectedPlayerKey}/redemptionLogs/${logId}`).set(redemptionEntry)
             .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
             .then(() => {
                 isRedeeming = false;
@@ -921,7 +1028,7 @@ function revertActivityLog(logKey) {
     if (!entry) return;
 
     if (confirm(`¿Revertir el abono de "${entry.label}" (+${entry.amount} 🪙)?`)) {
-        db.ref(`players/${selectedPlayerKey}/activityLogs/${logKey}`).remove()
+        db.ref(`${getPlayersPath()}/${selectedPlayerKey}/activityLogs/${logKey}`).remove()
             .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
             .catch(err => alert("Error al revertir abono: " + err.message));
     }
@@ -939,22 +1046,64 @@ function revertRedemptionLog(logKey) {
             adjustInventoryItemStock(entry.itemId, 1);
         }
         // 2. Eliminar registro del log de canjes y recalcular saldo del jugador
-        db.ref(`players/${selectedPlayerKey}/redemptionLogs/${logKey}`).remove()
+        db.ref(`${getPlayersPath()}/${selectedPlayerKey}/redemptionLogs/${logKey}`).remove()
             .then(() => syncPlayerLedgerTotals(selectedPlayerKey))
             .catch(err => alert("Error al revertir canje: " + err.message));
     }
 }
 
 // ==========================================
-// ZONA DE PELIGRO & BACKUPS
+// ZONA DE PELIGRO, LIMPIEZA SEGURA & BACKUPS
 // ==========================================
+async function cleanOnlyActivitiesAndRedemptions() {
+    const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
+    if (!confirm(`🧼 [${envName}] ¿Deseas limpiar ÚNICAMENTE las pruebas de Canjes y Actividades (Plinko/Yahtzee) y regresar el inventario a 250 unidades?\n\n✅ Todos los récords y ChiCoins de Arcade ganados por los invitados se mantendrán 100% intactos.`)) {
+        return;
+    }
+
+    try {
+        const playersPath = getPlayersPath();
+        const invPath = getInventoryPath();
+        const updates = {};
+
+        Object.keys(allPlayers || {}).forEach(key => {
+            const p = allPlayers[key];
+            if (!p) return;
+            const ledger = computePlayerLedger({
+                ...p,
+                activityLogs: null,
+                redemptionLogs: null,
+                adminBonus: 0,
+                bonusCoins: 0
+            });
+            updates[`${playersPath}/${key}/activityLogs`] = null;
+            updates[`${playersPath}/${key}/redemptionLogs`] = null;
+            updates[`${playersPath}/${key}/activityCoins`] = 0;
+            updates[`${playersPath}/${key}/spentCoins`] = 0;
+            updates[`${playersPath}/${key}/adminBonus`] = 0;
+            updates[`${playersPath}/${key}/bonusCoins`] = 0;
+            updates[`${playersPath}/${key}/arcadeCoins`] = ledger.arcadeCoins;
+            updates[`${playersPath}/${key}/totalChiCoins`] = ledger.arcadeCoins;
+        });
+
+        await Promise.all([
+            Object.keys(updates).length > 0 ? db.ref().update(updates) : Promise.resolve(),
+            db.ref(invPath).set(DEFAULT_INVENTORY)
+        ]);
+
+        alert(`✅ Listo (${envName}): Inventario restaurado a 250 unidades y pruebas de actividades/canjes limpiadas. Todos los récords de Arcade siguen intactos.`);
+    } catch (err) {
+        alert("Error al limpiar actividades y canjes: " + err.message);
+    }
+}
+
 function resetPlayerStats() {
     if (!selectedPlayerKey) return;
     const p = allPlayers[selectedPlayerKey];
     const tag = p.gamerTag || selectedPlayerKey;
 
     if (confirm(`⚠️ ¿Estás SEGURO de querer REINICIAR A CEROS todos los puntos, actividades y canjes de ${tag}?`)) {
-        db.ref("players/" + selectedPlayerKey).update({
+        db.ref(`${getPlayersPath()}/${selectedPlayerKey}`).update({
             scores: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
             chiCoins: { chico: 0, chica: 0, maddie: 0, puebla: 0 },
             arcadeCoins: 0,
@@ -980,7 +1129,7 @@ function deletePlayerRecord() {
     const tag = p.gamerTag || selectedPlayerKey;
 
     if (confirm(`🚨 PELIGRO: ¿Borrar por completo el registro de ${tag}?`)) {
-        db.ref("players/" + selectedPlayerKey).remove().then(() => {
+        db.ref(`${getPlayersPath()}/${selectedPlayerKey}`).remove().then(() => {
             alert(`🗑️ El jugador ${tag} ha sido eliminado.`);
             document.getElementById("noSelectionState").classList.remove("hidden");
             document.getElementById("selectionState").classList.add("hidden");
@@ -991,11 +1140,12 @@ function deletePlayerRecord() {
 }
 
 function wipeEntireDatabase() {
-    const pass = prompt("🚨 ATENCIÓN 🚨\n\nEstás a punto de BORRAR TODOS LOS JUGADORES.\nEscribe 'Chicos0212' para confirmar:");
+    const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
+    const pass = prompt(`🚨 ATENCIÓN [${envName}] 🚨\n\nEstás a punto de BORRAR TODOS LOS JUGADORES de ${envName}.\nEscribe 'Chicos0212' para confirmar:`);
     if (pass === "Chicos0212") {
-        if (confirm("¿Estás absolutamente seguro? ESTO NO SE PUEDE DESHACER.")) {
-            db.ref("players").remove().then(() => {
-                alert("✅ Todos los jugadores fueron eliminados exitosamente.");
+        if (confirm(`¿Estás absolutamente seguro de borrar todos los jugadores de ${envName}? ESTO NO SE PUEDE DESHACER.`)) {
+            db.ref(getPlayersPath()).remove().then(() => {
+                alert(`✅ Todos los jugadores de ${envName} fueron eliminados exitosamente.`);
                 document.getElementById("noSelectionState").classList.remove("hidden");
                 document.getElementById("selectionState").classList.add("hidden");
                 document.getElementById("selectionState").classList.remove("flex");
@@ -1008,7 +1158,9 @@ function wipeEntireDatabase() {
 }
 
 function downloadBackupJSON() {
+    const envTag = isSandboxMode ? "sandbox" : "produccion";
     const backupPayload = {
+        environment: envTag,
         timestamp: new Date().toISOString(),
         players: allPlayers || {},
         inventory: allInventory || {}
@@ -1017,7 +1169,7 @@ function downloadBackupJSON() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
     const dlAnchor = document.createElement("a");
     dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", `backup-boda-completo-${dateStr}.json`);
+    dlAnchor.setAttribute("download", `backup-boda-${envTag}-${dateStr}.json`);
     document.body.appendChild(dlAnchor);
     dlAnchor.click();
     dlAnchor.remove();
@@ -1040,18 +1192,19 @@ function restoreBackupJSON(event) {
             const inventoryToRestore = hasStructuredBackup ? (parsed.inventory || null) : null;
 
             const count = Object.keys(playersToRestore).length;
-            if (!confirm(`⚠️ ¿Deseas RESTAURAR la base de datos con ${count} jugadores${inventoryToRestore ? ' y el inventario incluido' : ''}?`)) {
+            const envName = isSandboxMode ? "MODO PRUEBAS (Sandbox)" : "PRODUCCIÓN";
+            if (!confirm(`⚠️ [${envName}] ¿Deseas RESTAURAR la base de datos de ${envName} con ${count} jugadores${inventoryToRestore ? ' y el inventario incluido' : ''}?`)) {
                 event.target.value = "";
                 return;
             }
 
-            const promises = [db.ref("players").set(playersToRestore)];
+            const promises = [db.ref(getPlayersPath()).set(playersToRestore)];
             if (inventoryToRestore) {
-                promises.push(db.ref("inventory").set(inventoryToRestore));
+                promises.push(db.ref(getInventoryPath()).set(inventoryToRestore));
             }
 
             Promise.all(promises).then(() => {
-                alert(`✅ ¡Respaldo restaurado exitosamente!`);
+                alert(`✅ ¡Respaldo restaurado exitosamente en ${envName}!`);
             }).catch(err => {
                 alert("❌ Error al restaurar en Firebase: " + err.message);
             });

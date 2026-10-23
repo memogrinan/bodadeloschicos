@@ -514,6 +514,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let activePlayerRemoteData = null;
         let activePlayerListenerKey = "";
         let activePlayerListenerHandler = null;
+        const isSandboxGuestMode = (new URLSearchParams(window.location.search).get("sandbox") === "1");
+        const PLAYERS_DB_PATH = isSandboxGuestMode ? "sandbox_players" : "players";
 
         function getArcadeChiCoinsTotal() {
             let sum = 0;
@@ -564,7 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (activePlayerListenerKey && activePlayerListenerHandler) {
                 try {
-                    db.ref("players/" + activePlayerListenerKey).off("value", activePlayerListenerHandler);
+                    db.ref(PLAYERS_DB_PATH + "/" + activePlayerListenerKey).off("value", activePlayerListenerHandler);
                 } catch (e) {}
             }
 
@@ -583,7 +585,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
             };
-            db.ref("players/" + keyTag).on("value", activePlayerListenerHandler);
+            db.ref(PLAYERS_DB_PATH + "/" + keyTag).on("value", activePlayerListenerHandler);
         }
 
         function openChiCoinsDetailModal() {
@@ -836,33 +838,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem("bodachicos_scoped_" + keyTag, JSON.stringify(payload));
             } catch (e) {}
 
-            db.ref("players/" + keyTag).update(payload).catch(err => console.error("Error al sincronizar con Firebase:", err));
+            db.ref(PLAYERS_DB_PATH + "/" + keyTag).update(payload).catch(err => console.error("Error al sincronizar con Firebase:", err));
 
-            // Enviar analíticos a Google Sheets (Trix) silenciosamente
-            try {
-                const sheetPayload = {
-                    action: "updateGameStats",
-                    partyId: currentPartyId || "general",
-                    realName: payload.realName,
-                    gamerTag: payload.gamerTag,
-                    totalScore: payload.totalScore,
-                    totalChiCoins: payload.totalChiCoins,
-                    timePlayedSeconds: payload.timePlayedSeconds,
-                    chicoScore: scoresObj.chico || 0,
-                    chicaScore: scoresObj.chica || 0,
-                    maddieScore: scoresObj.maddie || 0,
-                    pueblaScore: scoresObj.puebla || 0,
-                    maxDistPuebla: maxDistPuebla,
-                    pueblaWon: pueblaWon
-                };
-                
-                fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(sheetPayload)
-                }).catch(e => console.warn("Aviso: No se pudo enviar a Trix", e));
-            } catch (e) {}
+            // Enviar analíticos a Google Sheets (Trix) silenciosamente (SOLO EN PRODUCCIÓN, no en modo Sandbox)
+            if (!isSandboxGuestMode) {
+                try {
+                    const sheetPayload = {
+                        action: "updateGameStats",
+                        partyId: currentPartyId || "general",
+                        realName: payload.realName,
+                        gamerTag: payload.gamerTag,
+                        totalScore: payload.totalScore,
+                        totalChiCoins: payload.totalChiCoins,
+                        timePlayedSeconds: payload.timePlayedSeconds,
+                        chicoScore: scoresObj.chico || 0,
+                        chicaScore: scoresObj.chica || 0,
+                        maddieScore: scoresObj.maddie || 0,
+                        pueblaScore: scoresObj.puebla || 0,
+                        maxDistPuebla: maxDistPuebla,
+                        pueblaWon: pueblaWon
+                    };
+                    
+                    fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sheetPayload)
+                    }).catch(e => console.warn("Aviso: No se pudo enviar a Trix", e));
+                } catch (e) {}
+            }
         }
 
         function openLeaderboardModal() {
@@ -900,7 +904,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if (!isLeaderboardListening) {
                 isLeaderboardListening = true;
-                db.ref("players").on("value", (snapshot) => {
+                db.ref(PLAYERS_DB_PATH).on("value", (snapshot) => {
                     rawPlayersData = snapshot.val() || {};
                     renderLeaderboardTable();
                 });
@@ -1025,6 +1029,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // INICIALIZACIÓN
         document.addEventListener("DOMContentLoaded", () => {
+            if (isSandboxGuestMode) {
+                const banner = document.createElement("div");
+                banner.className = "bg-purple-800 text-purple-100 text-xs font-bold py-2 px-4 text-center flex justify-center items-center gap-3 shadow-md";
+                banner.innerHTML = `<span>🧪 MODO PRUEBAS (SANDBOX) ACTIVO — Conectado a copia de pruebas</span> <a href="${window.location.pathname}" class="underline bg-purple-950/60 px-2.5 py-0.5 rounded-lg text-[11px] hover:bg-purple-950">Salir a Producción 🟢</a>`;
+                document.body.prepend(banner);
+            }
             checkGamertag();
             updateScoresDashboard();
         });
@@ -1099,7 +1109,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // 1. Probar por Guest ID directo como llave en /players/<id>
             if (cleanGId) {
                 try {
-                    const snap = await db.ref("players/" + cleanGId).once("value");
+                    const snap = await db.ref(PLAYERS_DB_PATH + "/" + cleanGId).once("value");
                     if (snap.exists() && snap.val()) return { key: cleanGId, data: snap.val() };
                 } catch (e) {}
             }
@@ -1107,7 +1117,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // 2. Probar por búsqueda de child 'guestId'
             if (cleanGId) {
                 try {
-                    const snap = await db.ref("players").orderByChild("guestId").equalTo(cleanGId).once("value");
+                    const snap = await db.ref(PLAYERS_DB_PATH).orderByChild("guestId").equalTo(cleanGId).once("value");
                     if (snap.exists() && snap.val()) {
                         const keys = Object.keys(snap.val());
                         if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
@@ -1118,7 +1128,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // 3. Probar por búsqueda de child 'realName'
             if (cleanName) {
                 try {
-                    const snap = await db.ref("players").orderByChild("realName").equalTo(cleanName).once("value");
+                    const snap = await db.ref(PLAYERS_DB_PATH).orderByChild("realName").equalTo(cleanName).once("value");
                     if (snap.exists() && snap.val()) {
                         const keys = Object.keys(snap.val());
                         if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
@@ -1135,13 +1145,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 1. Probar por Gamertag directo como llave en /players/<tag>
             try {
-                const snap = await db.ref("players/" + cleanTag).once("value");
+                const snap = await db.ref(PLAYERS_DB_PATH + "/" + cleanTag).once("value");
                 if (snap.exists() && snap.val()) return { key: cleanTag, data: snap.val() };
             } catch (e) {}
 
             // 2. Probar por búsqueda de child 'gamerTag'
             try {
-                const snap = await db.ref("players").orderByChild("gamerTag").equalTo(gamertag.trim()).once("value");
+                const snap = await db.ref(PLAYERS_DB_PATH).orderByChild("gamerTag").equalTo(gamertag.trim()).once("value");
                 if (snap.exists() && snap.val()) {
                     const keys = Object.keys(snap.val());
                     if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
@@ -1449,7 +1459,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Validar si el gamertag ya está en uso por OTRA persona en Firebase
             if (db) {
                 try {
-                    const tagSnap = await db.ref("players").orderByChild("gamerTag").equalTo(val).once("value");
+                    const tagSnap = await db.ref(PLAYERS_DB_PATH).orderByChild("gamerTag").equalTo(val).once("value");
                     if (tagSnap.exists() && tagSnap.val()) {
                         const entries = Object.entries(tagSnap.val());
                         const isTakenByOther = entries.some(([k, node]) => {
