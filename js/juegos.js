@@ -799,15 +799,14 @@ document.addEventListener("DOMContentLoaded", () => {
         let partyMembersData = [];
         let playerRealName = "";
 
-        // Formatea el ID de invitado asegurando el prefijo GID_ para respetar ceros a la izquierda (ej. 001 -> GID_001)
+        // Formatea el ID de invitado asegurando el prefijo GID_ exclusivamente para IDs numéricos del padrón (ej. 001 -> GID_001, GID_115 -> GID_115)
         function formatGuestId(rawId) {
             if (!rawId) return "";
             let s = String(rawId).trim();
             if (!s) return "";
-            if (!s.startsWith("GID_")) {
-                s = "GID_" + s;
-            }
-            return s.replace(/[.#$/[\]]/g, "_");
+            const stripped = s.startsWith("GID_") ? s.slice(4).trim() : s;
+            if (!/^\d+$/.test(stripped)) return "";
+            return "GID_" + stripped;
         }
 
         // DETECCIÓN INMEDIATA DE CAMBIO DE INVITACIÓN EN URL
@@ -845,7 +844,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function syncPlayerToFirebase() {
             if (!db || !playerGamertag || !playerGamertag.trim()) return;
-            const cleanGuestId = formatGuestId(playerGuestId || localStorage.getItem("bodachicos_guest_id"));
+            let cleanGuestId = formatGuestId(playerGuestId || localStorage.getItem("bodachicos_guest_id") || (activePlayerRemoteData && activePlayerRemoteData.guestId));
+            if (!cleanGuestId && rawPlayersData && typeof rawPlayersData === "object") {
+                const lowerTag = playerGamertag.trim().toLowerCase();
+                Object.entries(rawPlayersData).forEach(([k, v]) => {
+                    if (cleanGuestId || !v || typeof v !== "object" || k.startsWith("__")) return;
+                    const gIdCandidate = formatGuestId(v.guestId || k);
+                    if (gIdCandidate && (v.gamerTag || "").trim().toLowerCase() === lowerTag) {
+                        cleanGuestId = gIdCandidate;
+                        if (v.realName && !playerRealName) {
+                            playerRealName = v.realName;
+                            localStorage.setItem("bodachicos_real_name", playerRealName);
+                        }
+                    }
+                });
+            }
+            if (cleanGuestId) {
+                playerGuestId = cleanGuestId;
+                localStorage.setItem("bodachicos_guest_id", cleanGuestId);
+            } else {
+                localStorage.removeItem("bodachicos_guest_id");
+            }
+
             const cleanGamertag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
             const keyTag = cleanGuestId || cleanGamertag;
             if (!keyTag) return;
@@ -900,7 +920,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const payload = {
                 gamerTag: playerGamertag.trim(),
-                guestId: cleanGuestId || playerGuestId || keyTag,
+                guestId: cleanGuestId || keyTag,
                 realName: playerRealName || selectedRealName || (activePlayerRemoteData && activePlayerRemoteData.realName) || "",
                 partyId: currentPartyId || (activePlayerRemoteData && activePlayerRemoteData.partyId) || "general",
                 scores: scoresObj,
@@ -1034,26 +1054,52 @@ document.addEventListener("DOMContentLoaded", () => {
             if (colTitle && tabInfo[currentLeaderboardTab]) colTitle.innerText = tabInfo[currentLeaderboardTab].col;
             if (subtitle && tabInfo[currentLeaderboardTab]) subtitle.innerText = tabInfo[currentLeaderboardTab].sub;
 
-            // Deduplicación por guestId inmutable
+            // Deduplicación por guestId inmutable y por gamerTag (prefiriendo el perfil con Guest ID / nombre real)
             const uniqueMap = {};
             Object.keys(rawPlayersData).forEach(k => {
                 if (k.startsWith("__")) return;
                 const p = rawPlayersData[k];
                 if (!p || !p.gamerTag) return;
-                const formattedId = formatGuestId(p.guestId);
-                const dedupeKey = formattedId || k;
+                const formattedId = formatGuestId(p.guestId || k);
+                const dedupeKey = formattedId || ("tag_" + p.gamerTag.trim().toLowerCase());
                 if (!uniqueMap[dedupeKey]) {
                     uniqueMap[dedupeKey] = p;
                 } else {
                     const existing = uniqueMap[dedupeKey];
                     const existingScore = typeof existing.totalScore === "number" ? existing.totalScore : 0;
                     const pScore = typeof p.totalScore === "number" ? p.totalScore : 0;
-                    if (pScore > existingScore || (p.lastUpdated && p.lastUpdated > (existing.lastUpdated || 0))) {
-                        uniqueMap[dedupeKey] = p;
+                    const pHasRealName = Boolean(p.realName && p.realName.trim());
+                    const exHasRealName = Boolean(existing.realName && existing.realName.trim());
+                    if (pScore > existingScore || (pScore === existingScore && pHasRealName && !exHasRealName) || (pScore === existingScore && pHasRealName === exHasRealName && (p.lastUpdated || 0) > (existing.lastUpdated || 0))) {
+                        uniqueMap[dedupeKey] = Object.assign({}, existing, p, {
+                            realName: (p.realName && p.realName.trim()) || existing.realName || "",
+                            guestId: formattedId || formatGuestId(existing.guestId) || p.guestId
+                        });
+                    } else if (!exHasRealName && pHasRealName) {
+                        existing.realName = p.realName.trim();
                     }
                 }
             });
-            const list = Object.values(uniqueMap);
+            // Segunda pasada para fusionar si un mismo gamerTag quedó tanto con GID_ como con tag_
+            const byTagMap = {};
+            Object.values(uniqueMap).forEach(p => {
+                const tagKey = (p.gamerTag || "").trim().toLowerCase();
+                if (!tagKey) return;
+                if (!byTagMap[tagKey]) {
+                    byTagMap[tagKey] = p;
+                } else {
+                    const ex = byTagMap[tagKey];
+                    const exGid = formatGuestId(ex.guestId);
+                    const pGid = formatGuestId(p.guestId);
+                    if ((pGid && !exGid) || ((p.totalScore || 0) > (ex.totalScore || 0))) {
+                        byTagMap[tagKey] = Object.assign({}, ex, p, {
+                            realName: (p.realName && p.realName.trim()) || ex.realName || "",
+                            guestId: pGid || exGid || p.guestId
+                        });
+                    }
+                }
+            });
+            const list = Object.values(byTagMap);
 
             if (list.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">${isEnLang ? "No records recorded yet. Be the first!" : "Aún no hay récords registrados. ¡Sé el primero!"}</td></tr>`;
@@ -1186,16 +1232,21 @@ document.addEventListener("DOMContentLoaded", () => {
             let maxTime = 0;
             const mergedActLogs = {};
             const mergedRedLogs = {};
-            let bestKey = preferredKey || sorted[sorted.length - 1].key;
+            let bestKey = formatGuestId(preferredKey) || preferredKey || sorted[sorted.length - 1].key;
 
             sorted.forEach(({ key, data }) => {
                 if (!data || typeof data !== "object") return;
-                if (key && key.startsWith("GID_") && (!bestKey || !bestKey.startsWith("GID_"))) {
-                    bestKey = key;
+                const validKeyGid = formatGuestId(key);
+                if (validKeyGid && !formatGuestId(bestKey)) {
+                    bestKey = validKeyGid;
                 }
                 Object.assign(merged, data);
                 if (data.realName && data.realName.trim()) merged.realName = data.realName.trim();
-                if (data.guestId && String(data.guestId).startsWith("GID_")) merged.guestId = formatGuestId(data.guestId);
+                const validDataGid = formatGuestId(data.guestId);
+                if (validDataGid) {
+                    merged.guestId = validDataGid;
+                    if (!formatGuestId(bestKey)) bestKey = validDataGid;
+                }
                 if (data.partyId && data.partyId !== "general" && data.partyId !== "chicos") merged.partyId = data.partyId;
 
                 ["chico", "chica", "maddie", "puebla"].forEach(g => {
@@ -1226,7 +1277,7 @@ document.addEventListener("DOMContentLoaded", () => {
             merged.timePlayedSeconds = maxTime;
             if (Object.keys(mergedActLogs).length > 0) merged.activityLogs = mergedActLogs;
             if (Object.keys(mergedRedLogs).length > 0) merged.redemptionLogs = mergedRedLogs;
-            if (bestKey && bestKey.startsWith("GID_")) merged.guestId = bestKey;
+            if (formatGuestId(bestKey)) merged.guestId = formatGuestId(bestKey);
 
             return { key: bestKey, data: merged };
         }
@@ -1298,7 +1349,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             Object.entries(allPlayers).forEach(([k, v]) => {
                 if (!v || typeof v !== "object" || k.startsWith("__")) return;
-                const nodeGId = v.guestId && String(v.guestId).startsWith("GID_") ? formatGuestId(v.guestId) : (k.startsWith("GID_") ? k : "");
+                const nodeGId = formatGuestId(v.guestId) || formatGuestId(k);
                 const nodeName = (v.realName || "").trim().toLowerCase();
                 const nodeParty = (v.partyId || "").trim().toLowerCase();
 
@@ -1346,6 +1397,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         async function checkGamertag() {
             playerGuestId = formatGuestId(localStorage.getItem("bodachicos_guest_id") || "");
+            if (!playerGuestId) {
+                localStorage.removeItem("bodachicos_guest_id");
+            }
             playerGamertag = localStorage.getItem("bodachicos_gamertag") || "";
             playerRealName = localStorage.getItem("bodachicos_real_name") || "";
 
@@ -1372,18 +1426,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     if (record && record.data) {
-                        applyPlayerScores(record.data, record.key, true);
-                        if (record.key && record.key.startsWith("GID_") && playerGuestId !== record.key) {
-                            playerGuestId = record.key;
-                            localStorage.setItem("bodachicos_guest_id", playerGuestId);
-                        } else if (record.data.guestId && String(record.data.guestId).startsWith("GID_") && !playerGuestId) {
-                            playerGuestId = formatGuestId(record.data.guestId);
+                        const validRecordGid = formatGuestId(record.key) || formatGuestId(record.data.guestId);
+                        if (validRecordGid && playerGuestId !== validRecordGid) {
+                            playerGuestId = validRecordGid;
                             localStorage.setItem("bodachicos_guest_id", playerGuestId);
                         }
                         if (record.data.realName && !playerRealName) {
                             playerRealName = record.data.realName;
                             localStorage.setItem("bodachicos_real_name", playerRealName);
                         }
+                        applyPlayerScores(record.data, playerGuestId || record.key, true);
                         if (record.data.gamerTag && record.data.gamerTag !== playerGamertag) {
                             playerGamertag = record.data.gamerTag;
                             localStorage.setItem("bodachicos_gamertag", playerGamertag);
@@ -1677,8 +1729,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            const effectiveGuestId = formatGuestId(selectedGuestId || playerGuestId);
-            const effectiveRealName = (selectedRealName || playerRealName || "").trim();
+            let effectiveGuestId = formatGuestId(selectedGuestId || playerGuestId);
+            let effectiveRealName = (selectedRealName || playerRealName || "").trim();
 
             // Validar en memoria si el gamertag ya está en uso por OTRA persona y recuperar récords previos del invitado
             if (db) {
@@ -1690,7 +1742,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const nodeTag = (node.gamerTag || "").trim().toLowerCase();
                         if (nodeTag !== lowerVal) return false;
 
-                        const nodeGId = (node.guestId && String(node.guestId).startsWith("GID_")) ? formatGuestId(node.guestId) : (k.startsWith("GID_") ? k : "");
+                        const nodeGId = formatGuestId(node.guestId) || formatGuestId(k);
                         const nodeName = (node.realName || "").trim().toLowerCase();
 
                         if (effectiveGuestId && nodeGId && nodeGId === effectiveGuestId) return false;
@@ -1718,6 +1770,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         : await fetchPlayerRecordByGamertag(playerGamertag || val);
 
                     if (existingRecord && existingRecord.data) {
+                        const foundGid = formatGuestId(existingRecord.key) || formatGuestId(existingRecord.data.guestId);
+                        if (!effectiveGuestId && foundGid) effectiveGuestId = foundGid;
+                        if (!effectiveRealName && existingRecord.data.realName) effectiveRealName = existingRecord.data.realName.trim();
+
                         const isSamePlayer = Boolean(
                             !playerGuestId ||
                             playerGuestId === effectiveGuestId ||
@@ -1737,7 +1793,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             localStorage.setItem("bodachicos_gamertag", playerGamertag);
             if (playerRealName) localStorage.setItem("bodachicos_real_name", playerRealName);
-            if (playerGuestId) localStorage.setItem("bodachicos_guest_id", playerGuestId);
+            if (playerGuestId) {
+                localStorage.setItem("bodachicos_guest_id", playerGuestId);
+            } else {
+                localStorage.removeItem("bodachicos_guest_id");
+            }
 
             if (btn) {
                 btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
