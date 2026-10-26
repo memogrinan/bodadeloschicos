@@ -327,8 +327,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     ? "Ceremony at Parroquia de San Andrés Apóstol / Reception at Hacienda San José Actipan" 
                     : "Ceremonia en Parroquia de San Andrés Apóstol / Recepción en Hacienda San José Actipan");
 
-            const dtStart = isFriday ? "20270212T220000Z" : "20270213T210000Z";
-            const dtEnd = isFriday ? "20270213T040000Z" : "20270214T053000Z";
+            const dtStart = isFriday ? "20270212T230000Z" : "20270213T210000Z";
+            const dtEnd = isFriday ? "20270213T050000Z" : "20270214T053000Z";
             const filename = isFriday ? "Boda_Civil_Mariana_y_Memo.ics" : "Boda_Mariana_y_Memo.ics";
 
             const icsContent = [
