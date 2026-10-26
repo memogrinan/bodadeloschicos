@@ -852,13 +852,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
             attachActivePlayerListener(keyTag);
             
+            const remoteScores = (activePlayerRemoteData && activePlayerRemoteData.scores) ? activePlayerRemoteData.scores : {};
             const scoresObj = {};
             const coinsObj = {};
             let arcadeCoinsSum = 0;
             let totalScoreSum = 0;
             
             Object.keys(METAS).forEach(g => {
-                const s = getScore(g);
+                const localS = getScore(g);
+                const remoteS = parseInt(remoteScores[g]) || 0;
+                const s = Math.max(localS, remoteS);
+                if (s > localS) {
+                    localStorage.setItem("bodachicos_score_" + g, s);
+                }
                 const c = calculateGameChiCoins(g, s);
                 scoresObj[g] = s;
                 coinsObj[g] = c;
@@ -867,23 +873,36 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             // Bono fijo único de +500 si se superaron las 4 metas
-            const allMetasBonus = areAllMetasPassed() ? 500 : 0;
+            const allMetasBonus = (areAllMetasPassed() || Boolean(activePlayerRemoteData && activePlayerRemoteData.hasAllMetasBonus)) ? 500 : 0;
             arcadeCoinsSum += allMetasBonus;
 
             // Balance neto respetando estrictamente actividades y canjes del servidor (el cliente NUNCA escribe ni sobreescribe activityLogs ni redemptionLogs)
             const netTotalCoins = Math.max(0, arcadeCoinsSum + getRemoteActivityCoins() - getRemoteSpentCoins());
 
-            let timePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
-            if (isNaN(timePlayed)) timePlayed = 0;
+            let localTimePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0");
+            if (isNaN(localTimePlayed)) localTimePlayed = 0;
+            const remoteTimePlayed = parseInt(activePlayerRemoteData && activePlayerRemoteData.timePlayedSeconds) || 0;
+            const timePlayed = Math.max(localTimePlayed, remoteTimePlayed);
+            if (timePlayed > localTimePlayed) {
+                localStorage.setItem("bodachicos_time_played", timePlayed);
+            }
 
-            const maxDistPuebla = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0");
-            const pueblaWon = (localStorage.getItem("bodachicos_puebla_won") === "true") || (scoresObj.puebla >= METAS.puebla) || (maxDistPuebla >= 120);
+            const localMaxDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0") || 0;
+            const remoteMaxDist = parseFloat(activePlayerRemoteData && activePlayerRemoteData.maxDistPuebla) || 0;
+            const maxDistPuebla = Math.max(localMaxDist, remoteMaxDist);
+            if (maxDistPuebla > localMaxDist) {
+                localStorage.setItem("bodachicos_maxdist_puebla", maxDistPuebla.toFixed(1));
+            }
+            const pueblaWon = (localStorage.getItem("bodachicos_puebla_won") === "true") || Boolean(activePlayerRemoteData && activePlayerRemoteData.pueblaWon) || (scoresObj.puebla >= METAS.puebla) || (maxDistPuebla >= 120);
+            if (pueblaWon) {
+                localStorage.setItem("bodachicos_puebla_won", "true");
+            }
 
             const payload = {
                 gamerTag: playerGamertag.trim(),
-                guestId: playerGuestId || keyTag,
-                realName: playerRealName || selectedRealName || "",
-                partyId: currentPartyId || "general",
+                guestId: cleanGuestId || playerGuestId || keyTag,
+                realName: playerRealName || selectedRealName || (activePlayerRemoteData && activePlayerRemoteData.realName) || "",
+                partyId: currentPartyId || (activePlayerRemoteData && activePlayerRemoteData.partyId) || "general",
                 scores: scoresObj,
                 chiCoins: coinsObj,
                 arcadeCoins: arcadeCoinsSum,
@@ -895,6 +914,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 timePlayedSeconds: timePlayed,
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
             };
+
+            activePlayerRemoteData = Object.assign({}, activePlayerRemoteData || {}, payload);
 
             // Guardar en el espacio aislado local de este keyTag para evitar cruces en el mismo dispositivo
             try {
@@ -912,7 +933,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     const sheetPayload = {
                         action: "updateGameStats",
-                        partyId: currentPartyId || "general",
+                        guestId: payload.guestId,
+                        partyId: payload.partyId,
                         realName: payload.realName,
                         gamerTag: payload.gamerTag,
                         totalScore: payload.totalScore,
@@ -1135,133 +1157,190 @@ document.addEventListener("DOMContentLoaded", () => {
             activePlayerRemoteData = null;
         }
 
-        function applyPlayerScores(remoteData, keyTag) {
+        let isLoadingPartyMembers = false;
+
+        async function fetchAllPlayersMap() {
+            if (isSandboxGuestMode) {
+                const sbMap = getSandboxLocalPlayers();
+                if (sbMap) return sbMap;
+            }
+            if (!db) return {};
+            try {
+                const snap = await db.ref(PLAYERS_DB_PATH).once("value");
+                return (snap && snap.exists() && snap.val()) ? snap.val() : {};
+            } catch (e) {
+                console.warn("Error al leer lista de jugadores:", e);
+                return {};
+            }
+        }
+
+        function mergeMatchingPlayerRecords(matches, preferredKey) {
+            if (!matches || matches.length === 0) return null;
+            // Ordenar por lastUpdated ascendente para que el más reciente prevalezca en metadatos (ej. gamerTag)
+            const sorted = matches.slice().sort((a, b) => ((a.data && a.data.lastUpdated) || 0) - ((b.data && b.data.lastUpdated) || 0));
+            const merged = {};
+            const mergedScores = { chico: 0, chica: 0, maddie: 0, puebla: 0 };
+            const mergedCoins = { chico: 0, chica: 0, maddie: 0, puebla: 0 };
+            let maxDist = 0;
+            let wonPuebla = false;
+            let maxTime = 0;
+            const mergedActLogs = {};
+            const mergedRedLogs = {};
+            let bestKey = preferredKey || sorted[sorted.length - 1].key;
+
+            sorted.forEach(({ key, data }) => {
+                if (!data || typeof data !== "object") return;
+                if (key && key.startsWith("GID_") && (!bestKey || !bestKey.startsWith("GID_"))) {
+                    bestKey = key;
+                }
+                Object.assign(merged, data);
+                if (data.realName && data.realName.trim()) merged.realName = data.realName.trim();
+                if (data.guestId && String(data.guestId).startsWith("GID_")) merged.guestId = formatGuestId(data.guestId);
+                if (data.partyId && data.partyId !== "general" && data.partyId !== "chicos") merged.partyId = data.partyId;
+
+                ["chico", "chica", "maddie", "puebla"].forEach(g => {
+                    const s = parseInt(data.scores && data.scores[g]) || 0;
+                    if (s > mergedScores[g]) mergedScores[g] = s;
+                    mergedCoins[g] = calculateGameChiCoins(g, mergedScores[g]);
+                });
+
+                const dist = parseFloat(data.maxDistPuebla) || 0;
+                if (dist > maxDist) maxDist = dist;
+                if (data.pueblaWon || mergedScores.puebla >= METAS.puebla || maxDist >= 120) wonPuebla = true;
+
+                const t = parseInt(data.timePlayedSeconds) || 0;
+                if (t > maxTime) maxTime = t;
+
+                if (data.activityLogs && typeof data.activityLogs === "object") {
+                    Object.assign(mergedActLogs, data.activityLogs);
+                }
+                if (data.redemptionLogs && typeof data.redemptionLogs === "object") {
+                    Object.assign(mergedRedLogs, data.redemptionLogs);
+                }
+            });
+
+            merged.scores = mergedScores;
+            merged.chiCoins = mergedCoins;
+            merged.maxDistPuebla = maxDist;
+            merged.pueblaWon = wonPuebla;
+            merged.timePlayedSeconds = maxTime;
+            if (Object.keys(mergedActLogs).length > 0) merged.activityLogs = mergedActLogs;
+            if (Object.keys(mergedRedLogs).length > 0) merged.redemptionLogs = mergedRedLogs;
+            if (bestKey && bestKey.startsWith("GID_")) merged.guestId = bestKey;
+
+            return { key: bestKey, data: merged };
+        }
+
+        function applyPlayerScores(remoteData, keyTag, preserveHigherLocal = false) {
+            const prevLocalScores = {};
+            let prevLocalMaxDist = 0;
+            let prevLocalPueblaWon = false;
+            let prevLocalTimePlayed = 0;
+
+            if (preserveHigherLocal) {
+                ["chico", "chica", "maddie", "puebla"].forEach(g => {
+                    prevLocalScores[g] = getScore(g);
+                });
+                prevLocalMaxDist = parseFloat(localStorage.getItem("bodachicos_maxdist_puebla") || "0") || 0;
+                prevLocalPueblaWon = localStorage.getItem("bodachicos_puebla_won") === "true";
+                prevLocalTimePlayed = parseInt(localStorage.getItem("bodachicos_time_played") || "0") || 0;
+            }
+
             clearLocalPlayerScores();
             activePlayerRemoteData = remoteData || null;
             if (keyTag) {
                 attachActivePlayerListener(keyTag);
             }
 
-            if (remoteData) {
-                if (remoteData.scores) {
-                    Object.keys(remoteData.scores).forEach(g => {
-                        localStorage.setItem("bodachicos_score_" + g, parseInt(remoteData.scores[g]) || 0);
-                    });
-                }
-
-                if (remoteData.maxDistPuebla) {
-                    localStorage.setItem("bodachicos_maxdist_puebla", parseFloat(remoteData.maxDistPuebla).toFixed(1));
-                }
-                if (remoteData.pueblaWon || (remoteData.scores && remoteData.scores.puebla >= METAS.puebla) || (parseFloat(remoteData.maxDistPuebla || 0) >= 120)) {
-                    localStorage.setItem("bodachicos_puebla_won", "true");
-                }
-                if (remoteData.timePlayedSeconds) {
-                    localStorage.setItem("bodachicos_time_played", parseInt(remoteData.timePlayedSeconds) || 0);
-                }
-            } else if (keyTag) {
-                // Si no hay datos remotos, buscar en el espacio aislado local de ESTE usuario
+            let sourceData = remoteData;
+            if (!sourceData && keyTag) {
                 try {
-                    const scoped = JSON.parse(localStorage.getItem("bodachicos_scoped_" + keyTag) || "null");
-                    if (scoped) {
-                        if (scoped.scores) {
-                            Object.keys(scoped.scores).forEach(g => {
-                                localStorage.setItem("bodachicos_score_" + g, parseInt(scoped.scores[g]) || 0);
-                            });
-                        }
-                        if (scoped.maxDistPuebla) localStorage.setItem("bodachicos_maxdist_puebla", scoped.maxDistPuebla);
-                        if (scoped.pueblaWon) localStorage.setItem("bodachicos_puebla_won", "true");
-                        if (scoped.timePlayedSeconds) localStorage.setItem("bodachicos_time_played", parseInt(scoped.timePlayedSeconds) || 0);
-                    }
+                    sourceData = JSON.parse(localStorage.getItem("bodachicos_scoped_" + keyTag) || "null");
                 } catch (e) {}
             }
+
+            ["chico", "chica", "maddie", "puebla"].forEach(g => {
+                const remVal = (sourceData && sourceData.scores) ? (parseInt(sourceData.scores[g]) || 0) : 0;
+                const finalVal = preserveHigherLocal ? Math.max(remVal, prevLocalScores[g] || 0) : remVal;
+                if (finalVal > 0) {
+                    localStorage.setItem("bodachicos_score_" + g, finalVal);
+                }
+            });
+
+            const remDist = sourceData ? (parseFloat(sourceData.maxDistPuebla) || 0) : 0;
+            const finalDist = preserveHigherLocal ? Math.max(remDist, prevLocalMaxDist) : remDist;
+            if (finalDist > 0) {
+                localStorage.setItem("bodachicos_maxdist_puebla", finalDist.toFixed(1));
+            }
+
+            const remWon = Boolean(sourceData && (sourceData.pueblaWon || (sourceData.scores && sourceData.scores.puebla >= METAS.puebla) || remDist >= 120));
+            if (remWon || (preserveHigherLocal && prevLocalPueblaWon) || getScore("puebla") >= METAS.puebla || finalDist >= 120) {
+                localStorage.setItem("bodachicos_puebla_won", "true");
+            }
+
+            const remTime = sourceData ? (parseInt(sourceData.timePlayedSeconds) || 0) : 0;
+            const finalTime = preserveHigherLocal ? Math.max(remTime, prevLocalTimePlayed) : remTime;
+            if (finalTime > 0) {
+                localStorage.setItem("bodachicos_time_played", finalTime);
+            }
+
             updateScoresDashboard();
         }
 
         async function fetchPlayerRecordByGuest(guestId, realName) {
             const cleanGId = guestId ? formatGuestId(guestId) : "";
-            const cleanName = realName ? realName.trim() : "";
+            const cleanName = realName ? realName.trim().toLowerCase() : "";
+            const cleanParty = (currentPartyId && currentPartyId !== "chicos" && currentPartyId !== "general") ? currentPartyId.trim().toLowerCase() : "";
+            const isSingleMemberParty = (partyMembersData && partyMembersData.length === 1);
 
-            if (isSandboxGuestMode) {
-                const sbMap = getSandboxLocalPlayers();
-                if (sbMap) {
-                    if (cleanGId && sbMap[cleanGId]) return { key: cleanGId, data: sbMap[cleanGId] };
-                    const entries = Object.entries(sbMap);
-                    if (cleanGId) {
-                        const byGid = entries.find(([k, v]) => v && v.guestId === cleanGId);
-                        if (byGid) return { key: byGid[0], data: byGid[1] };
-                    }
-                    if (cleanName) {
-                        const byName = entries.find(([k, v]) => v && v.realName === cleanName);
-                        if (byName) return { key: byName[0], data: byName[1] };
-                    }
+            const allPlayers = await fetchAllPlayersMap();
+            const matches = [];
+
+            Object.entries(allPlayers).forEach(([k, v]) => {
+                if (!v || typeof v !== "object" || k.startsWith("__")) return;
+                const nodeGId = v.guestId && String(v.guestId).startsWith("GID_") ? formatGuestId(v.guestId) : (k.startsWith("GID_") ? k : "");
+                const nodeName = (v.realName || "").trim().toLowerCase();
+                const nodeParty = (v.partyId || "").trim().toLowerCase();
+
+                let isMatch = false;
+                if (cleanGId && (k === cleanGId || nodeGId === cleanGId)) {
+                    isMatch = true;
+                } else if (cleanName && nodeName && nodeName === cleanName) {
+                    isMatch = true;
+                } else if (isSingleMemberParty && cleanParty && nodeParty === cleanParty && (!nodeName || nodeName === cleanName)) {
+                    isMatch = true;
                 }
+
+                if (isMatch) {
+                    matches.push({ key: k, data: v });
+                }
+            });
+
+            if (matches.length > 0) {
+                return mergeMatchingPlayerRecords(matches, cleanGId);
             }
-
-            if (!db) return null;
-
-            // 1. Probar por Guest ID directo como llave en /players/<id>
-            if (cleanGId) {
-                try {
-                    const snap = await db.ref(PLAYERS_DB_PATH + "/" + cleanGId).once("value");
-                    if (snap.exists() && snap.val()) return { key: cleanGId, data: snap.val() };
-                } catch (e) {}
-            }
-
-            // 2. Probar por búsqueda de child 'guestId'
-            if (cleanGId) {
-                try {
-                    const snap = await db.ref(PLAYERS_DB_PATH).orderByChild("guestId").equalTo(cleanGId).once("value");
-                    if (snap.exists() && snap.val()) {
-                        const keys = Object.keys(snap.val());
-                        if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
-                    }
-                } catch (e) {}
-            }
-
-            // 3. Probar por búsqueda de child 'realName'
-            if (cleanName) {
-                try {
-                    const snap = await db.ref(PLAYERS_DB_PATH).orderByChild("realName").equalTo(cleanName).once("value");
-                    if (snap.exists() && snap.val()) {
-                        const keys = Object.keys(snap.val());
-                        if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
-                    }
-                } catch (e) {}
-            }
-
             return null;
         }
 
         async function fetchPlayerRecordByGamertag(gamertag) {
             if (!gamertag || !gamertag.trim()) return null;
-            const cleanTag = gamertag.trim().replace(/[.#$/[\]]/g, "_");
+            const cleanTag = gamertag.trim().replace(/[.#$/[\]]/g, "_").toLowerCase();
+            const rawLower = gamertag.trim().toLowerCase();
 
-            if (isSandboxGuestMode) {
-                const sbMap = getSandboxLocalPlayers();
-                if (sbMap) {
-                    if (sbMap[cleanTag]) return { key: cleanTag, data: sbMap[cleanTag] };
-                    const byTag = Object.entries(sbMap).find(([k, v]) => v && v.gamerTag === gamertag.trim());
-                    if (byTag) return { key: byTag[0], data: byTag[1] };
+            const allPlayers = await fetchAllPlayersMap();
+            const matches = [];
+
+            Object.entries(allPlayers).forEach(([k, v]) => {
+                if (!v || typeof v !== "object" || k.startsWith("__")) return;
+                const nodeTag = (v.gamerTag || "").trim().toLowerCase();
+                if (k.toLowerCase() === cleanTag || (nodeTag && nodeTag === rawLower)) {
+                    matches.push({ key: k, data: v });
                 }
+            });
+
+            if (matches.length > 0) {
+                return mergeMatchingPlayerRecords(matches, "");
             }
-
-            if (!db) return null;
-
-            // 1. Probar por Gamertag directo como llave en /players/<tag>
-            try {
-                const snap = await db.ref(PLAYERS_DB_PATH + "/" + cleanTag).once("value");
-                if (snap.exists() && snap.val()) return { key: cleanTag, data: snap.val() };
-            } catch (e) {}
-
-            // 2. Probar por búsqueda de child 'gamerTag'
-            try {
-                const snap = await db.ref(PLAYERS_DB_PATH).orderByChild("gamerTag").equalTo(gamertag.trim()).once("value");
-                if (snap.exists() && snap.val()) {
-                    const keys = Object.keys(snap.val());
-                    if (keys.length > 0) return { key: keys[0], data: snap.val()[keys[0]] };
-                }
-            } catch (e) {}
-
             return null;
         }
 
@@ -1285,20 +1364,37 @@ document.addEventListener("DOMContentLoaded", () => {
             // Si SÍ hay un jugador activo, consultar Firebase primero para tener los datos más recientes
             if (db) {
                 try {
-                    const record = (playerGuestId || playerRealName) 
+                    let record = (playerGuestId || playerRealName) 
                         ? await fetchPlayerRecordByGuest(playerGuestId, playerRealName)
-                        : await fetchPlayerRecordByGamertag(playerGamertag);
+                        : null;
+                    if (!record) {
+                        record = await fetchPlayerRecordByGamertag(playerGamertag);
+                    }
 
                     if (record && record.data) {
-                        applyPlayerScores(record.data, record.key);
-                        if (record.data.guestId && !playerGuestId) {
+                        applyPlayerScores(record.data, record.key, true);
+                        if (record.key && record.key.startsWith("GID_") && playerGuestId !== record.key) {
+                            playerGuestId = record.key;
+                            localStorage.setItem("bodachicos_guest_id", playerGuestId);
+                        } else if (record.data.guestId && String(record.data.guestId).startsWith("GID_") && !playerGuestId) {
                             playerGuestId = formatGuestId(record.data.guestId);
                             localStorage.setItem("bodachicos_guest_id", playerGuestId);
                         }
+                        if (record.data.realName && !playerRealName) {
+                            playerRealName = record.data.realName;
+                            localStorage.setItem("bodachicos_real_name", playerRealName);
+                        }
+                        if (record.data.gamerTag && record.data.gamerTag !== playerGamertag) {
+                            playerGamertag = record.data.gamerTag;
+                            localStorage.setItem("bodachicos_gamertag", playerGamertag);
+                            document.getElementById("playerGamertag").innerText = playerGamertag;
+                            document.getElementById("bottomGamerTag").innerText = playerGamertag;
+                        }
+                        syncPlayerToFirebase();
                     } else {
-                        // El jugador tiene Gamertag pero no existe en Firebase: iniciar en ceros
+                        // El jugador tiene Gamertag pero no existe en Firebase: conservar sus puntos locales y sincronizar
                         const localKey = playerGuestId || playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
-                        applyPlayerScores(null, localKey);
+                        applyPlayerScores(null, localKey, true);
                         syncPlayerToFirebase();
                     }
                 } catch (e) {
@@ -1339,9 +1435,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (currentPartyId && partyMembersData.length === 0) {
+                isLoadingPartyMembers = true;
                 if (container) container.classList.remove("hidden");
                 if (buttonsList) {
                     buttonsList.innerHTML = `<p class="text-xs text-gray-400 italic py-2 text-center animate-pulse">⌛ ${isEnLang ? "Loading invitation members..." : "Cargando integrantes de la invitación..."}</p>`;
+                }
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add("opacity-70", "cursor-wait");
+                    btn.innerText = isEnLang ? "Loading invitation... ⌛" : "Cargando invitación... ⌛";
                 }
 
                 try {
@@ -1363,6 +1465,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {
                     console.warn("No se pudo cargar la lista de integrantes del RSVP:", e);
                     if (container) container.classList.add("hidden");
+                } finally {
+                    isLoadingPartyMembers = false;
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove("opacity-70", "cursor-wait");
+                        btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
+                    }
                 }
             } else if (partyMembersData && partyMembersData.length > 0) {
                 if (container) container.classList.remove("hidden");
@@ -1409,9 +1518,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.innerHTML = `<span>👤 ${memberObj.name}</span><span class="check-icon ${isSel ? '' : 'hidden'} font-bold">✓</span>`;
                 buttonsList.appendChild(btn);
             });
+
+            // Si se autoseleccionó un integrante (ej. invitación individual) y aún no hemos cargado su perfil remoto, cargarlo sin borrar lo que haya escrito
+            if (defaultIdx >= 0 && !activePlayerRemoteData) {
+                selectMemberChoice(defaultIdx, partyMembersData[defaultIdx].name, partyMembersData[defaultIdx].id, true);
+            }
         }
 
-        async function selectMemberChoice(idx, memberName, memberId) {
+        async function selectMemberChoice(idx, memberName, memberId, preserveTypedInput = false) {
+            const isSameActivePlayer = Boolean(
+                (playerGuestId && formatGuestId(memberId) === playerGuestId) ||
+                (playerRealName && (memberName || "").trim().toLowerCase() === playerRealName.trim().toLowerCase())
+            );
             selectedRealName = (memberName || "").trim();
             selectedGuestId = formatGuestId(memberId);
 
@@ -1432,25 +1550,25 @@ document.addEventListener("DOMContentLoaded", () => {
             const errorMsg = document.getElementById("gamertagErrorMsg");
             if (errorMsg) errorMsg.classList.add("hidden");
 
-            // Consultar Firebase ÚNICAMENTE para este integrante específico (ignora lo que hay en el celular)
+            // Consultar Firebase ÚNICAMENTE para este integrante específico
             try {
                 const record = await fetchPlayerRecordByGuest(selectedGuestId, selectedRealName);
                 if (record && record.data) {
                     // El jugador ya tiene perfil en Firebase: cargar sus scores reales y pre-llenar su GamerTag
-                    applyPlayerScores(record.data, record.key);
-                    if (inputEl) {
+                    applyPlayerScores(record.data, selectedGuestId || record.key, isSameActivePlayer);
+                    if (inputEl && (!preserveTypedInput || !inputEl.value.trim())) {
                         inputEl.value = record.data.gamerTag || "";
                     }
                 } else {
-                    // El jugador no tiene perfil en Firebase aún: arrancar en ceros y limpiar gamertag para que elija uno
-                    applyPlayerScores(null, selectedGuestId);
-                    if (inputEl) {
+                    // El jugador no tiene perfil en Firebase aún
+                    applyPlayerScores(null, selectedGuestId, isSameActivePlayer);
+                    if (inputEl && !preserveTypedInput && !isSameActivePlayer) {
                         inputEl.value = "";
                     }
                 }
             } catch (e) {
                 console.warn("Error al consultar Firebase en selectMemberChoice:", e);
-                applyPlayerScores(null, selectedGuestId);
+                applyPlayerScores(null, selectedGuestId, isSameActivePlayer);
             }
 
             // NOTA: NO llamamos a inputEl.focus() para evitar abrir automáticamente el teclado del celular.
@@ -1510,6 +1628,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         async function saveGamerTag() {
+            if (isLoadingPartyMembers) return;
+
             const errorMsg = document.getElementById("gamertagErrorMsg");
             if (errorMsg) errorMsg.classList.add("hidden");
 
@@ -1557,33 +1677,57 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("opacity-70", "cursor-wait");
             }
 
-            const effectiveGuestId = selectedGuestId || playerGuestId;
-            const effectiveRealName = selectedRealName || playerRealName;
+            const effectiveGuestId = formatGuestId(selectedGuestId || playerGuestId);
+            const effectiveRealName = (selectedRealName || playerRealName || "").trim();
 
-            // Validar si el gamertag ya está en uso por OTRA persona en Firebase
+            // Validar en memoria si el gamertag ya está en uso por OTRA persona y recuperar récords previos del invitado
             if (db) {
                 try {
-                    const tagSnap = await db.ref(PLAYERS_DB_PATH).orderByChild("gamerTag").equalTo(val).once("value");
-                    if (tagSnap.exists() && tagSnap.val()) {
-                        const entries = Object.entries(tagSnap.val());
-                        const isTakenByOther = entries.some(([k, node]) => {
-                            const nodeGId = formatGuestId(node.guestId || k);
-                            return nodeGId && nodeGId !== effectiveGuestId;
-                        });
-                        if (isTakenByOther) {
-                            if (errorMsg) {
-                                errorMsg.innerText = isEnLang ? `❌ GamerTag '${val}' is already taken. Please choose another.` : `❌ El GamerTag '${val}' ya está en uso por otro invitado. Por favor elige otro.`;
-                                errorMsg.classList.remove("hidden");
-                            }
-                            if (btn) {
-                                btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
-                                btn.disabled = false;
-                                btn.classList.remove("opacity-70", "cursor-wait");
-                            }
-                            return;
+                    const allPlayers = await fetchAllPlayersMap();
+                    const lowerVal = val.toLowerCase();
+                    const isTakenByOther = Object.entries(allPlayers).some(([k, node]) => {
+                        if (!node || typeof node !== "object" || k.startsWith("__")) return false;
+                        const nodeTag = (node.gamerTag || "").trim().toLowerCase();
+                        if (nodeTag !== lowerVal) return false;
+
+                        const nodeGId = (node.guestId && String(node.guestId).startsWith("GID_")) ? formatGuestId(node.guestId) : (k.startsWith("GID_") ? k : "");
+                        const nodeName = (node.realName || "").trim().toLowerCase();
+
+                        if (effectiveGuestId && nodeGId && nodeGId === effectiveGuestId) return false;
+                        if (effectiveRealName && nodeName && nodeName === effectiveRealName.toLowerCase()) return false;
+                        if (!effectiveGuestId && !effectiveRealName && playerGamertag && nodeTag === playerGamertag.trim().toLowerCase()) return false;
+                        return true;
+                    });
+
+                    if (isTakenByOther) {
+                        if (errorMsg) {
+                            errorMsg.innerText = isEnLang ? `❌ GamerTag '${val}' is already taken. Please choose another.` : `❌ El GamerTag '${val}' ya está en uso por otro invitado. Por favor elige otro.`;
+                            errorMsg.classList.remove("hidden");
                         }
+                        if (btn) {
+                            btn.innerText = isEnLang ? "Start Playing 🎮" : "Comenzar a Jugar 🎮";
+                            btn.disabled = false;
+                            btn.classList.remove("opacity-70", "cursor-wait");
+                        }
+                        return;
                     }
-                } catch (e) {}
+
+                    // Asegurar que antes de guardar el nuevo GamerTag siempre se fusionen los puntos históricos del invitado en Firebase
+                    const existingRecord = (effectiveGuestId || effectiveRealName)
+                        ? await fetchPlayerRecordByGuest(effectiveGuestId, effectiveRealName)
+                        : await fetchPlayerRecordByGamertag(playerGamertag || val);
+
+                    if (existingRecord && existingRecord.data) {
+                        const isSamePlayer = Boolean(
+                            !playerGuestId ||
+                            playerGuestId === effectiveGuestId ||
+                            (playerRealName && effectiveRealName && playerRealName.toLowerCase() === effectiveRealName.toLowerCase())
+                        );
+                        applyPlayerScores(existingRecord.data, effectiveGuestId || existingRecord.key, isSamePlayer);
+                    }
+                } catch (e) {
+                    console.warn("Aviso al verificar perfil existente en saveGamerTag:", e);
+                }
             }
 
             // Establecer la sesión activa LIGADA a la persona elegida
