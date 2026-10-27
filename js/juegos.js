@@ -583,6 +583,25 @@ document.addEventListener("DOMContentLoaded", () => {
         function refreshActivePlayerUI(val) {
             if (!val) return;
             activePlayerRemoteData = val;
+            if (val.gamerTag && val.gamerTag.trim() && val.gamerTag.trim() !== playerGamertag) {
+                playerGamertag = val.gamerTag.trim();
+                localStorage.setItem("bodachicos_gamertag", playerGamertag);
+                const topTag = document.getElementById("playerGamertag");
+                const botTag = document.getElementById("bottomGamerTag");
+                if (topTag) topTag.innerText = playerGamertag;
+                if (botTag) botTag.innerText = playerGamertag;
+            }
+            if (val.scores && typeof val.scores === "object") {
+                let updatedAny = false;
+                ["chico", "chica", "maddie", "puebla"].forEach(g => {
+                    const remS = parseInt(val.scores[g]) || 0;
+                    if (remS > getScore(g)) {
+                        localStorage.setItem("bodachicos_score_" + g, remS);
+                        updatedAny = true;
+                    }
+                });
+                if (updatedAny) updateScoresDashboard();
+            }
             const totalDisplay = document.getElementById("totalChiCoinsDisplay");
             if (totalDisplay) {
                 totalDisplay.innerText = getTotalChiCoins().toLocaleString();
@@ -995,9 +1014,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const btn = document.getElementById("tab-" + t);
                 if (btn) {
                     if (t === tab) {
-                        btn.className = "lb-tab px-3 py-1.5 rounded-xl bg-[#52582f] text-white font-bold transition shrink-0 shadow-xs";
+                        btn.className = "lb-tab px-1.5 sm:px-3 py-2 rounded-xl bg-[#52582f] text-white font-bold transition shadow-xs flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 leading-tight text-[11px] sm:text-xs";
                     } else {
-                        btn.className = "lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0";
+                        btn.className = "lb-tab px-1.5 sm:px-3 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 leading-tight text-[11px] sm:text-xs";
                     }
                 }
             });

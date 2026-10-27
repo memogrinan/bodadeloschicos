@@ -334,29 +334,29 @@
 
     <!-- ========================================== -->
     <!-- MODAL DE TABLA DE LÍDERES EN VIVO -->
-    <div id="leaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden" onclick="if(event.target===this) closeLeaderboardModal()">
+        <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100 shrink-0">
                 <div class="flex items-center gap-2">
                     <span class="text-3xl">🏆</span>
                     <div>
-                        <h2 class="text-xl font-extrabold text-olivo-base">Wedding Leaderboard</h2>
+                        <h2 class="text-xl font-extrabold text-olivo-base">Leaderboard</h2>
                         <p class="text-xs text-gray-400 font-semibold" id="leaderboardSubtitle">Real-time ranking across all mini-games</p>
                     </div>
                 </div>
                 <button onclick="closeLeaderboardModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold p-1">✕</button>
             </div>
 
-            <!-- PESTAÑAS DE NAVEGACIÓN DE LÍDERES -->
-            <div class="flex gap-1.5 overflow-x-auto py-2.5 my-1 border-b border-gray-100 no-scrollbar text-xs">
-                <button onclick="switchLeaderboardTab('general')" id="tab-general" class="lb-tab px-3 py-1.5 rounded-xl bg-[#52582f] text-white font-bold transition shrink-0">🏆 Overall</button>
-                <button onclick="switchLeaderboardTab('chico')" id="tab-chico" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">👾 Dino</button>
-                <button onclick="switchLeaderboardTab('chica')" id="tab-chica" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">👰🏻 Bride</button>
-                <button onclick="switchLeaderboardTab('maddie')" id="tab-maddie" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">🐶 Maddie</button>
-                <button onclick="switchLeaderboardTab('puebla')" id="tab-puebla" class="lb-tab px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition shrink-0">🚗 Road</button>
+            <!-- PESTAÑAS DE NAVEGACIÓN DE LÍDERES (SIEMPRE VISIBLES Y SIN APLASTARSE) -->
+            <div class="grid grid-cols-5 gap-1.5 py-2.5 my-1 border-b border-gray-100 shrink-0">
+                <button onclick="switchLeaderboardTab('general')" id="tab-general" class="lb-tab px-1.5 sm:px-3 py-2 rounded-xl bg-[#52582f] text-white font-bold transition shadow-xs flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 leading-tight text-[11px] sm:text-xs"><span>🏆</span><span>Overall</span></button>
+                <button onclick="switchLeaderboardTab('chico')" id="tab-chico" class="lb-tab px-1.5 sm:px-3 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 leading-tight text-[11px] sm:text-xs"><span>🦖</span><span>Dino</span></button>
+                <button onclick="switchLeaderboardTab('chica')" id="tab-chica" class="lb-tab px-1.5 sm:px-3 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 leading-tight text-[11px] sm:text-xs"><span>👰🏻</span><span>Bride</span></button>
+                <button onclick="switchLeaderboardTab('maddie')" id="tab-maddie" class="lb-tab px-1.5 sm:px-3 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 leading-tight text-[11px] sm:text-xs"><span>🐶</span><span>Maddie</span></button>
+                <button onclick="switchLeaderboardTab('puebla')" id="tab-puebla" class="lb-tab px-1.5 sm:px-3 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 leading-tight text-[11px] sm:text-xs"><span>🚗</span><span>Road</span></button>
             </div>
 
-            <div class="overflow-y-auto my-2 flex-1 pr-1">
+            <div class="overflow-y-auto my-2 flex-1 min-h-0 pr-1">
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="text-xs text-gray-400 uppercase border-b border-gray-100 pb-2">
@@ -373,7 +373,7 @@
                 </table>
             </div>
 
-            <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+            <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500 shrink-0">
                 <span>🟢 Live Updates</span>
                 <button onclick="closeLeaderboardModal()" class="bg-[#52582f] text-white px-5 py-2 rounded-xl font-bold hover:bg-opacity-90 transition">Close</button>
             </div>
@@ -536,6 +536,6 @@
     </div>
 
     <!-- JAVASCRIPT GLOBAL Y LÓGICA DE JUEGOS -->
-    <script src="../js/juegos.js?v=50.0" defer></script>
+    <script src="../js/juegos.js?v=51.0" defer></script>
 </body>
 </html>
