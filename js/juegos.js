@@ -108,14 +108,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function ensureLocalScoresMigratedToV2() {
             try {
-                if (localStorage.getItem(LS_SCORE_SCALE_V2_KEY) === "true") return;
                 const sChica = parseInt(localStorage.getItem("bodachicos_score_chica") || "0") || 0;
                 const sMaddie = parseInt(localStorage.getItem("bodachicos_score_maddie") || "0") || 0;
                 const sPuebla = parseInt(localStorage.getItem("bodachicos_score_puebla") || "0") || 0;
 
-                if (sChica > 0) localStorage.setItem("bodachicos_score_chica", String(sChica * 5));
-                if (sMaddie > 0) localStorage.setItem("bodachicos_score_maddie", String(sMaddie * 28));
-                if (sPuebla > 0) localStorage.setItem("bodachicos_score_puebla", String(scalePueblaV1ToV2(sPuebla)));
+                // Detección proactiva: si hay puntuaciones residuales en escala antigua (V1), convertirlas de inmediato
+                if (sChica > 0 && sChica <= 140) {
+                    localStorage.setItem("bodachicos_score_chica", String(sChica * 5));
+                }
+                if (sMaddie > 0 && sMaddie <= 60) {
+                    localStorage.setItem("bodachicos_score_maddie", String(sMaddie * 28));
+                }
+                if (sPuebla > 0 && sPuebla <= 300) {
+                    localStorage.setItem("bodachicos_score_puebla", String(scalePueblaV1ToV2(sPuebla)));
+                }
 
                 for (let i = 0; i < localStorage.length; i++) {
                     const k = localStorage.key(i);
@@ -1003,6 +1009,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
             
+            if (activePlayerRemoteData) {
+                normalizePlayerRecordScale(activePlayerRemoteData);
+            }
             const remoteScores = (activePlayerRemoteData && activePlayerRemoteData.scores) ? activePlayerRemoteData.scores : {};
             const scoresObj = {};
             const coinsObj = {};
@@ -1010,7 +1019,18 @@ document.addEventListener("DOMContentLoaded", () => {
             let totalScoreSum = 0;
             
             Object.keys(METAS).forEach(g => {
-                const localS = getScore(g);
+                let localS = getScore(g);
+                if (g === "maddie" && localS > 0 && localS <= 60) {
+                    localS = localS * 28;
+                    localStorage.setItem("bodachicos_score_maddie", String(localS));
+                } else if (g === "chica" && localS > 0 && localS <= 140) {
+                    localS = localS * 5;
+                    localStorage.setItem("bodachicos_score_chica", String(localS));
+                } else if (g === "puebla" && localS > 0 && localS <= 300) {
+                    localS = scalePueblaV1ToV2(localS);
+                    localStorage.setItem("bodachicos_score_puebla", String(localS));
+                }
+
                 const remoteS = parseInt(remoteScores[g]) || 0;
                 const s = Math.max(localS, remoteS);
                 if (s > localS) {
@@ -1463,9 +1483,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {}
             }
 
+            if (sourceData) {
+                normalizePlayerRecordScale(sourceData);
+            }
+
             ["chico", "chica", "maddie", "puebla"].forEach(g => {
                 const remVal = (sourceData && sourceData.scores) ? (parseInt(sourceData.scores[g]) || 0) : 0;
-                const finalVal = allowLocalPreserve ? Math.max(remVal, prevLocalScores[g] || 0) : remVal;
+                let localPrev = prevLocalScores[g] || 0;
+                if (allowLocalPreserve) {
+                    if (g === "maddie" && localPrev > 0 && localPrev <= 60) localPrev *= 28;
+                    else if (g === "chica" && localPrev > 0 && localPrev <= 140) localPrev *= 5;
+                    else if (g === "puebla" && localPrev > 0 && localPrev <= 300) localPrev = scalePueblaV1ToV2(localPrev);
+                }
+                const finalVal = allowLocalPreserve ? Math.max(remVal, localPrev) : remVal;
                 if (finalVal > 0) {
                     localStorage.setItem("bodachicos_score_" + g, finalVal);
                 }
