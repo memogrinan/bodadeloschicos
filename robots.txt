@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /scripts/
+Disallow: /functions/
+Disallow: /worker/
