@@ -1446,7 +1446,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 successModal.innerHTML = `
                     <div style="font-size: 60px; margin-bottom: 10px;">✨</div>
-                    <h2 style="font-family: 'Prata', serif; color: var(--olivo-base); margin-bottom: 15px;">¡Regalo Enviado!</h2>
+                    <h2 style="font-family: Georgia, 'Times New Roman', serif; font-weight: bold; color: var(--olivo-base); margin-bottom: 15px;">¡Regalo Enviado!</h2>
                     <p style="font-size: 1.1rem; color: #444; line-height: 1.6; margin-bottom: 25px;">Muchas gracias por tu aportación y tu mensaje.<br>¡Nos vemos en la boda!</p>
                     <button id="closeSuccessBtn" style="background-color: var(--olivo-base); color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 600; cursor: pointer; font-size: 1rem;">Cerrar</button>
                 `;
