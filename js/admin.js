@@ -16,9 +16,9 @@ const db = firebase.database();
 
 const METAS = {
     chico: 350,
-    chica: 30,
-    maddie: 25,
-    puebla: 200
+    chica: 150,
+    maddie: 700,
+    puebla: 700
 };
 
 // CATÁLOGO OFICIAL DE LA TIENDA (18 VARIANTES = 220 ARTÍCULOS TOTALES, SIN PANTUFLAS)
@@ -280,6 +280,69 @@ function unwrapInventoryNode(rawVal) {
     return null;
 }
 
+const OLD_METAS_V1 = { chico: 350, chica: 30, maddie: 25, puebla: 200 };
+
+function calcCoinsWithTarget(scoreVal, target) {
+    if (!scoreVal || scoreVal <= 0) return 0;
+    if (scoreVal < target) {
+        return Math.floor((scoreVal / target) * 1000);
+    }
+    const extraRatio = (scoreVal - target) / target;
+    const extraCoins = Math.min(500, Math.floor(500 * (extraRatio / (extraRatio + (2 / 3)))));
+    return 1000 + extraCoins;
+}
+
+function scalePueblaV1ToV2(oldPueblaScore) {
+    const s = parseInt(oldPueblaScore) || 0;
+    if (s <= 0) return 0;
+    const targetCoins = calcCoinsWithTarget(s, OLD_METAS_V1.puebla);
+    let scaled = Math.round(s * 3.5);
+    while (calcCoinsWithTarget(scaled, METAS.puebla) < targetCoins) {
+        scaled++;
+    }
+    while (calcCoinsWithTarget(scaled, METAS.puebla) > targetCoins && scaled > 0) {
+        scaled--;
+    }
+    return scaled;
+}
+
+function normalizePlayerRecordScale(node) {
+    if (!node || typeof node !== "object" || !node.scores || typeof node.scores !== "object") return node;
+    const coins = node.chiCoins || {};
+    let changed = false;
+
+    const scaleMap = {
+        chica: (val) => val * 5,
+        maddie: (val) => val * 28,
+        puebla: (val) => scalePueblaV1ToV2(val)
+    };
+
+    ["chica", "maddie", "puebla"].forEach(g => {
+        const s = parseInt(node.scores[g]) || 0;
+        if (s <= 0) return;
+        const savedCoin = parseInt(coins[g]) || 0;
+        if (savedCoin > 0) {
+            const cV1 = calcCoinsWithTarget(s, OLD_METAS_V1[g]);
+            const cV2 = calcCoinsWithTarget(s, METAS[g]);
+            if (Math.abs(cV1 - savedCoin) < Math.abs(cV2 - savedCoin)) {
+                node.scores[g] = scaleMap[g](s);
+                changed = true;
+            }
+        } else if (g === "maddie" && s < 28) {
+            node.scores[g] = scaleMap[g](s);
+            changed = true;
+        }
+    });
+
+    if (changed) {
+        node.totalScore = (parseInt(node.scores.chico) || 0) +
+            (parseInt(node.scores.chica) || 0) +
+            (parseInt(node.scores.maddie) || 0) +
+            (parseInt(node.scores.puebla) || 0);
+    }
+    return node;
+}
+
 function extractCleanPlayers(rawMap) {
     const clean = {};
     if (!rawMap || typeof rawMap !== "object") return clean;
@@ -289,7 +352,7 @@ function extractCleanPlayers(rawMap) {
         if (!node || typeof node !== "object") return;
         if (node.gamerTag === "__inventory__" || node.realName === "__system__") return;
         if (node.gamerTag !== undefined || node.scores !== undefined || node.totalChiCoins !== undefined || node.realName !== undefined) {
-            clean[k] = node;
+            clean[k] = normalizePlayerRecordScale(node);
         }
     });
     return clean;
@@ -569,9 +632,16 @@ function persistSingleInventoryItem(itemId) {
     refreshInventoryUI();
 
     if (!isSandboxMode) {
-        const item = allInventory[itemId] || null;
-        db.ref(`players/__inventory__/items/${itemId}`).set(item).catch(() => {});
-        db.ref("players/__inventory__/lastUpdated").set(Date.now()).catch(() => {});
+        const itemClone = allInventory[itemId] ? cloneDeep(allInventory[itemId]) : null;
+        db.ref("players/__inventory__").transaction((serverNode) => {
+            const currentItems = unwrapInventoryNode(serverNode) || cloneDeep(allInventory);
+            if (itemClone) {
+                currentItems[itemId] = itemClone;
+            } else {
+                delete currentItems[itemId];
+            }
+            return wrapInventoryNodeForFirebase(currentItems);
+        }).catch(() => {});
     }
 }
 
@@ -754,18 +824,18 @@ function adjustInventoryItemStock(itemId, delta) {
     refreshInventoryUI();
 
     if (!isSandboxMode) {
-        db.ref(`players/__inventory__/items/${itemId}`).transaction((serverItem) => {
-            if (!serverItem) {
-                return item;
-            }
-            const srvStock = parseInt(serverItem.stock) || 0;
+        const fallbackItem = cloneDeep(item);
+        db.ref("players/__inventory__").transaction((serverNode) => {
+            const currentItems = unwrapInventoryNode(serverNode) || cloneDeep(allInventory);
+            const srvItem = currentItems[itemId] || fallbackItem;
+            const srvStock = parseInt(srvItem.stock) || 0;
             const nextStock = Math.max(0, srvStock + delta);
-            const srvInit = parseInt(serverItem.initialStock) || srvStock;
-            serverItem.stock = nextStock;
-            serverItem.initialStock = Math.max(srvInit, nextStock);
-            return serverItem;
+            const srvInit = parseInt(srvItem.initialStock) || srvStock;
+            srvItem.stock = nextStock;
+            srvItem.initialStock = Math.max(srvInit, nextStock);
+            currentItems[itemId] = srvItem;
+            return wrapInventoryNodeForFirebase(currentItems);
         }).catch(() => {});
-        db.ref("players/__inventory__/lastUpdated").set(Date.now()).catch(() => {});
     }
 }
 
@@ -1087,7 +1157,7 @@ function renderPlayerAuditLogs(p, ledger) {
     const arcadeGames = [
         { key: "chico", icon: "🦖", label: "Chicosaurio", score: scores.chico || 0, unit: "pts", coins: ledger.gameCoins.chico },
         { key: "chica", icon: "👰🏻‍♀️", label: "Atrapa el Amor", score: scores.chica || 0, unit: "pts", coins: ledger.gameCoins.chica },
-        { key: "maddie", icon: "🐶", label: "Atrapa a Maddie", score: scores.maddie || 0, unit: "clics", coins: ledger.gameCoins.maddie },
+        { key: "maddie", icon: "🐶", label: "Atrapa a Maddie", score: scores.maddie || 0, unit: "pts", coins: ledger.gameCoins.maddie },
         { key: "puebla", icon: "🚗", label: "Camino a Puebla", score: scores.puebla || 0, unit: "pts", coins: ledger.gameCoins.puebla }
     ];
 
@@ -1294,24 +1364,27 @@ function redeemInventoryItem(itemId) {
         return;
     }
 
-    // En Producción: descontar 1 unidad de forma atómica sobre el artículo específico
+    // En Producción: descontar 1 unidad de forma atómica usando el nodo envuelto válido para reglas de Firebase
+    const fallbackInventory = cloneDeep(allInventory);
     item.stock = Math.max(0, currentStock - 1);
     refreshInventoryUI();
 
-    db.ref(`players/__inventory__/items/${itemId}`).transaction((serverItem) => {
-        if (!serverItem) {
-            return { ...item, stock: Math.max(0, currentStock - 1) };
-        }
-        const srvStock = parseInt(serverItem.stock) || 0;
+    db.ref("players/__inventory__").transaction((serverNode) => {
+        const currentItems = unwrapInventoryNode(serverNode) || cloneDeep(fallbackInventory);
+        const srvItem = currentItems[itemId] || cloneDeep(fallbackInventory[itemId]);
+        if (!srvItem) return;
+        const srvStock = parseInt(srvItem.stock) || 0;
         if (srvStock <= 0) {
             return; // Aborta la transacción si otro celular del staff agotó la última unidad
         }
-        serverItem.stock = srvStock - 1;
-        return serverItem;
+        srvItem.stock = srvStock - 1;
+        currentItems[itemId] = srvItem;
+        return wrapInventoryNodeForFirebase(currentItems);
     }, (error, committed, snapshot) => {
         if (error || !committed) {
-            if (snapshot && snapshot.val()) {
-                allInventory[itemId] = snapshot.val();
+            const unwrapped = snapshot ? unwrapInventoryNode(snapshot.val()) : null;
+            if (unwrapped && unwrapped[itemId]) {
+                allInventory = unwrapped;
             } else {
                 item.stock = 0;
             }
@@ -1321,11 +1394,11 @@ function redeemInventoryItem(itemId) {
             return;
         }
 
-        if (snapshot && snapshot.val()) {
-            allInventory[itemId] = snapshot.val();
+        const unwrapped = snapshot ? unwrapInventoryNode(snapshot.val()) : null;
+        if (unwrapped && Object.keys(unwrapped).length > 0) {
+            allInventory = unwrapped;
             refreshInventoryUI();
         }
-        db.ref("players/__inventory__/lastUpdated").set(Date.now()).catch(() => {});
 
         finalizePlayerRedemption().finally(() => {
             isRedeeming = false;

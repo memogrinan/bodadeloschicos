@@ -38,13 +38,101 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-        // CONFIGURACIÓN DE METAS (Score targets)
+        // CONFIGURACIÓN DE METAS ESTANDARIZADAS (Score targets v2)
         const METAS = {
             chico: 350,
-            chica: 30,
-            maddie: 25,
-            puebla: 200
+            chica: 150,
+            maddie: 700,
+            puebla: 700
         };
+        const OLD_METAS_V1 = { chico: 350, chica: 30, maddie: 25, puebla: 200 };
+        const LS_SCORE_SCALE_V2_KEY = "bodachicos_score_scale_v2";
+
+        function calcCoinsWithTarget(scoreVal, target) {
+            if (!scoreVal || scoreVal <= 0) return 0;
+            if (scoreVal < target) {
+                return Math.floor((scoreVal / target) * 1000);
+            }
+            const extraRatio = (scoreVal - target) / target;
+            const extraCoins = Math.min(500, Math.floor(500 * (extraRatio / (extraRatio + (2 / 3)))));
+            return 1000 + extraCoins;
+        }
+
+        function scalePueblaV1ToV2(oldPueblaScore) {
+            const s = parseInt(oldPueblaScore) || 0;
+            if (s <= 0) return 0;
+            const targetCoins = calcCoinsWithTarget(s, OLD_METAS_V1.puebla);
+            let scaled = Math.round(s * 3.5);
+            while (calcCoinsWithTarget(scaled, METAS.puebla) < targetCoins) {
+                scaled++;
+            }
+            while (calcCoinsWithTarget(scaled, METAS.puebla) > targetCoins && scaled > 0) {
+                scaled--;
+            }
+            return scaled;
+        }
+
+        function normalizePlayerRecordScale(node) {
+            if (!node || typeof node !== "object" || !node.scores || typeof node.scores !== "object") return node;
+            const coins = node.chiCoins || {};
+            let changed = false;
+            const scaleMap = {
+                chica: (val) => val * 5,
+                maddie: (val) => val * 28,
+                puebla: (val) => scalePueblaV1ToV2(val)
+            };
+            ["chica", "maddie", "puebla"].forEach(g => {
+                const s = parseInt(node.scores[g]) || 0;
+                if (s <= 0) return;
+                const savedCoin = parseInt(coins[g]) || 0;
+                if (savedCoin > 0) {
+                    const cV1 = calcCoinsWithTarget(s, OLD_METAS_V1[g]);
+                    const cV2 = calcCoinsWithTarget(s, METAS[g]);
+                    if (Math.abs(cV1 - savedCoin) < Math.abs(cV2 - savedCoin)) {
+                        node.scores[g] = scaleMap[g](s);
+                        changed = true;
+                    }
+                } else if (g === "maddie" && s < 28) {
+                    node.scores[g] = scaleMap[g](s);
+                    changed = true;
+                }
+            });
+            if (changed) {
+                node.totalScore = (parseInt(node.scores.chico) || 0) +
+                    (parseInt(node.scores.chica) || 0) +
+                    (parseInt(node.scores.maddie) || 0) +
+                    (parseInt(node.scores.puebla) || 0);
+            }
+            return node;
+        }
+
+        function ensureLocalScoresMigratedToV2() {
+            try {
+                if (localStorage.getItem(LS_SCORE_SCALE_V2_KEY) === "true") return;
+                const sChica = parseInt(localStorage.getItem("bodachicos_score_chica") || "0") || 0;
+                const sMaddie = parseInt(localStorage.getItem("bodachicos_score_maddie") || "0") || 0;
+                const sPuebla = parseInt(localStorage.getItem("bodachicos_score_puebla") || "0") || 0;
+
+                if (sChica > 0) localStorage.setItem("bodachicos_score_chica", String(sChica * 5));
+                if (sMaddie > 0) localStorage.setItem("bodachicos_score_maddie", String(sMaddie * 28));
+                if (sPuebla > 0) localStorage.setItem("bodachicos_score_puebla", String(scalePueblaV1ToV2(sPuebla)));
+
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith("bodachicos_scoped_")) {
+                        try {
+                            const parsed = JSON.parse(localStorage.getItem(k) || "null");
+                            if (parsed && typeof parsed === "object") {
+                                normalizePlayerRecordScale(parsed);
+                                localStorage.setItem(k, JSON.stringify(parsed));
+                            }
+                        } catch (e) {}
+                    }
+                }
+                localStorage.setItem(LS_SCORE_SCALE_V2_KEY, "true");
+            } catch (e) {}
+        }
+        ensureLocalScoresMigratedToV2();
 
         const isEnLang = document.documentElement.lang === "en";
         const assetPrefix = isEnLang ? "../" : "";
@@ -582,6 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function refreshActivePlayerUI(val) {
             if (!val) return;
+            normalizePlayerRecordScale(val);
             activePlayerRemoteData = val;
             if (val.gamerTag && val.gamerTag.trim() && val.gamerTag.trim() !== playerGamertag) {
                 playerGamertag = val.gamerTag.trim();
@@ -685,7 +774,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const gameMetaInfo = [
                 { key: "chico", icon: "🦖", nameEs: "Chicosaurio", nameEn: "Chicosaurus", unit: "pts" },
                 { key: "chica", icon: "👰🏻‍♀️", nameEs: "Atrapa el Amor", nameEn: "Love in the Air", unit: "pts" },
-                { key: "maddie", icon: "🐶", nameEs: "Atrapa a Maddie", nameEn: "Whack-a-Maddie!", unit: "clics" },
+                { key: "maddie", icon: "🐶", nameEs: "Atrapa a Maddie", nameEn: "Whack-a-Maddie!", unit: "pts" },
                 { key: "puebla", icon: "🚗", nameEs: "Camino a Puebla", nameEn: "Road to Puebla", unit: "pts" }
             ];
 
@@ -1060,13 +1149,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 general: { col: "Total Score", sub: "Real-time global leaderboard across all 4 mini-games" },
                 chico: { col: "High Score (Pts)", sub: "Chicosaurus (Groom) leaderboard" },
                 chica: { col: "High Score (Pts)", sub: "Love in the Air (Bride) leaderboard" },
-                maddie: { col: "High Score (Clicks)", sub: "Whack-a-Maddie! leaderboard" },
+                maddie: { col: "High Score (Pts)", sub: "Whack-a-Maddie! leaderboard" },
                 puebla: { col: "High Score (Pts)", sub: "Road to Puebla leaderboard" }
             } : {
                 general: { col: "Puntos Totales", sub: "Ranking general de puntajes acumulados en todos los minijuegos" },
                 chico: { col: "Récord (Pts)", sub: "Ranking de puntuación en Chicosaurio (Chico)" },
                 chica: { col: "Récord (Pts)", sub: "Ranking de puntuación en Atrapa el Amor (Chica)" },
-                maddie: { col: "Récord (Clics)", sub: "Ranking de clics en Atrapa a Maddie" },
+                maddie: { col: "Récord (Pts)", sub: "Ranking de puntuación en Atrapa a Maddie" },
                 puebla: { col: "Récord (Pts)", sub: "Ranking de puntuación en Camino a Puebla" }
             };
 
@@ -1079,6 +1168,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (k.startsWith("__")) return;
                 const p = rawPlayersData[k];
                 if (!p || !p.gamerTag) return;
+                normalizePlayerRecordScale(p);
                 const formattedId = formatGuestId(p.guestId || k);
                 const dedupeKey = formattedId || ("tag_" + p.gamerTag.trim().toLowerCase());
                 if (!uniqueMap[dedupeKey]) {
@@ -1150,7 +1240,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const isCurrent = player.gamerTag === playerGamertag;
                 const rowClass = isCurrent ? "bg-amber-50 font-bold text-amber-900" : "";
                 const scoreVal = getScoreVal(player, currentLeaderboardTab);
-                const unit = currentLeaderboardTab === "maddie" ? "clics" : "pts";
+                const unit = "pts";
                 const realNameDisplay = player.realName && player.realName !== "Invitado No Registrado" ? ` <span class="text-xs font-normal text-gray-500">(${player.realName})</span>` : '';
                 const youBadge = isEnLang ? ' <span class="text-xs font-bold text-amber-700">(You)</span>' : ' <span class="text-xs font-bold text-amber-700">(Tú)</span>';
 
@@ -1227,12 +1317,21 @@ document.addEventListener("DOMContentLoaded", () => {
         async function fetchAllPlayersMap() {
             if (isSandboxGuestMode) {
                 const sbMap = getSandboxLocalPlayers();
-                if (sbMap) return sbMap;
+                if (sbMap) {
+                    Object.keys(sbMap).forEach(k => {
+                        if (!k.startsWith("__")) normalizePlayerRecordScale(sbMap[k]);
+                    });
+                    return sbMap;
+                }
             }
             if (!db) return {};
             try {
                 const snap = await db.ref(PLAYERS_DB_PATH).once("value");
-                return (snap && snap.exists() && snap.val()) ? snap.val() : {};
+                const rawMap = (snap && snap.exists() && snap.val()) ? snap.val() : {};
+                Object.keys(rawMap).forEach(k => {
+                    if (!k.startsWith("__")) normalizePlayerRecordScale(rawMap[k]);
+                });
+                return rawMap;
             } catch (e) {
                 console.warn("Error al leer lista de jugadores:", e);
                 return {};
@@ -2009,12 +2108,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     : `Mueve a la Novia (👰🏻) tocando o arrastrando tu dedo para atrapar corazones (💖) y anillos (💍). ¡Esquiva tormentas (🌩️)!<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'maddie') {
                 inst = isEnLang 
-                    ? `Tap Maddie (🐶) when she pops out of garden holes. You have 30s. Watch out for poop (💩)!<br>Target: ${targetScore} clicks.`
-                    : `Toca a Maddie (🐶) cuando asome de los hoyos. Tienes 30s. ¡Cuidado con popós (💩)!<br>Meta: ${targetScore} clics.`;
+                    ? `Tap Maddie (🐶 +28 pts) when she pops out of garden holes. You have 30s. Watch out for poop (💩)!<br>Target: ${targetScore} pts.`
+                    : `Toca a Maddie (🐶 +28 pts) cuando asome de los hoyos. Tienes 30s. ¡Cuidado con popós (💩)!<br>Meta: ${targetScore} pts.`;
             } else if (activeGame === 'puebla') {
                 inst = isEnLang 
-                    ? `Use ⬅️ / ➡️, swipe left/right (recommended) or tap sides to drive to Puebla. Dodge traffic, potholes (🕳️) and works (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: 120 km to reach Cholula (200+ pts).`
-                    : `Usa flechas ⬅️ / ➡️, desliza tu dedo (swipe recomendado) o toca los lados para conducir a Puebla. Esquiva tráfico, baches (🕳️) u obras (🚧). ¡Toma chalupas (🌮) y turbos (⚡)!<br>Meta: 120 km para llegar a Cholula (200+ pts).`;
+                    ? `Use ⬅️ / ➡️, swipe left/right (recommended) or tap sides to drive to Puebla. Dodge traffic, potholes (🕳️) and works (🚧). Collect chalupas (🌮) and boosts (⚡)!<br>Target: 120 km to reach Cholula (700+ pts).`
+                    : `Usa flechas ⬅️ / ➡️, desliza tu dedo (swipe recomendado) o toca los lados para conducir a Puebla. Esquiva tráfico, baches (🕳️) u obras (🚧). ¡Toma chalupas (🌮) y turbos (⚡)!<br>Meta: 120 km para llegar a Cholula (700+ pts).`;
             }
             
             overlayInstructions.innerHTML = inst; 
@@ -2217,7 +2316,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             overlayScoreBox.classList.remove("hidden");
             overlayFinalScore.innerText = finalScore.toString().padStart(5, '0');
-            const unitLabel = activeGame === 'maddie' ? (isEnLang ? 'clicks' : 'clics') : 'pts';
+            const unitLabel = 'pts';
             overlayMetaCompare.innerText = isEnLang ? `Required target: ${meta} ${unitLabel}` : `Meta requerida: ${meta} ${unitLabel}`;
             
             const coinsEarnedEl = document.getElementById("overlayChiCoinsEarned");
@@ -2257,7 +2356,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentGameState.innerText = isEnLang ? "Target achieved!" : "¡Meta lograda!";
             } else {
                 const diff = meta - finalScore;
-                const unitStr = activeGame === 'maddie' ? (isEnLang ? 'clicks' : 'clics') : (isEnLang ? 'points' : 'puntos');
+                const unitStr = isEnLang ? 'points' : 'puntos';
                 resultMessage = isEnLang 
                     ? `You were only ${diff} ${unitStr} away from the target. Don't give up!`
                     : `Te quedaste a ${diff} ${unitStr} de alcanzar la meta. ¡No te rindas!`;
@@ -3078,14 +3177,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const randType = Math.random();
                 let typeEmoji = "💖";
                 let isDanger = false;
-                let pts = 1;
+                let pts = 5;
 
                 if (randType > 0.7) {
                     typeEmoji = "🌩️"; 
                     isDanger = true;
                 } else if (randType > 0.4) {
                     typeEmoji = "💍";
-                    pts = 2;
+                    pts = 10;
                 }
 
                 fallObjects.push({
@@ -3379,8 +3478,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // Dificultad balanceada y accesible vinculada a la puntuación
-            let popDelay = Math.max(550, 1100 - (score * 18));
+            // Dificultad balanceada y accesible vinculada a la puntuación (normalizada por 28 pts por toque)
+            let popDelay = Math.max(550, Math.round(1100 - ((score / 28) * 18)));
             // Si salió el hueso, dura mucho menos tiempo en pantalla (¡más difícil y rápido!)
             if (activeGoldenHole !== -1) {
                 popDelay = Math.max(300, Math.floor(popDelay * 0.45));
@@ -3391,9 +3490,9 @@ document.addEventListener("DOMContentLoaded", () => {
         function handleHoleClick(index) {
             if (!gameRunning) return;
 
-            // EASTER EGG 1: HUESO (+5 PTS)
+            // EASTER EGG 1: HUESO (+140 PTS, equivalente a 5 toques de Maddie)
             if (index === activeGoldenHole) {
-                score += 5;
+                score += 140;
                 playSound('bark');
                 playSound('coin');
                 triggerHaptic([30, 30, 60]);
@@ -3402,7 +3501,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const hitHole = document.getElementById("hole-" + index);
                 if (hitHole) {
-                    hitHole.innerHTML = "<span class='text-xs font-bold text-amber-500 animate-pop-up inline-block'>+5 HUESO!</span>";
+                    hitHole.innerHTML = "<span class='text-xs font-bold text-amber-500 animate-pop-up inline-block'>+140 HUESO!</span>";
                     setTimeout(() => { if (hitHole) hitHole.innerHTML = ""; }, 400);
                 }
                 activeGoldenHole = -1;
@@ -3412,8 +3511,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (index === activeHole) {
-                // ACIERTO: Captura a Maddie con ladrido tierno
-                score++;
+                // ACIERTO: Captura a Maddie con ladrido tierno (+28 pts)
+                score += 28;
                 playSound('bark');
                 triggerHaptic(40); 
                 
@@ -3463,11 +3562,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     distHole.innerHTML = "<span class='select-none pointer-events-none text-4xl animate-bounce inline-block'>💩</span>";
                 }
 
-                // Ventana ultrarrápida de 220ms para el segundo toque; si no ocurre, se aplica el castigo inmediatamente
+                // Ventana ultrarrápida de 220ms para el segundo toque; si no ocurre, se aplica el castigo inmediatamente (-56 pts)
                 clearTimeout(poopPenaltyTimeout);
                 poopPenaltyTimeout = setTimeout(() => {
                     if (!gameRunning) return;
-                    score = Math.max(0, score - 2);
+                    score = Math.max(0, score - 56);
                     playSound('hit');
                     triggerHaptic([50, 50, 100]);
                     document.getElementById("currentGameScore").innerText = score.toString().padStart(5, '0');
@@ -4115,11 +4214,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 let pts = 0;
 
                 if (rollType > 0.85) {
-                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡) +3 pts (15%)
+                    // Ítems de bonificación (Chalupas 🌮 o Turbo ⚡) +10 pts (15%)
                     const isTaco = Math.random() > 0.5;
                     typeEmoji = isTaco ? "🌮" : "⚡";
                     isItem = true;
-                    pts = 3;
+                    pts = 10;
                 } else if (rollType > 0.05) {
                     // Autos de tráfico a rebasar vistos desde atrás usando los Sprite Defs
                     let def;
@@ -4224,7 +4323,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         continue;
                     } else if (obj.isCar) {
                         // Impacto real por solapamiento directo
-                        const currentFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
+                        const currentFinalScore = Math.floor((distanceKm / 120.0) * 700) + bonusScore;
                         triggerHaptic(250);
                         gameOver(currentFinalScore, false);
                         return;
@@ -4288,12 +4387,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Lógica de paso por la caseta
                 if (gate.y >= 430 && !gate.passed && !gate.isFinal) {
                     gate.passed = true;
-                    bonusScore += 5;
+                    bonusScore += 18;
                     playSound('coin');
                         triggerHaptic(30);
                 } else if (gate.y >= 540 && !gate.passed && gate.isFinal) { // Cruza completamente la pantalla antes de ganar
                     gate.passed = true;
-                    const totalFinalScore = Math.floor((distanceKm / 120.0) * 200) + bonusScore;
+                    const totalFinalScore = Math.floor((distanceKm / 120.0) * 700) + bonusScore;
                     gameOver(totalFinalScore, true);
                     return;
                 }
@@ -4306,8 +4405,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Incremento progresivo de velocidad y distancia (0 a 120 KM)
             roadSpeed = 8.5 + Math.min(6.5, (distanceKm / 120.0) * 6.5); 
 
-            // CÁLCULO DE PUNTUACIÓN: 200 PTS POR DISTANCIA (120 KM) + BONUS POR POWER-UPS
-            const distBaseScore = Math.floor((distanceKm / 120.0) * 200);
+            // CÁLCULO DE PUNTUACIÓN: 700 PTS POR DISTANCIA (120 KM) + BONUS POR POWER-UPS
+            const distBaseScore = Math.floor((distanceKm / 120.0) * 700);
             score = distBaseScore + bonusScore;
 
             drawRetroScore(ctx, score, canvas.width - 20, 20);
