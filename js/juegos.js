@@ -84,6 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
             ["chica", "maddie", "puebla"].forEach(g => {
                 const s = parseInt(node.scores[g]) || 0;
                 if (s <= 0) return;
+                // SALVAGUARDA ESTRICTA: Si la puntuación ya supera los límites máximos de V1,
+                // YA ESTÁ en escala V2 y JAMÁS debe volver a multiplicarse.
+                if (g === "maddie" && s > 60) return;
+                if (g === "chica" && s > 140) return;
+                if (g === "puebla" && s > 300) return;
+
                 const savedCoin = parseInt(coins[g]) || 0;
                 if (savedCoin > 0) {
                     const cV1 = calcCoinsWithTarget(s, OLD_METAS_V1[g]);
