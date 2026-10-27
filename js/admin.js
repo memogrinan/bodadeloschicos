@@ -542,14 +542,36 @@ function formatTimeShort(ts) {
 // ==========================================
 // GESTIÓN DE INVENTARIO EN TIEMPO REAL
 // ==========================================
-function persistInventoryState() {
+function normalizeSearchText(str) {
+    return String(str || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+function refreshInventoryUI() {
     saveLocalInventoryCache(isSandboxMode, allInventory);
     updateLiveInventoryBanner();
     renderRedeemableItems();
     renderInventoryManagerTable();
+}
+
+function persistInventoryState() {
+    refreshInventoryUI();
 
     if (!isSandboxMode) {
         db.ref("players/__inventory__").set(wrapInventoryNodeForFirebase(allInventory)).catch(() => {});
+    }
+}
+
+function persistSingleInventoryItem(itemId) {
+    refreshInventoryUI();
+
+    if (!isSandboxMode) {
+        const item = allInventory[itemId] || null;
+        db.ref(`players/__inventory__/items/${itemId}`).set(item).catch(() => {});
+        db.ref("players/__inventory__/lastUpdated").set(Date.now()).catch(() => {});
     }
 }
 
@@ -717,7 +739,7 @@ function updateInventoryItemCost(itemId, newCostVal) {
     if (!allInventory[itemId]) return;
     const cost = Math.max(0, parseInt(newCostVal) || 0);
     allInventory[itemId].cost = cost;
-    persistInventoryState();
+    persistSingleInventoryItem(itemId);
 }
 
 function adjustInventoryItemStock(itemId, delta) {
@@ -729,7 +751,22 @@ function adjustInventoryItemStock(itemId, delta) {
     const newInit = Math.max(currentInit, newStock);
     item.stock = newStock;
     item.initialStock = newInit;
-    persistInventoryState();
+    refreshInventoryUI();
+
+    if (!isSandboxMode) {
+        db.ref(`players/__inventory__/items/${itemId}`).transaction((serverItem) => {
+            if (!serverItem) {
+                return item;
+            }
+            const srvStock = parseInt(serverItem.stock) || 0;
+            const nextStock = Math.max(0, srvStock + delta);
+            const srvInit = parseInt(serverItem.initialStock) || srvStock;
+            serverItem.stock = nextStock;
+            serverItem.initialStock = Math.max(srvInit, nextStock);
+            return serverItem;
+        }).catch(() => {});
+        db.ref("players/__inventory__/lastUpdated").set(Date.now()).catch(() => {});
+    }
 }
 
 function createNewInventoryItem() {
@@ -774,7 +811,7 @@ function createNewInventoryItem() {
     costInput.value = "";
     stockInput.value = "";
     toggleNewItemForm(false);
-    persistInventoryState();
+    persistSingleInventoryItem(newId);
 }
 
 function deleteInventoryItem(itemId) {
@@ -782,7 +819,7 @@ function deleteInventoryItem(itemId) {
     if (!item) return;
     if (confirm(`¿Eliminar "${item.name}" del catálogo de inventario?`)) {
         delete allInventory[itemId];
-        persistInventoryState();
+        persistSingleInventoryItem(itemId);
     }
 }
 
@@ -862,7 +899,8 @@ function renderPlayersTable() {
     const tableBody = document.getElementById("playersTableBody");
     if (!tableBody) return;
     const countEl = document.getElementById("totalPlayersCount");
-    const filter = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
+    const rawFilter = (document.getElementById("searchInput")?.value || "").trim();
+    const filter = normalizeSearchText(rawFilter);
 
     const keys = Object.keys(allPlayers).sort((a, b) => {
         const netB = computePlayerLedger(allPlayers[b]).netCoins;
@@ -883,8 +921,16 @@ function renderPlayersTable() {
         if (!p) return;
         const tag = String(p.gamerTag || key);
         const rName = p.realName && p.realName !== "Invitado No Registrado" ? String(p.realName) : "";
+        const partyCode = p.partyId && p.partyId !== "general" ? String(p.partyId) : "";
+        const guestKey = String(p.guestId || key);
 
-        if (filter && !tag.toLowerCase().includes(filter) && !(rName && rName.toLowerCase().includes(filter))) return;
+        if (filter) {
+            const matchesTag = normalizeSearchText(tag).includes(filter);
+            const matchesName = rName && normalizeSearchText(rName).includes(filter);
+            const matchesParty = partyCode && normalizeSearchText(partyCode).includes(filter);
+            const matchesKey = normalizeSearchText(guestKey).includes(filter);
+            if (!matchesTag && !matchesName && !matchesParty && !matchesKey) return;
+        }
 
         const ledger = computePlayerLedger(p);
         const isSelected = key === selectedPlayerKey;
@@ -908,7 +954,7 @@ function renderPlayersTable() {
         `;
     });
 
-    tableBody.innerHTML = html || `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Sin resultados para '${filter}'.</td></tr>`;
+    tableBody.innerHTML = html || `<tr><td colspan="3" class="py-6 text-center text-gray-400 italic">Sin resultados para '${rawFilter}'.</td></tr>`;
 }
 
 function filterPlayers() {
@@ -973,12 +1019,12 @@ function renderRedeemableItems() {
 
     const p = selectedPlayerKey ? allPlayers[selectedPlayerKey] : null;
     const playerNetCoins = p ? computePlayerLedger(p).netCoins : 0;
-    const searchVal = (document.getElementById("redeemSearchInput")?.value || "").toLowerCase().trim();
+    const searchVal = normalizeSearchText(document.getElementById("redeemSearchInput")?.value || "");
 
     const availableItems = getSortedInventoryList().filter(item => {
         const stock = parseInt(item.stock) || 0;
         if (stock <= 0) return false;
-        if (searchVal && !item.name.toLowerCase().includes(searchVal)) return false;
+        if (searchVal && !normalizeSearchText(item.name).includes(searchVal)) return false;
         return true;
     });
 
@@ -1202,7 +1248,8 @@ function applyCustomActivity() {
 
 function redeemInventoryItem(itemId) {
     if (!selectedPlayerKey || isRedeeming) return;
-    const p = allPlayers[selectedPlayerKey];
+    const targetPlayerKey = selectedPlayerKey;
+    const p = allPlayers[targetPlayerKey];
     const item = allInventory[itemId];
     if (!p || !item) return;
 
@@ -1221,26 +1268,68 @@ function redeemInventoryItem(itemId) {
 
     isRedeeming = true;
 
-    // 1. Descontar 1 unidad del inventario
-    item.stock = Math.max(0, currentStock - 1);
-    persistInventoryState();
+    const finalizePlayerRedemption = () => {
+        const logId = "red_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
+        const redemptionEntry = {
+            id: logId,
+            itemId: itemId,
+            itemName: item.name,
+            emoji: item.emoji || "🛍️",
+            cost: cost,
+            timestamp: Date.now()
+        };
 
-    // 2. Registrar el canje en la bitácora del invitado
-    const logId = "red_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
-    const redemptionEntry = {
-        id: logId,
-        itemId: itemId,
-        itemName: item.name,
-        emoji: item.emoji || "🛍️",
-        cost: cost,
-        timestamp: Date.now()
+        return commitPlayerUpdate(targetPlayerKey, (playerObj) => {
+            if (!playerObj.redemptionLogs || typeof playerObj.redemptionLogs !== "object") playerObj.redemptionLogs = {};
+            playerObj.redemptionLogs[logId] = redemptionEntry;
+        });
     };
 
-    commitPlayerUpdate(selectedPlayerKey, (playerObj) => {
-        if (!playerObj.redemptionLogs || typeof playerObj.redemptionLogs !== "object") playerObj.redemptionLogs = {};
-        playerObj.redemptionLogs[logId] = redemptionEntry;
-    }).finally(() => {
-        isRedeeming = false;
+    if (isSandboxMode) {
+        item.stock = Math.max(0, currentStock - 1);
+        refreshInventoryUI();
+        finalizePlayerRedemption().finally(() => {
+            isRedeeming = false;
+        });
+        return;
+    }
+
+    // En Producción: descontar 1 unidad de forma atómica sobre el artículo específico
+    item.stock = Math.max(0, currentStock - 1);
+    refreshInventoryUI();
+
+    db.ref(`players/__inventory__/items/${itemId}`).transaction((serverItem) => {
+        if (!serverItem) {
+            return { ...item, stock: Math.max(0, currentStock - 1) };
+        }
+        const srvStock = parseInt(serverItem.stock) || 0;
+        if (srvStock <= 0) {
+            return; // Aborta la transacción si otro celular del staff agotó la última unidad
+        }
+        serverItem.stock = srvStock - 1;
+        return serverItem;
+    }, (error, committed, snapshot) => {
+        if (error || !committed) {
+            if (snapshot && snapshot.val()) {
+                allInventory[itemId] = snapshot.val();
+            } else {
+                item.stock = 0;
+            }
+            refreshInventoryUI();
+            isRedeeming = false;
+            alert(`⚠️ "${item.name}" acaba de agotarse en otro dispositivo.`);
+            return;
+        }
+
+        if (snapshot && snapshot.val()) {
+            allInventory[itemId] = snapshot.val();
+            refreshInventoryUI();
+        }
+        db.ref("players/__inventory__/lastUpdated").set(Date.now()).catch(() => {});
+
+        finalizePlayerRedemption().finally(() => {
+            isRedeeming = false;
+        });
     });
 }
 
