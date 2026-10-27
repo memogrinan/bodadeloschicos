@@ -950,7 +950,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let rawPlayersData = {};
         let isLeaderboardListening = false;
 
-        function syncPlayerToFirebase() {
+        async function syncPlayerToFirebase() {
             if (!db || !playerGamertag || !playerGamertag.trim()) return;
             let cleanGuestId = formatGuestId(playerGuestId || localStorage.getItem("bodachicos_guest_id") || (activePlayerRemoteData && activePlayerRemoteData.guestId));
             if (!cleanGuestId && rawPlayersData && typeof rawPlayersData === "object") {
@@ -979,6 +979,29 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!keyTag) return;
 
             attachActivePlayerListener(keyTag);
+
+            // SALVAGUARDA ESTRICTA: Si activePlayerRemoteData no corresponde al jugador actual,
+            // descargar primero de Firebase para evitar sobreescribir récords remotos con datos locales vacíos o viejos
+            const curGid = formatGuestId(activePlayerRemoteData && (activePlayerRemoteData.guestId || activePlayerRemoteData.key));
+            const curTag = (activePlayerRemoteData && activePlayerRemoteData.gamerTag ? activePlayerRemoteData.gamerTag : "").trim().toLowerCase();
+            const isRemoteActiveForCurrent = Boolean(
+                activePlayerRemoteData && (
+                    (cleanGuestId && curGid === cleanGuestId) ||
+                    (!cleanGuestId && curTag === cleanGamertag.toLowerCase())
+                )
+            );
+
+            if (!isRemoteActiveForCurrent && !isSandboxGuestMode && db) {
+                try {
+                    const snap = await db.ref(PLAYERS_DB_PATH + "/" + keyTag).once("value");
+                    if (snap && snap.exists() && snap.val()) {
+                        activePlayerRemoteData = snap.val();
+                        normalizePlayerRecordScale(activePlayerRemoteData);
+                    }
+                } catch (e) {
+                    console.warn("Aviso al consultar estado remoto antes de sync:", e);
+                }
+            }
             
             const remoteScores = (activePlayerRemoteData && activePlayerRemoteData.scores) ? activePlayerRemoteData.scores : {};
             const scoresObj = {};
@@ -1401,12 +1424,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function applyPlayerScores(remoteData, keyTag, preserveHigherLocal = false) {
+            const storedGid = formatGuestId(localStorage.getItem("bodachicos_guest_id"));
+            const storedTag = (localStorage.getItem("bodachicos_gamertag") || "").trim().toLowerCase();
+            const remoteTag = (remoteData && remoteData.gamerTag ? remoteData.gamerTag : "").trim().toLowerCase();
+            const targetGid = formatGuestId(keyTag);
+
+            // Solo permitir conservar puntaje local si estamos 100% seguros de que pertenece a ESTE MISMO usuario
+            const isSameIdentity = Boolean(
+                (targetGid && storedGid && targetGid === storedGid) ||
+                (remoteTag && storedTag && remoteTag === storedTag)
+            );
+            const allowLocalPreserve = Boolean(preserveHigherLocal && isSameIdentity);
+
             const prevLocalScores = {};
             let prevLocalMaxDist = 0;
             let prevLocalPueblaWon = false;
             let prevLocalTimePlayed = 0;
 
-            if (preserveHigherLocal) {
+            if (allowLocalPreserve) {
                 ["chico", "chica", "maddie", "puebla"].forEach(g => {
                     prevLocalScores[g] = getScore(g);
                 });
@@ -1430,25 +1465,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             ["chico", "chica", "maddie", "puebla"].forEach(g => {
                 const remVal = (sourceData && sourceData.scores) ? (parseInt(sourceData.scores[g]) || 0) : 0;
-                const finalVal = preserveHigherLocal ? Math.max(remVal, prevLocalScores[g] || 0) : remVal;
+                const finalVal = allowLocalPreserve ? Math.max(remVal, prevLocalScores[g] || 0) : remVal;
                 if (finalVal > 0) {
                     localStorage.setItem("bodachicos_score_" + g, finalVal);
                 }
             });
 
             const remDist = sourceData ? (parseFloat(sourceData.maxDistPuebla) || 0) : 0;
-            const finalDist = preserveHigherLocal ? Math.max(remDist, prevLocalMaxDist) : remDist;
+            const finalDist = allowLocalPreserve ? Math.max(remDist, prevLocalMaxDist) : remDist;
             if (finalDist > 0) {
                 localStorage.setItem("bodachicos_maxdist_puebla", finalDist.toFixed(1));
             }
 
             const remWon = Boolean(sourceData && (sourceData.pueblaWon || (sourceData.scores && sourceData.scores.puebla >= METAS.puebla) || remDist >= 120));
-            if (remWon || (preserveHigherLocal && prevLocalPueblaWon) || getScore("puebla") >= METAS.puebla || finalDist >= 120) {
+            if (remWon || (allowLocalPreserve && prevLocalPueblaWon) || getScore("puebla") >= METAS.puebla || finalDist >= 120) {
                 localStorage.setItem("bodachicos_puebla_won", "true");
             }
 
             const remTime = sourceData ? (parseInt(sourceData.timePlayedSeconds) || 0) : 0;
-            const finalTime = preserveHigherLocal ? Math.max(remTime, prevLocalTimePlayed) : remTime;
+            const finalTime = allowLocalPreserve ? Math.max(remTime, prevLocalTimePlayed) : remTime;
             if (finalTime > 0) {
                 localStorage.setItem("bodachicos_time_played", finalTime);
             }
@@ -1553,7 +1588,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             playerRealName = record.data.realName;
                             localStorage.setItem("bodachicos_real_name", playerRealName);
                         }
-                        applyPlayerScores(record.data, playerGuestId || record.key, true);
+                        applyPlayerScores(record.data, playerGuestId || record.key, false);
                         if (record.data.gamerTag && record.data.gamerTag !== playerGamertag) {
                             playerGamertag = record.data.gamerTag;
                             localStorage.setItem("bodachicos_gamertag", playerGamertag);
@@ -1700,6 +1735,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 (playerGuestId && formatGuestId(memberId) === playerGuestId) ||
                 (playerRealName && (memberName || "").trim().toLowerCase() === playerRealName.trim().toLowerCase())
             );
+            if (!isSameActivePlayer) {
+                clearLocalPlayerScores();
+            }
             selectedRealName = (memberName || "").trim();
             selectedGuestId = formatGuestId(memberId);
 
@@ -1882,6 +1920,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         return;
                     }
 
+                    const isSamePlayer = Boolean(
+                        (playerGuestId && effectiveGuestId && playerGuestId === effectiveGuestId) ||
+                        (playerRealName && effectiveRealName && playerRealName.toLowerCase() === effectiveRealName.toLowerCase())
+                    );
+                    if (!isSamePlayer) {
+                        clearLocalPlayerScores();
+                    }
+
                     // Asegurar que antes de guardar el nuevo GamerTag siempre se fusionen los puntos históricos del invitado en Firebase
                     const existingRecord = (effectiveGuestId || effectiveRealName)
                         ? await fetchPlayerRecordByGuest(effectiveGuestId, effectiveRealName)
@@ -1892,12 +1938,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (!effectiveGuestId && foundGid) effectiveGuestId = foundGid;
                         if (!effectiveRealName && existingRecord.data.realName) effectiveRealName = existingRecord.data.realName.trim();
 
-                        const isSamePlayer = Boolean(
-                            !playerGuestId ||
-                            playerGuestId === effectiveGuestId ||
-                            (playerRealName && effectiveRealName && playerRealName.toLowerCase() === effectiveRealName.toLowerCase())
-                        );
                         applyPlayerScores(existingRecord.data, effectiveGuestId || existingRecord.key, isSamePlayer);
+                    } else if (!isSamePlayer) {
+                        applyPlayerScores(null, effectiveGuestId, false);
                     }
                 } catch (e) {
                     console.warn("Aviso al verificar perfil existente en saveGamerTag:", e);
