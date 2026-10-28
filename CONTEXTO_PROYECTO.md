@@ -23,7 +23,7 @@ Este documento contiene la arquitectura completa, estado actual, historial de de
 
 | Archivo | Rol y Responsabilidad |
 | :--- | :--- |
-| `index.html` & `js/index.js` | Invitación principal: portada, contador regresivo al 13-Feb-2027 3:00 PM, historia, lugares, itinerario condicional, hospedaje, regalos (enlace directo a Uniko), RSVP conectado a Sheets, acceso a minijuegos y galería de fotos. |
+| `index.html` & `js/index.js` | Invitación principal: portada, contador regresivo al 13-Feb-2027 2:40 PM, historia, lugares, itinerario condicional, hospedaje, regalos (enlace directo a Uniko), RSVP conectado a Sheets, acceso a minijuegos y galería de fotos. |
 | `juegos.html` & `js/juegos.js` | Plataforma de 4 minijuegos web (Chicosaurio, Atrapa el Amor, Atrapa a Maddie, Camino a Puebla), sistema de ChiCoins y Leaderboard sincronizado con Firebase. |
 | `regalos.html` & `js/regalos.js` | Tienda interactiva histórica de regalos de luna de miel (se mantiene como página de respaldo; el botón principal de regalos en `index.html` lleva a la mesa oficial de Uniko). |
 | `admin.html` & `js/admin.js` | Panel administrativo protegido por contraseña para monitoreo de jugadores, ajuste manual de monedas, canjes de premios físicos y gestión de base de datos. |
@@ -227,7 +227,7 @@ Al ingresar con enlace personalizado, Google Sheets tarda 1.5 - 2 segundos en re
    - El botón principal de la sección de regalos ahora abre directamente la mesa oficial de Uniko en pestaña nueva: `https://evento.uniko.co/bodadeloschicos/`.
    - `regalos.html` se mantiene como respaldo histórico.
 2. **Contador Regresivo en Portada:**
-   - Fecha objetivo configurada: **Sábado 13 de febrero de 2027 a las 3:00 PM** (`2027-02-13T15:00:00-06:00`).
+   - Fecha objetivo configurada: **Sábado 13 de febrero de 2027 a las 2:40 PM** (`2027-02-13T14:40:00-06:00`).
    - Cuenta hacia atrás con exactitud horaria y se desactiva limpiamente una vez alcanzada la fecha.
 3. **Identidad Visual de Maddie & Favicon:**
    - **Ícono de Maddie en la Línea de Tiempo (Hito 2024):** Actualizado con el trazo oficial `maddie_logo_contorno.webp` en `ImagenesWeb/Optimizadas/` (color olivo institucional `#52582F`).

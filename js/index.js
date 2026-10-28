@@ -284,8 +284,8 @@ if (!document.getElementById('cg-dynamic-styles')) {
         // Verificar estado al cargar
         updateInstallButtonState();
 
-        // Contador en tiempo real: Sábado 13 de Febrero de 2027 a las 3:00 PM (Hora local Puebla, UTC-6)
-        const targetDate = new Date("2027-02-13T15:00:00-06:00").getTime();
+        // Contador en tiempo real: Sábado 13 de Febrero de 2027 a las 2:40 PM (Hora local Puebla, UTC-6)
+        const targetDate = new Date("2027-02-13T14:40:00-06:00").getTime();
         function updateTimer() {
             const now = new Date().getTime();
             const diff = targetDate - now;
@@ -327,7 +327,7 @@ if (!document.getElementById('cg-dynamic-styles')) {
                     ? "Ceremony at Parroquia de San Andrés Apóstol / Reception at Hacienda San José Actipan" 
                     : "Ceremonia en Parroquia de San Andrés Apóstol / Recepción en Hacienda San José Actipan");
 
-            const dtStart = isFriday ? "20270212T230000Z" : "20270213T210000Z";
+            const dtStart = isFriday ? "20270212T230000Z" : "20270213T204000Z";
             const dtEnd = isFriday ? "20270213T050000Z" : "20270214T053000Z";
             const filename = isFriday ? "Boda_Civil_Mariana_y_Memo.ics" : "Boda_Mariana_y_Memo.ics";
 
