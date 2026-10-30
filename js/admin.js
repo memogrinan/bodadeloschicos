@@ -1006,10 +1006,18 @@ function renderPlayersTable() {
         const isSelected = key === selectedPlayerKey;
         const encodedKey = encodeURIComponent(key);
 
+        const isGhost = !key.startsWith("GID_") && Object.keys(allPlayers).some(k => k.startsWith("GID_") && (
+            (allPlayers[k].gamerTag && tag && allPlayers[k].gamerTag.trim().toLowerCase() === tag.trim().toLowerCase()) ||
+            (allPlayers[k].realName && rName && allPlayers[k].realName.trim().toLowerCase() === rName.trim().toLowerCase())
+        ));
+
         html += `
-            <tr data-player-key="${encodedKey}" onclick="selectPlayer(decodeURIComponent('${encodedKey}'))" class="cursor-pointer hover:bg-[#fcfaf7] transition ${isSelected ? 'bg-[#52582f]/10' : ''}">
+            <tr data-player-key="${encodedKey}" onclick="selectPlayer(decodeURIComponent('${encodedKey}'))" class="cursor-pointer hover:bg-[#fcfaf7] transition ${isSelected ? 'bg-[#52582f]/10' : ''} ${isGhost ? 'bg-red-50/50' : ''}">
                 <td class="py-2 px-1.5 max-w-[140px] sm:max-w-[200px]">
-                    <div class="font-bold text-gray-800 text-xs truncate">${tag}</div>
+                    <div class="font-bold text-gray-800 text-xs truncate flex items-center">
+                        ${tag}
+                        ${isGhost ? '<span class="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded font-bold ml-1 shrink-0">⚠️ Sin GID</span>' : ''}
+                    </div>
                     ${rName ? `<div class="text-[10px] text-gray-400 truncate">${rName}</div>` : ''}
                 </td>
                 <td class="py-2 px-1.5 text-right whitespace-nowrap">
@@ -1562,6 +1570,61 @@ function deletePlayerRecord() {
         }
 
         db.ref(`players/${keyToDelete}`).remove().catch(err => alert("Error al borrar: " + err.message));
+    }
+}
+
+async function purgeGhostDuplicatePlayers() {
+    const ghostKeys = [];
+    const gidPlayers = [];
+    
+    Object.entries(allPlayers).forEach(([k, p]) => {
+        if (!p || typeof p !== "object" || k.startsWith("__")) return;
+        if (k.startsWith("GID_") || (p.guestId && String(p.guestId).startsWith("GID_"))) {
+            gidPlayers.push({
+                key: k,
+                tag: (p.gamerTag || "").trim().toLowerCase(),
+                realName: (p.realName || "").trim().toLowerCase()
+            });
+        }
+    });
+
+    Object.entries(allPlayers).forEach(([k, p]) => {
+        if (!p || typeof p !== "object" || k.startsWith("__")) return;
+        if (k.startsWith("GID_")) return;
+        const pTag = (p.gamerTag || "").trim().toLowerCase();
+        const pName = (p.realName || "").trim().toLowerCase();
+        
+        // Buscar si ya tiene una versión legítima con GID_
+        const matchingGid = gidPlayers.find(g => (pTag && g.tag === pTag) || (pName && g.realName && g.realName === pName));
+        if (matchingGid) {
+            ghostKeys.push({ ghostKey: k, tag: p.gamerTag || k, legitimateKey: matchingGid.key });
+        }
+    });
+
+    if (ghostKeys.length === 0) {
+        alert("✅ No se encontraron nodos duplicados sin GID. Tu base de datos está completamente limpia.");
+        return;
+    }
+
+    const listStr = ghostKeys.map(g => `• '${g.ghostKey}' (duplicado de '${g.legitimateKey}')`).join("\n");
+    if (confirm(`🚨 Se detectaron ${ghostKeys.length} nodo(s) fantasma sin GID:\n\n${listStr}\n\n¿Deseas purgarlos y eliminarlos permanentemente para conservar únicamente los registros oficiales con GID?`)) {
+        for (const g of ghostKeys) {
+            delete allPlayers[g.ghostKey];
+            if (selectedPlayerKey === g.ghostKey) {
+                selectedPlayerKey = null;
+                document.getElementById("noSelectionState").classList.remove("hidden");
+                document.getElementById("selectionState").classList.add("hidden");
+                document.getElementById("selectionState").classList.remove("flex");
+            }
+            if (!isSandboxMode) {
+                await db.ref(`players/${g.ghostKey}`).remove().catch(err => console.error("Error al purgar:", err));
+            }
+        }
+        if (isSandboxMode) {
+            saveLocalSandboxPlayers(allPlayers);
+        }
+        renderPlayersTable();
+        alert(`✅ Se purgaron con éxito ${ghostKeys.length} nodo(s) duplicado(s).`);
     }
 }
 

@@ -979,11 +979,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
             }
+            if (!cleanGuestId && db && !isSandboxGuestMode) {
+                try {
+                    const snapCheck = await fetchPlayerRecordByGamertag(playerGamertag);
+                    if (snapCheck && snapCheck.data) {
+                        const candidate = formatGuestId(snapCheck.key) || formatGuestId(snapCheck.data.guestId);
+                        if (candidate) {
+                            cleanGuestId = candidate;
+                            if (snapCheck.data.realName && !playerRealName) {
+                                playerRealName = snapCheck.data.realName;
+                                localStorage.setItem("bodachicos_real_name", playerRealName);
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
             if (cleanGuestId) {
                 playerGuestId = cleanGuestId;
                 localStorage.setItem("bodachicos_guest_id", cleanGuestId);
-            } else {
-                localStorage.removeItem("bodachicos_guest_id");
             }
 
             const cleanGamertag = playerGamertag.trim().replace(/[.#$/[\]]/g, "_");
@@ -1103,6 +1116,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateSandboxLocalPlayer(keyTag, payload);
             } else {
                 db.ref(PLAYERS_DB_PATH + "/" + keyTag).update(payload).catch(err => console.error("Error al sincronizar con Firebase:", err));
+
+                // CAZAFANTASMAS: Si este jugador tiene Guest ID oficial (ej. GID_150) y difiere de cleanGamertag (ej. Bolillito97),
+                // purgar cualquier nodo huérfano obsoleto que se haya creado bajo el apodo en la raíz de /players/
+                if (cleanGuestId && cleanGamertag && cleanGuestId !== cleanGamertag) {
+                    try {
+                        db.ref(PLAYERS_DB_PATH + "/" + cleanGamertag).once("value").then(ghostSnap => {
+                            if (ghostSnap && ghostSnap.exists()) {
+                                console.log(`[Cazafantasmas] Purgando nodo fantasma obsoleto /players/${cleanGamertag} en favor de /players/${cleanGuestId}`);
+                                db.ref(PLAYERS_DB_PATH + "/" + cleanGamertag).remove().catch(() => {});
+                            }
+                        }).catch(() => {});
+                    } catch (e) {}
+                }
             }
 
             // Enviar analíticos a Google Sheets (Trix) silenciosamente (SOLO EN PRODUCCIÓN, no en modo Sandbox)
